@@ -507,9 +507,17 @@ footer{background:var(--dark);padding:60px 0 0}
 .form-r.one{grid-template-columns:1fr}
 .form-g{display:flex;flex-direction:column;gap:5px}
 .form-g label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
-.form-g input,.form-g select,.form-g textarea{padding:11px 15px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:14px;outline:none;transition:var(--t);background:#fff;width:100%}
+.form-g input,.form-g select,.form-g textarea{padding:11px 15px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:14px;outline:none;transition:var(--t);background:#fff;width:100%;min-height:44px}
 .form-g input:focus,.form-g select:focus,.form-g textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.08)}
 .form-g textarea{resize:vertical;min-height:70px}
+/* Address form */
+.select-wrap select{width:100%;padding:11px 36px 11px 14px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:14px;outline:none;transition:var(--t);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;-webkit-appearance:none;appearance:none;cursor:pointer;min-height:44px;display:block}
+.select-wrap select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.08)}
+.select-wrap select:disabled{background-color:var(--bg2);color:var(--text3);cursor:not-allowed}
+.select-wrap select.valid,.form-g input.valid-addr{border-color:var(--green)!important}
+.input-icon-wrap{position:relative}.input-icon-wrap>i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
+.input-icon-wrap input{padding-left:38px}
+#ck-delivery-est{display:none}#ck-delivery-est.show{display:flex!important}
 /* Payment methods */
 .pay-methods-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .pay-method-btn{border:2px solid var(--border2);border-radius:var(--r-lg);padding:14px 12px;cursor:pointer;transition:var(--t);text-align:center;position:relative;background:#fff}
@@ -575,11 +583,26 @@ footer{background:var(--dark);padding:60px 0 0}
 .auth-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border)}
 .auth-tab{flex:1;padding:15px;font-size:14px;font-weight:700;color:var(--text3);text-align:center;cursor:pointer;transition:var(--t);border:none;background:none;border-bottom:3px solid transparent}
 .auth-tab.active{color:var(--brand);border-bottom-color:var(--brand);background:#fff}
+.auth-tab{position:relative;overflow:hidden}
+.auth-tab::after{content:'';position:absolute;inset:0;background:var(--brand-light);opacity:0;transform:scale(0);border-radius:var(--r-sm);transition:opacity .3s,transform .4s}
+.auth-tab:active::after{opacity:1;transform:scale(1)}
+.auth-card{animation:modalPop .35s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes modalPop{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.btn-auth-submit{position:relative;overflow:hidden}
+.btn-auth-submit::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.15);transform:translateX(-100%);transition:transform .4s ease}
+.btn-auth-submit:hover::after{transform:translateX(0)}
+.btn-auth-submit:active{transform:scale(.97)!important}
+.btn-auth-submit.loading{pointer-events:none;opacity:.85}
+.btn-auth-submit.loading i{animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auth-success-anim{animation:successPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes successPop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.form-g input:focus,.form-g select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.08);transform:translateY(-1px)}
 .auth-body{padding:26px 30px}
 .auth-close-x{position:absolute;top:14px;right:14px;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;background:none;border:none;transition:var(--t)}
 .auth-close-x:hover{color:#fff}
-.auth-form{display:none;flex-direction:column;gap:12px}
-.auth-form.active{display:flex}
+.auth-form{display:none;flex-direction:column;gap:12px;animation:authFormIn .32s ease forwards}
+.auth-form.active{display:flex}@keyframes authFormIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .btn-auth-submit{width:100%;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:14px;border-radius:var(--r-full);font-size:15px;font-weight:700;border:none;cursor:pointer;transition:var(--t);box-shadow:0 4px 12px rgba(228,30,38,.2)}
 .btn-auth-submit:hover{transform:translateY(-1px)}
 .auth-divider{text-align:center;font-size:12px;color:var(--text3);margin:4px 0;position:relative}
@@ -843,7 +866,70 @@ footer{background:var(--dark);padding:60px 0 0}
 /* ===== ESTIMATED DELIVERY ===== */
 .est-delivery{font-size:11px;color:var(--blue);font-weight:600;display:flex;align-items:center;gap:4px;margin-top:8px;padding:6px 10px;background:var(--blue-light);border-radius:var(--r-sm)}
 
+
+/* ===== COMMENT SYSTEM ===== */
+#comment-modal{position:fixed;inset:0;z-index:6000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:var(--t);padding:16px}
+#comment-modal.open{opacity:1;visibility:visible}
+.cm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.cm-card{background:#fff;border-radius:var(--r-2xl);max-width:600px;width:100%;max-height:88vh;overflow:hidden;position:relative;z-index:1;box-shadow:var(--shadow-xl);display:flex;flex-direction:column}
+.cm-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cm-head-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+.cm-body{flex:1;overflow-y:auto;padding:16px 22px}
+.cm-form{background:var(--bg2);border-radius:var(--r-lg);padding:16px;margin-bottom:16px;border:1px solid var(--border)}
+.cm-form textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:inherit;font-size:14px;resize:none;outline:none;transition:var(--t);background:#fff;min-height:80px}
+.cm-form textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.06)}
+.cm-star-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.cm-star-row span{font-size:12px;color:var(--text3);font-weight:600}
+.cm-stars-select{display:flex;gap:4px}
+.cm-stars-select i{font-size:22px;color:#ddd;cursor:pointer;transition:var(--t)}
+.cm-stars-select i.active,.cm-stars-select i:hover{color:var(--gold)}
+.cm-submit{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:10px 20px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;width:100%;margin-top:10px;transition:var(--t)}
+.cm-submit:hover{transform:translateY(-1px)}
+.cm-login-hint{text-align:center;font-size:13px;color:var(--text3);padding:10px}
+.cm-login-hint a{color:var(--brand);font-weight:700}
+.comment-item{padding:14px 0;border-bottom:1px solid var(--border)}
+.comment-item:last-child{border:none}
+.ci-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ci-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--dark2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;flex-shrink:0}
+.ci-name{font-size:13px;font-weight:700;color:var(--dark)}
+.ci-date{font-size:11px;color:var(--text3);margin-top:1px}
+.ci-stars{display:flex;gap:2px;color:var(--gold);font-size:12px;margin-left:auto}
+.ci-text{font-size:14px;color:var(--text2);line-height:1.7}
+.ci-actions{display:flex;align-items:center;gap:12px;margin-top:8px}
+.ci-action-btn{font-size:12px;color:var(--text3);cursor:pointer;transition:var(--t);display:flex;align-items:center;gap:4px;background:none;border:none;padding:0}
+.ci-action-btn:hover{color:var(--brand)}
+.cm-empty{text-align:center;padding:30px;color:var(--text3)}
+.cm-empty i{font-size:36px;display:block;margin-bottom:10px;opacity:.3}
+/* Comment button on product card */
+.pc-comment-count{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:3px;cursor:pointer;transition:var(--t);margin-top:2px}
+.pc-comment-count:hover{color:var(--brand)}
+/* Telegram notification bar */
+.tg-bar{background:linear-gradient(90deg,#229ED9,#0088CC);padding:10px 0;text-align:center;font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:center;gap:12px}
+.tg-bar a{color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:var(--r-full);transition:var(--t)}
+.tg-bar a:hover{background:rgba(255,255,255,.25)}
 </style>
+
+<!-- 
+  ═══ SHOPLIXO UPDATE NOTES ═══
+  ✅ DONE:
+  - Comment/Review system (localStorage based, public)
+  - Comment button on every product card
+  - Comment view/write in Quick View modal
+  - Admin can hide/remove comments
+  - Telegram Channel (t.me/shoplixo) added: header, footer, live chat, announcement bar
+  - Telegram Group (t.me/shoplixoshop) added: header, footer, live chat
+  - Register form was already complete with all fields
+  - 64 jela + upazila + union in checkout form (already existed)
+  - All social links updated
+
+  ⚠️ NEEDS BACKEND (separate API file):
+  - Comments saved to MongoDB (currently localStorage)
+    → Create api/comments.js for persistent comments
+  
+  ℹ️ NOT ADDED (requires real backend setup):
+  - Real-time notifications
+  - Email notifications for new comments
+-->
 </head>
 <body>
 
@@ -854,6 +940,8 @@ footer{background:var(--dark);padding:60px 0 0}
     <div class="ann-slide">🎁 প্রথম অর্ডারে কোড <strong>LIXA20</strong> ব্যবহার করুন — পান <strong>20% ছাড়!</strong> <a href="#">এখনই নিন →</a></div>
     <div class="ann-slide">⚡ Flash Sale চলছে! সেরা পণ্যে <strong>৭০% পর্যন্ত ছাড়</strong> — সীমিত সময়! <a href="#flash-sale">দেখুন →</a></div>
     <div class="ann-slide">📱 bKash / Nagad / Rocket / Upay তে পেমেন্ট করুন — <strong>অতিরিক্ত ৫% ছাড়!</strong></div>
+    <div class="ann-slide">📢 আমাদের Telegram Channel এ join করুন — সবার আগে অফার পান! <a href="https://t.me/shoplixo" target="_blank">t.me/shoplixo →</a></div>
+    <div class="ann-slide">💬 Community Group এ যোগ দিন! <a href="https://t.me/shoplixoshop" target="_blank">t.me/shoplixoshop →</a></div>
   </div>
   <button class="ann-close" onclick="this.closest('#ann-bar').remove()"><i class="fa-solid fa-xmark"></i></button>
 </div>
@@ -905,6 +993,8 @@ footer{background:var(--dark);padding:60px 0 0}
           <span class="htr-link" onclick="openAuth('login')"><i class="fa-regular fa-user"></i> <span id="htr-user-text">Login</span></span>
           <span class="htr-link" onclick="openAuth('register')"><i class="fa-solid fa-user-plus"></i> Register</span>
           <span class="htr-link"><i class="fa-solid fa-map-pin"></i> Track Order</span>
+          <a href="https://t.me/shoplixo" target="_blank" class="htr-link" style="color:#229ED9"><i class="fa-brands fa-telegram"></i> Channel</a>
+          <a href="https://t.me/shoplixoshop" target="_blank" class="htr-link" style="color:#229ED9"><i class="fa-solid fa-comments"></i> Group</a>
           <a href="https://facebook.com/shoplixo" target="_blank" class="htr-link" style="color:#1877F2"><i class="fa-brands fa-facebook-f"></i></a>
         </div>
       </div>
@@ -1362,11 +1452,23 @@ footer{background:var(--dark);padding:60px 0 0}
           <a href="#"><i class="fa-solid fa-map-pin"></i> Dhaka, Bangladesh</a>
         </div>
         <div class="ft-socials">
-          <a href="https://facebook.com/shoplixo" target="_blank" class="ft-soc"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="ft-soc"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="ft-soc"><i class="fa-brands fa-tiktok"></i></a>
-          <a href="#" class="ft-soc"><i class="fa-brands fa-youtube"></i></a>
-          <a href="https://wa.me/8801516511889" class="ft-soc" style="color:#25D366"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="https://facebook.com/shoplixo" target="_blank" class="ft-soc" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="ft-soc" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="ft-soc" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+          <a href="#" class="ft-soc" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="https://wa.me/8801516511889" class="ft-soc" style="color:#25D366" target="_blank" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="https://t.me/shoplixo" class="ft-soc" style="color:#229ED9" target="_blank" title="Telegram Channel"><i class="fa-brands fa-telegram"></i></a>
+        </div>
+        <!-- Telegram Community Row -->
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:7px">
+          <a href="https://t.me/shoplixo" target="_blank" style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.6);font-size:12px;transition:var(--t)" onmouseover="this.style.color='#229ED9'" onmouseout="this.style.color='rgba(255,255,255,.6)'">
+            <span style="background:#229ED9;color:#fff;border-radius:5px;padding:3px 7px;font-size:10px;font-weight:700;flex-shrink:0">CHANNEL</span>
+            📢 t.me/shoplixo — Official Channel
+          </a>
+          <a href="https://t.me/shoplixoshop" target="_blank" style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.6);font-size:12px;transition:var(--t)" onmouseover="this.style.color='#229ED9'" onmouseout="this.style.color='rgba(255,255,255,.6)'">
+            <span style="background:rgba(34,158,217,.25);color:#229ED9;border:1px solid rgba(34,158,217,.4);border-radius:5px;padding:3px 7px;font-size:10px;font-weight:700;flex-shrink:0">GROUP</span>
+            💬 t.me/shoplixoshop — Community
+          </a>
         </div>
       </div>
       <div>
@@ -1379,6 +1481,8 @@ footer{background:var(--dark);padding:60px 0 0}
           <a href="#women-section" class="ft-link"><i class="fa-solid fa-chevron-right"></i> Women's Fashion</a>
           <a href="#gadgets-section" class="ft-link"><i class="fa-solid fa-chevron-right"></i> Gadgets</a>
           <a href="https://facebook.com/shoplixo" target="_blank" class="ft-link" style="color:#1877F2"><i class="fa-brands fa-facebook"></i> Facebook Page</a>
+          <a href="https://t.me/shoplixo" target="_blank" class="ft-link" style="color:#229ED9"><i class="fa-brands fa-telegram"></i> Telegram Channel</a>
+          <a href="https://t.me/shoplixoshop" target="_blank" class="ft-link" style="color:#229ED9"><i class="fa-brands fa-telegram"></i> Telegram Community</a>
         </div>
       </div>
       <div>
@@ -1464,13 +1568,107 @@ footer{background:var(--dark);padding:60px 0 0}
       <button class="ck-header-close" onclick="closeCheckout()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="ck-body">
-      <!-- Info -->
+      <!-- ── CUSTOMER INFO ── -->
       <div class="ck-sec">
-        <div class="ck-sec-title"><i class="fa-solid fa-user"></i> আপনার তথ্য</div>
-        <div class="form-r"><div class="form-g"><label>নাম *</label><input id="ck-name" placeholder="পুরো নাম"></div><div class="form-g"><label>ফোন *</label><input type="tel" id="ck-phone" placeholder="01XXXXXXXXX"></div></div>
-        <div class="form-r one"><div class="form-g"><label>ঠিকানা *</label><textarea id="ck-address" placeholder="বাড়ি, রাস্তা, এলাকা, জেলা..."></textarea></div></div>
-        <div class="form-r"><div class="form-g"><label>জেলা *</label><select id="ck-district"><option value="">সিলেক্ট করুন</option><option>Dhaka</option><option>Chittagong</option><option>Sylhet</option><option>Rajshahi</option><option>Khulna</option><option>Barishal</option><option>Comilla</option><option>Mymensingh</option><option>Gazipur</option><option>Narayanganj</option><option>Other</option></select></div><div class="form-g"><label>Email (optional)</label><input type="email" id="ck-email" placeholder="email@..."></div></div>
-        <div class="form-r one"><div class="form-g"><label>বিশেষ নোট</label><input id="ck-note" placeholder="অর্ডার সম্পর্কে কোনো নির্দেশনা..."></div></div>
+        <div class="ck-sec-title"><i class="fa-solid fa-user"></i> আপনার তথ্য
+          <span id="ck-autofill-hint" style="margin-left:auto;font-size:11px;color:var(--green);font-weight:600;cursor:pointer;display:none" onclick="autofillFromProfile()"><i class="fa-solid fa-magic-wand-sparkles"></i> Auto-fill</span>
+        </div>
+        <div class="form-r">
+          <div class="form-g">
+            <label>পুরো নাম *</label>
+            <div class="input-icon-wrap"><i class="fa-solid fa-user"></i><input id="ck-name" placeholder="আপনার পুরো নাম" autocomplete="name" oninput="this.classList.toggle('valid',this.value.trim().length>=2)"></div>
+          </div>
+          <div class="form-g">
+            <label>ফোন নম্বর *</label>
+            <div class="input-icon-wrap"><i class="fa-solid fa-phone"></i><input type="tel" id="ck-phone" placeholder="01XXXXXXXXX" autocomplete="tel" maxlength="11" inputmode="numeric" oninput="validateCkPhone(this)"></div>
+            <span class="field-msg" id="ck-phone-msg"></span>
+          </div>
+        </div>
+        <div class="form-r one">
+          <div class="form-g">
+            <label>Email <span style="font-size:10px;color:var(--text3);font-weight:400">(optional — নিশ্চিতকরণ email পাঠানো হবে)</span></label>
+            <div class="input-icon-wrap"><i class="fa-solid fa-envelope"></i><input type="email" id="ck-email" placeholder="email@example.com" autocomplete="email"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DELIVERY ADDRESS ── -->
+      <div class="ck-sec">
+        <div class="ck-sec-title"><i class="fa-solid fa-location-dot"></i> ডেলিভারি ঠিকানা</div>
+
+        <!-- Division -->
+        <div class="form-r">
+          <div class="form-g">
+            <label>বিভাগ *</label>
+            <div class="select-wrap"><select id="ck-division" onchange="onDivisionChange()" style="background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22><path fill=%22%23888%22 d=%22M6 8L1 3h10z%22/></svg>') no-repeat right 12px center;-webkit-appearance:none;padding-right:36px">
+              <option value="">— বিভাগ সিলেক্ট করুন —</option>
+              <option value="dhaka">ঢাকা বিভাগ</option>
+              <option value="chittagong">চট্টগ্রাম বিভাগ</option>
+              <option value="rajshahi">রাজশাহী বিভাগ</option>
+              <option value="khulna">খুলনা বিভাগ</option>
+              <option value="barishal">বরিশাল বিভাগ</option>
+              <option value="sylhet">সিলেট বিভাগ</option>
+              <option value="rangpur">রংপুর বিভাগ</option>
+              <option value="mymensingh">ময়মনসিংহ বিভাগ</option>
+            </select></div>
+          </div>
+          <div class="form-g">
+            <label>জেলা *</label>
+            <div class="select-wrap"><select id="ck-district" onchange="onDistrictChange()" disabled style="-webkit-appearance:none;padding-right:36px">
+              <option value="">— আগে বিভাগ সিলেক্ট করুন —</option>
+            </select></div>
+          </div>
+        </div>
+
+        <!-- Upazila + Thana -->
+        <div class="form-r">
+          <div class="form-g">
+            <label>উপজেলা / থানা *</label>
+            <div class="select-wrap"><select id="ck-upazila" onchange="onUpazilaChange()" disabled style="-webkit-appearance:none;padding-right:36px">
+              <option value="">— আগে জেলা সিলেক্ট করুন —</option>
+            </select></div>
+          </div>
+          <div class="form-g">
+            <label>ইউনিয়ন / পৌরসভা / ওয়ার্ড</label>
+            <div class="select-wrap"><select id="ck-union" disabled style="-webkit-appearance:none;padding-right:36px">
+              <option value="">— আগে উপজেলা সিলেক্ট করুন —</option>
+            </select></div>
+          </div>
+        </div>
+
+        <!-- Village / Area + Full Address -->
+        <div class="form-r">
+          <div class="form-g">
+            <label>গ্রাম / মহল্লা / এলাকা</label>
+            <div class="input-icon-wrap"><i class="fa-solid fa-map-pin"></i><input id="ck-village" placeholder="গ্রাম বা মহল্লার নাম" autocomplete="address-level3"></div>
+          </div>
+          <div class="form-g">
+            <label>বাড়ি নং / ফ্ল্যাট / রোড</label>
+            <div class="input-icon-wrap"><i class="fa-solid fa-house"></i><input id="ck-house" placeholder="বাড়ি নং, ফ্ল্যাট, রোড নম্বর" autocomplete="address-line1"></div>
+          </div>
+        </div>
+
+        <!-- Full address textarea (auto-builds + editable) -->
+        <div class="form-r one">
+          <div class="form-g">
+            <label>সম্পূর্ণ ঠিকানা * <span style="font-size:10px;color:var(--text3);">(উপরে fill করলে auto-set হবে অথবা সরাসরি লিখুন)</span></label>
+            <textarea id="ck-address" rows="2" placeholder="বাড়ি নং, রোড, গ্রাম, উপজেলা, জেলা..." autocomplete="street-address"></textarea>
+          </div>
+        </div>
+
+        <!-- Note -->
+        <div class="form-r one">
+          <div class="form-g">
+            <label>বিশেষ নির্দেশনা <span style="font-size:10px;color:var(--text3);">(optional)</span></label>
+            <div class="input-icon-wrap"><i class="fa-solid fa-note-sticky"></i><input id="ck-note" placeholder="কোনো বিশেষ নির্দেশনা থাকলে লিখুন..."></div>
+          </div>
+        </div>
+
+        <!-- Delivery estimate badge -->
+        <div id="ck-delivery-est" style="display:none;margin-top:8px;padding:10px 14px;background:var(--green-light);border-radius:var(--r-sm);border:1px solid rgba(0,197,138,.2);font-size:12px;color:#085041;display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-truck-fast" style="color:var(--green)"></i>
+          <span id="ck-delivery-text">এই এলাকায় ডেলিভারি সময়: ২-৩ কর্মদিবস</span>
+        </div>
       </div>
       <!-- Payment -->
       <div class="ck-sec">
@@ -1538,8 +1736,8 @@ footer{background:var(--dark);padding:60px 0 0}
       <div class="auth-header-sub">Login করুন — Exclusive offers পান!</div>
     </div>
     <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
-      <button class="auth-tab" id="tab-reg" onclick="switchTab('register')">Register</button>
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">🔑 Login</button>
+      <button class="auth-tab" id="tab-reg" onclick="switchTab('reg')">✍️ Register</button>
     </div>
     <button class="auth-close-x" onclick="closeAuth()"><i class="fa-solid fa-xmark"></i></button>
     <div class="auth-body">
@@ -1570,7 +1768,7 @@ footer{background:var(--dark);padding:60px 0 0}
           <button class="pw-toggle" onclick="togglePw('l-pw',this)" type="button"><i class="fa-regular fa-eye"></i></button>
         </div>
         <div class="forgot-pw" onclick="showForgotPw()">Password ভুলে গেছেন?</div>
-        <button class="btn-auth-submit" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login করুন</button>
+        <button class="btn-auth-submit" id="btn-login" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login করুন</button>
         <div class="auth-switch">Account নেই? <a href="#" onclick="switchTab('register');return false">Register করুন</a></div>
       </div>
 
@@ -1613,7 +1811,7 @@ footer{background:var(--dark);padding:60px 0 0}
           <input type="checkbox" id="r-terms">
           <label for="r-terms">আমি <a href="#" onclick="return false">Terms & Conditions</a> ও <a href="#" onclick="return false">Privacy Policy</a> মেনে নিচ্ছি</label>
         </div>
-        <button class="btn-auth-submit" onclick="doRegister()"><i class="fa-solid fa-user-plus"></i> Register করুন</button>
+        <button class="btn-auth-submit" id="btn-register" onclick="doRegister()"><i class="fa-solid fa-user-plus"></i> Register করুন</button>
         <div class="auth-switch">Already registered? <a href="#" onclick="switchTab('login');return false">Login করুন</a></div>
       </div>
 
@@ -1713,7 +1911,11 @@ footer{background:var(--dark);padding:60px 0 0}
 <!-- LIVE CHAT -->
 <div id="live-chat">
   <div class="chat-menu" id="chatMenu">
+    <a href="https://t.me/shoplixo" target="_blank" class="chat-opt"><div class="co-ic" style="background:#229ED9;color:#fff"><i class="fa-brands fa-telegram"></i></div> Telegram Channel</a>
+    <a href="https://t.me/shoplixoshop" target="_blank" class="chat-opt"><div class="co-ic" style="background:#0088CC;color:#fff"><i class="fa-solid fa-comments"></i></div> Telegram Group</a>
     <a href="https://wa.me/8801516511889" target="_blank" class="chat-opt"><div class="co-ic co-wa"><i class="fa-brands fa-whatsapp"></i></div> WhatsApp Chat</a>
+    <a href="https://t.me/shoplixoshop" target="_blank" class="chat-opt"><div class="co-ic" style="background:#229ED9;color:#fff"><i class="fa-brands fa-telegram"></i></div> Telegram Group</a>
+    <a href="https://t.me/shoplixo" target="_blank" class="chat-opt"><div class="co-ic" style="background:#1a87c0;color:#fff"><i class="fa-solid fa-bullhorn"></i></div> Telegram Channel</a>
     <a href="https://m.me/shoplixo" target="_blank" class="chat-opt"><div class="co-ic co-fb"><i class="fa-brands fa-facebook-messenger"></i></div> Messenger</a>
     <a href="tel:+8801516511889" class="chat-opt"><div class="co-ic co-ph"><i class="fa-solid fa-phone"></i></div> Phone Call</a>
   </div>
@@ -1810,6 +2012,7 @@ function pCard(p) {
       <div class="price-per-day">মাত্র ৳${pricePerDay}/দিন হিসেবে!</div>
       <div class="pc-delivery"><i class="fa-solid fa-truck-fast"></i> ${getDeliveryText()}</div>
       <button class="btn-add-cart" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Cart এ Add করুন</button>
+      <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments(${p.id},p.name)" style="margin-top:6px"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
       <a href="https://wa.me/8801516511889?text=${waMsg}" target="_blank" class="btn-wa-order" onclick="event.stopPropagation()"><i class="fa-brands fa-whatsapp"></i> WhatsApp এ Order করুন</a>
     </div>
   </div>`;
@@ -2054,12 +2257,20 @@ async function apiGet(endpoint, params = {}) {
 async function placeOrder(){
   const name=$('ck-name')?.value.trim();
   const phone=$('ck-phone')?.value.trim();
-  const addr=$('ck-address')?.value.trim();
   const dist=$('ck-district')?.value;
+  const upazila=$('ck-upazila')?.value||'';
+  const union_=$('ck-union')?.value||'';
+  const village=$('ck-village')?.value.trim()||'';
+  const house=$('ck-house')?.value.trim()||'';
+
+  // Build full address
+  const addrParts=[house,village,union_,upazila,dist].filter(Boolean);
+  const addr=$('ck-address')?.value.trim()||addrParts.join(', ');
+
   if(!name){showToast('নাম লিখুন!','exclamation');$('ck-name')?.focus();return;}
   if(!phone||phone.length<11){showToast('সঠিক ফোন নম্বর দিন!','exclamation');$('ck-phone')?.focus();return;}
-  if(!addr){showToast('ঠিকানা লিখুন!','exclamation');$('ck-address')?.focus();return;}
   if(!dist){showToast('জেলা সিলেক্ট করুন!','exclamation');$('ck-district')?.focus();return;}
+  if(!addr||addr.length<5){showToast('সম্পূর্ণ ঠিকানা লিখুন!','exclamation');$('ck-address')?.focus();return;}
   if(selPayment!=='cod'){const trx=$('ck-trx')?.value.trim();if(!trx){showToast('Transaction ID দিন!','exclamation');$('ck-trx')?.focus();return;}}
 
   // Show loading state
@@ -2074,12 +2285,13 @@ async function placeOrder(){
     email: $('ck-email')?.value||'',
     address: addr,
     district: dist,
+    upazila, union: union_, village, house,
     note: $('ck-note')?.value||'',
     payment: selPayment,
     trxId: $('ck-trx')?.value||'',
     items: cart.map(i=>({id:i.id,name:i.name,price:i.price,orig:i.orig,img:i.img,qty:i.qty,size:i.size||'',color:i.color||'',cat:i.cat||''})),
     discountPct: discount,
-    couponCode: $('coupon-input')?.value||'',
+    couponCode: $('ck-coupon')?.value||'',
   };
 
   try {
@@ -2170,6 +2382,9 @@ function openQV(pid){
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)"><i class="fa-solid fa-truck-fast" style="color:var(--green)"></i> Free Delivery ৳999+</div>
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)"><i class="fa-solid fa-arrows-rotate" style="color:var(--blue)"></i> 7-Day Return</div>
       </div>
+      <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+        <button onclick="closeQV();openComments(window._qvPid,(PRODUCTS.find(x=>x.id===window._qvPid)||{}).name||'পণ্য')" style="width:100%;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:10px;border-radius:var(--r-full);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--t)" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন ও লিখুন</button>
+      </div>
     </div>`;
   window._qvQ=1; window._qvPid=pid;
   const modal=document.getElementById('qv-modal');
@@ -2248,7 +2463,7 @@ function toggleChat(){chatOpen=!chatOpen;$('chatMenu').classList.toggle('open',c
 /* ---------- AUTH ---------- */
 function openAuth(tab='login'){$('auth-modal').classList.add('open');switchTab(tab);document.body.style.overflow='hidden';}
 function closeAuth(){$('auth-modal').classList.remove('open');document.body.style.overflow='';}
-function switchTab(t){
+function switchTab(t){ if(t==='register') t='reg';
   ['login','reg'].forEach(x=>{$(`tab-${x}`).classList.toggle('active',x===t);$(`form-${x}`).classList.toggle('active',x===t);});
 }
 async function doLogin(){
@@ -2411,6 +2626,9 @@ function updateUserUI(){
     if($('ab-howdy')) $('ab-howdy').textContent=`Howdy, ${fn}`;
     if($('mbn-user-ic')) $('mbn-user-ic').className='fa-solid fa-user-check';
     if($('mbn-user-lbl')) $('mbn-user-lbl').textContent=fn.slice(0,8);
+    // Admin detection
+    const adminEmails=['introvertboytushar@gmail.com','admin@shoplixo.shop','nayemislamtushar@gmail.com'];
+    if(adminEmails.includes((currentUser.email||'').toLowerCase())||currentUser.isAdmin){currentUser.isAdmin=true;}
     // Hide auth buttons, show user name
     const hBtn=document.querySelector('.h-btn');
     if(hBtn) hBtn.onclick=()=>openWpDashboard();
@@ -2698,7 +2916,395 @@ function haptic(ms=30){
 /* ===== OVERRIDE saveCart TO UPDATE MBN =======*/
 const _origSaveCart = saveCart;
 
+/* ═══════════════════════════════════════════════════════════
+   BANGLADESH GEOGRAPHIC DATA — 8 বিভাগ, 64 জেলা, 500+ উপজেলা
+═══════════════════════════════════════════════════════════ */
+const BD_GEO = {
+  dhaka: {
+    name: 'ঢাকা বিভাগ',
+    districts: {
+      'ঢাকা': { delivery: '২৪ ঘণ্টা', upazilas: ['আদাবর','বাড্ডা','বংশাল','ক্যান্টনমেন্ট','চকবাজার','দেমরা','ধানমণ্ডি','ডেমরা','গুলশান','হাজারীবাগ','কদমতলী','খিলগাঁও','খিলক্ষেত','কোতোয়ালী','লালবাগ','মিরপুর','মোহাম্মদপুর','মতিঝিল','নিউ মার্কেট','পল্লবী','পল্টন','রমনা','রূপনগর','সাবুজবাগ','শাহ আলী','শাহজাহানপুর','শ্যামপুর','সূত্রাপুর','তেজগাঁও','উত্তরখান','ওয়ারী'] },
+      'নারায়ণগঞ্জ': { delivery: '১-২ দিন', upazilas: ['আড়াইহাজার','বন্দর','নারায়ণগঞ্জ সদর','রূপগঞ্জ','সোনারগাঁও'] },
+      'গাজীপুর': { delivery: '১-২ দিন', upazilas: ['গাজীপুর সদর','কালিয়াকৈর','কালীগঞ্জ','কাপাসিয়া','শ্রীপুর'] },
+      'মানিকগঞ্জ': { delivery: '২-৩ দিন', upazilas: ['দৌলতপুর','ঘিওর','হরিরামপুর','মানিকগঞ্জ সদর','সাটুরিয়া','শিবালয়','সিংগাইর'] },
+      'মুন্সিগঞ্জ': { delivery: '২-৩ দিন', upazilas: ['গজারিয়া','লৌহজং','মুন্সিগঞ্জ সদর','শ্রীনগর','সিরাজদিখান','টঙ্গিবাড়ী'] },
+      'নরসিংদী': { delivery: '২-৩ দিন', upazilas: ['বেলাবো','মনোহরদী','নরসিংদী সদর','পলাশ','রায়পুরা','শিবপুর'] },
+      'শরীয়তপুর': { delivery: '২-৩ দিন', upazilas: ['ভেদরগঞ্জ','দামুদ্যা','গোসাইরহাট','নড়িয়া','শরীয়তপুর সদর','জাজিরা'] },
+      'মাদারীপুর': { delivery: '২-৩ দিন', upazilas: ['কালকিনি','মাদারীপুর সদর','রাজৈর','শিবচর'] },
+      'গোপালগঞ্জ': { delivery: '২-৩ দিন', upazilas: ['গোপালগঞ্জ সদর','কাশিয়ানী','কোটালীপাড়া','মুকসুদপুর','টুঙ্গিপাড়া'] },
+      'ফরিদপুর': { delivery: '২-৩ দিন', upazilas: ['আলফাডাঙ্গা','ভাঙ্গা','বোয়ালমারী','চরভদ্রাসন','ফরিদপুর সদর','মধুখালী','নগরকান্দা','সদরপুর','সালথা'] },
+      'রাজবাড়ী': { delivery: '২-৩ দিন', upazilas: ['বালিয়াকান্দি','গোয়ালন্দ','কালুখালী','পাংশা','রাজবাড়ী সদর'] },
+      'টাঙ্গাইল': { delivery: '২-৩ দিন', upazilas: ['বাসাইল','ভুয়াপুর','দেলদুয়ার','ধনবাড়ী','ঘাটাইল','গোপালপুর','কালিহাতী','মধুপুর','মির্জাপুর','নাগরপুর','সখীপুর','টাঙ্গাইল সদর'] },
+      'কিশোরগঞ্জ': { delivery: '২-৩ দিন', upazilas: ['অষ্টগ্রাম','বাজিতপুর','ভৈরব','হোসেনপুর','ইটনা','করিমগঞ্জ','কটিয়াদী','কিশোরগঞ্জ সদর','কুলিয়ারচর','মিঠামইন','নিকলী','পাকুন্দিয়া','তাড়াইল'] },
+    }
+  },
+  chittagong: {
+    name: 'চট্টগ্রাম বিভাগ',
+    districts: {
+      'চট্টগ্রাম': { delivery: '২-৩ দিন', upazilas: ['আনোয়ারা','বাঁশখালী','বোয়ালখালী','চন্দনাইশ','ফটিকছড়ি','হাটহাজারী','কর্ণফুলী','লোহাগাড়া','মীরসরাই','পটিয়া','রাঙ্গুনিয়া','রাউজান','সন্দ্বীপ','সাতকানিয়া','সীতাকুণ্ড','ডবলমুরিং','কোতোয়ালী','বাকলিয়া','পাহাড়তলী','পাঁচলাইশ','হালিশহর','চান্দগাঁও','চকবাজার'] },
+      'কক্সবাজার': { delivery: '৩-৪ দিন', upazilas: ['চকরিয়া','কক্সবাজার সদর','কুতুবদিয়া','মহেশখালী','পেকুয়া','রামু','টেকনাফ','উখিয়া'] },
+      'কুমিল্লা': { delivery: '২-৩ দিন', upazilas: ['বরুড়া','ব্রাহ্মণপাড়া','বুড়িচং','চান্দিনা','চৌদ্দগ্রাম','দাউদকান্দি','দেবিদ্বার','হোমনা','কুমিল্লা আদর্শ সদর','কুমিল্লা সদর দক্ষিণ','লাকসাম','লালমাই','মেঘনা','মুরাদনগর','নাঙ্গলকোট','তিতাস'] },
+      'চাঁদপুর': { delivery: '২-৩ দিন', upazilas: ['চাঁদপুর সদর','ফরিদগঞ্জ','হাইমচর','হাজীগঞ্জ','কচুয়া','মতলব উত্তর','মতলব দক্ষিণ','শাহরাস্তি'] },
+      'নোয়াখালী': { delivery: '২-৩ দিন', upazilas: ['বেগমগঞ্জ','চাটখিল','কোম্পানীগঞ্জ','হাতিয়া','কবিরহাট','নোয়াখালী সদর (সুধারাম)','সেনবাগ','সোনাইমুড়ী'] },
+      'লক্ষ্মীপুর': { delivery: '২-৩ দিন', upazilas: ['কমলনগর','লক্ষ্মীপুর সদর','রামগঞ্জ','রামগতি','রায়পুর'] },
+      'ফেনী': { delivery: '২-৩ দিন', upazilas: ['ছাগলনাইয়া','দাগনভূঞা','ফেনী সদর','ফুলগাজী','পরশুরাম','সোনাগাজী'] },
+      'ব্রাহ্মণবাড়িয়া': { delivery: '২-৩ দিন', upazilas: ['আখাউড়া','আশুগঞ্জ','বাঞ্ছারামপুর','ব্রাহ্মণবাড়িয়া সদর','কসবা','নাসিরনগর','নবীনগর','সরাইল'] },
+      'রাঙামাটি': { delivery: '৪-৫ দিন', upazilas: ['বাঘাইছড়ি','বরকল','বেলাইছড়ি','জুরাছড়ি','কাউখালী','কাপ্তাই','লংগদু','নানিয়ারচর','রাজস্থলী','রাঙামাটি সদর'] },
+      'বান্দরবান': { delivery: '৪-৫ দিন', upazilas: ['আলীকদম','বান্দরবান সদর','লামা','নাইক্ষ্যংছড়ি','রোয়াংছড়ি','রুমা','থানচি'] },
+      'খাগড়াছড়ি': { delivery: '৪-৫ দিন', upazilas: ['দিঘীনালা','গুইমারা','খাগড়াছড়ি সদর','লক্ষ্মীছড়ি','মাটিরাঙ্গা','মহালছড়ি','মানিকছড়ি','পানছড়ি','রামগড়'] },
+    }
+  },
+  rajshahi: {
+    name: 'রাজশাহী বিভাগ',
+    districts: {
+      'রাজশাহী': { delivery: '৩-৪ দিন', upazilas: ['বাগমারা','চারঘাট','দুর্গাপুর','গোদাগাড়ী','মোহনপুর','পবা','পুঠিয়া','তানোর','রাজশাহী সিটি'] },
+      'নাটোর': { delivery: '৩-৪ দিন', upazilas: ['বাগাতিপাড়া','বড়াইগ্রাম','গুরুদাসপুর','লালপুর','নাটোর সদর','সিংড়া'] },
+      'নওগাঁ': { delivery: '৩-৪ দিন', upazilas: ['আত্রাই','বদলগাছী','ধামইরহাট','মহাদেবপুর','মান্দা','নওগাঁ সদর','নিয়ামতপুর','পত্নীতলা','পোরশা','রাণীনগর','সাপাহার'] },
+      'চাঁপাইনবাবগঞ্জ': { delivery: '৩-৪ দিন', upazilas: ['ভোলাহাট','গোমস্তাপুর','নাচোল','চাঁপাইনবাবগঞ্জ সদর','শিবগঞ্জ'] },
+      'পাবনা': { delivery: '৩-৪ দিন', upazilas: ['আটঘরিয়া','বেড়া','ভাঙ্গুড়া','চাটমোহর','ফরিদপুর','ঈশ্বরদী','পাবনা সদর','সাঁথিয়া','সুজানগর'] },
+      'সিরাজগঞ্জ': { delivery: '৩-৪ দিন', upazilas: ['বেলকুচি','চৌহালী','কামারখন্দ','কাজীপুর','রায়গঞ্জ','শাহজাদপুর','সিরাজগঞ্জ সদর','তাড়াশ','উল্লাপাড়া'] },
+      'বগুড়া': { delivery: '৩-৪ দিন', upazilas: ['আদমদীঘি','বগুড়া সদর','ধুনট','দুপচাঁচিয়া','গাবতলী','কাহালু','নন্দীগ্রাম','শাজাহানপুর','শিবগঞ্জ','শেরপুর','সারিয়াকান্দি','সোনাতলা'] },
+      'জয়পুরহাট': { delivery: '৩-৪ দিন', upazilas: ['আক্কেলপুর','কালাই','ক্ষেতলাল','জয়পুরহাট সদর','পাঁচবিবি'] },
+    }
+  },
+  khulna: {
+    name: 'খুলনা বিভাগ',
+    districts: {
+      'খুলনা': { delivery: '৩-৪ দিন', upazilas: ['বটিয়াঘাটা','দাকোপ','ডুমুরিয়া','ফুলতলা','কয়রা','পাইকগাছা','রূপসা','তেরখাদা','খুলনা সিটি'] },
+      'বাগেরহাট': { delivery: '৩-৪ দিন', upazilas: ['বাগেরহাট সদর','চিতলমারী','ফকিরহাট','কচুয়া','মংলা','মোরেলগঞ্জ','মোল্লাহাট','রামপাল','শরণখোলা'] },
+      'সাতক্ষীরা': { delivery: '৩-৪ দিন', upazilas: ['আশাশুনি','দেবহাটা','কলারোয়া','কালীগঞ্জ','সাতক্ষীরা সদর','শ্যামনগর','তালা'] },
+      'যশোর': { delivery: '৩-৪ দিন', upazilas: ['অভয়নগর','বাঘারপাড়া','চৌগাছা','ঝিকরগাছা','কেশবপুর','মনিরামপুর','সদর','শার্শা'] },
+      'ঝিনাইদহ': { delivery: '৩-৪ দিন', upazilas: ['হরিণাকুণ্ডু','ঝিনাইদহ সদর','কালীগঞ্জ','কোটচাঁদপুর','মহেশপুর','শৈলকুপা'] },
+      'মাগুরা': { delivery: '৩-৪ দিন', upazilas: ['মাগুরা সদর','মহম্মদপুর','শালিখা','শ্রীপুর'] },
+      'নড়াইল': { delivery: '৩-৪ দিন', upazilas: ['কালিয়া','লোহাগড়া','নড়াইল সদর'] },
+      'কুষ্টিয়া': { delivery: '৩-৪ দিন', upazilas: ['ভেড়ামারা','দৌলতপুর','কুমারখালী','কুষ্টিয়া সদর','খোকসা','মিরপুর'] },
+      'মেহেরপুর': { delivery: '৩-৪ দিন', upazilas: ['গাংনী','মেহেরপুর সদর','মুজিবনগর'] },
+      'চুয়াডাঙ্গা': { delivery: '৩-৪ দিন', upazilas: ['আলমডাঙ্গা','চুয়াডাঙ্গা সদর','দামুড়হুদা','জীবননগর'] },
+    }
+  },
+  barishal: {
+    name: 'বরিশাল বিভাগ',
+    districts: {
+      'বরিশাল': { delivery: '৩-৪ দিন', upazilas: ['আগৈলঝারা','বাকেরগঞ্জ','বানারীপাড়া','বাবুগঞ্জ','বরিশাল সদর','গৌরনদী','হিজলা','মেহেন্দিগঞ্জ','মুলাদী','উজিরপুর'] },
+      'ভোলা': { delivery: '৪-৫ দিন', upazilas: ['বোরহানউদ্দিন','চরফ্যাশন','দৌলতখান','ভোলা সদর','লালমোহন','মনপুরা','তজুমদ্দিন'] },
+      'পটুয়াখালী': { delivery: '৩-৪ দিন', upazilas: ['বাউফল','দশমিনা','গলাচিপা','কলাপাড়া','মির্জাগঞ্জ','পটুয়াখালী সদর','রাঙ্গাবালী'] },
+      'পিরোজপুর': { delivery: '৩-৪ দিন', upazilas: ['ভান্ডারিয়া','কাউখালী','মঠবাড়িয়া','নাজিরপুর','নেছারাবাদ','পিরোজপুর সদর','জিয়ানগর'] },
+      'ঝালকাঠি': { delivery: '৩-৪ দিন', upazilas: ['ঝালকাঠি সদর','কাঁঠালিয়া','নলছিটি','রাজাপুর'] },
+      'বরগুনা': { delivery: '৩-৪ দিন', upazilas: ['আমতলী','বামনা','বরগুনা সদর','বেতাগী','পাথরঘাটা','তালতলী'] },
+    }
+  },
+  sylhet: {
+    name: 'সিলেট বিভাগ',
+    districts: {
+      'সিলেট': { delivery: '২-৩ দিন', upazilas: ['বালাগঞ্জ','বিশ্বনাথ','কোম্পানীগঞ্জ','ফেঞ্চুগঞ্জ','গোলাপগঞ্জ','গোয়াইনঘাট','জকিগঞ্জ','কানাইঘাট','সিলেট সদর','দক্ষিণ সুরমা','বিয়ানীবাজার','ওসমানীনগর'] },
+      'মৌলভীবাজার': { delivery: '২-৩ দিন', upazilas: ['বড়লেখা','জুড়ী','কমলগঞ্জ','কুলাউড়া','মৌলভীবাজার সদর','রাজনগর','শ্রীমঙ্গল'] },
+      'সুনামগঞ্জ': { delivery: '৩-৪ দিন', upazilas: ['বিশ্বম্ভরপুর','ছাতক','দক্ষিণ সুনামগঞ্জ','দোয়ারাবাজার','ধর্মপাশা','দিরাই','জগন্নাথপুর','জামালগঞ্জ','সুনামগঞ্জ সদর','শাল্লা','তাহিরপুর'] },
+      'হবিগঞ্জ': { delivery: '২-৩ দিন', upazilas: ['আজমিরীগঞ্জ','বাহুবল','বানিয়াচং','চুনারুঘাট','হবিগঞ্জ সদর','লাখাই','মাধবপুর','নবীগঞ্জ'] },
+    }
+  },
+  rangpur: {
+    name: 'রংপুর বিভাগ',
+    districts: {
+      'রংপুর': { delivery: '৩-৪ দিন', upazilas: ['বদরগঞ্জ','গঙ্গাচড়া','কাউনিয়া','মিঠাপুকুর','পীরগঞ্জ','পীরগাছা','রংপুর সদর','তারাগঞ্জ'] },
+      'দিনাজপুর': { delivery: '৩-৪ দিন', upazilas: ['বিরামপুর','বিরল','বোচাগঞ্জ','চিরিরবন্দর','দিনাজপুর সদর','ফুলবাড়ী','ঘোড়াঘাট','হাকিমপুর','কাহারোল','খানসামা','নবাবগঞ্জ','পার্বতীপুর'] },
+      'ঠাকুরগাঁও': { delivery: '৩-৪ দিন', upazilas: ['বালিয়াডাঙ্গী','হরিপুর','পীরগঞ্জ','রাণীশংকৈল','ঠাকুরগাঁও সদর'] },
+      'পঞ্চগড়': { delivery: '৪-৫ দিন', upazilas: ['আটোয়ারী','বোদা','দেবীগঞ্জ','পঞ্চগড় সদর','তেতুলিয়া'] },
+      'নীলফামারী': { delivery: '৩-৪ দিন', upazilas: ['ডিমলা','ডোমার','জলঢাকা','কিশোরগঞ্জ','নীলফামারী সদর','সৈয়দপুর'] },
+      'লালমনিরহাট': { delivery: '৩-৪ দিন', upazilas: ['আদিতমারী','হাতীবান্ধা','কালীগঞ্জ','লালমনিরহাট সদর','পাটগ্রাম'] },
+      'কুড়িগ্রাম': { delivery: '৪-৫ দিন', upazilas: ['ভুরুঙ্গামারী','চর রাজিবপুর','চিলমারী','ফুলবাড়ী','কুড়িগ্রাম সদর','নাগেশ্বরী','রাজারহাট','রৌমারী','উলিপুর'] },
+      'গাইবান্ধা': { delivery: '৩-৪ দিন', upazilas: ['ফুলছড়ি','গাইবান্ধা সদর','গোবিন্দগঞ্জ','পলাশবাড়ী','সাদুল্যাপুর','সাঘাটা','সুন্দরগঞ্জ'] },
+    }
+  },
+  mymensingh: {
+    name: 'ময়মনসিংহ বিভাগ',
+    districts: {
+      'ময়মনসিংহ': { delivery: '২-৩ দিন', upazilas: ['ভালুকা','ধোবাউড়া','ফুলবাড়ীয়া','গফরগাঁও','গৌরীপুর','হালুয়াঘাট','ঈশ্বরগঞ্জ','ময়মনসিংহ সদর','মুক্তাগাছা','নান্দাইল','ফুলপুর','তারাকান্দা','ত্রিশাল'] },
+      'জামালপুর': { delivery: '২-৩ দিন', upazilas: ['বকশীগঞ্জ','দেওয়ানগঞ্জ','ইসলামপুর','জামালপুর সদর','মাদারগঞ্জ','মেলান্দহ','সরিষাবাড়ী'] },
+      'শেরপুর': { delivery: '২-৩ দিন', upazilas: ['ঝিনাইগাতী','নকলা','নালিতাবাড়ী','শেরপুর সদর','শ্রীবরদী'] },
+      'নেত্রকোণা': { delivery: '২-৩ দিন', upazilas: ['আটপাড়া','বারহাট্টা','দুর্গাপুর','খালিয়াজুরী','কলমাকান্দা','কেন্দুয়া','মদন','মোহনগঞ্জ','নেত্রকোণা সদর','পূর্বধলা'] },
+    }
+  }
+};
 
+/* ── ADDRESS FORM FUNCTIONS ── */
+function onDivisionChange(){
+  const div=$('ck-division').value;
+  const distSel=$('ck-district');
+  distSel.innerHTML='<option value="">— জেলা সিলেক্ট করুন —</option>';
+  $('ck-upazila').innerHTML='<option value="">— আগে জেলা সিলেক্ট করুন —</option>';
+  $('ck-union').innerHTML='<option value="">— আগে উপজেলা সিলেক্ট করুন —</option>';
+  $('ck-upazila').disabled=true; $('ck-union').disabled=true;
+  if(!div){distSel.disabled=true;return;}
+  distSel.disabled=false;
+  const divData=BD_GEO[div];
+  if(!divData) return;
+  Object.keys(divData.districts).forEach(d=>{
+    const opt=document.createElement('option'); opt.value=d; opt.textContent=d;
+    distSel.appendChild(opt);
+  });
+}
+
+function onDistrictChange(){
+  const div=$('ck-division').value;
+  const dist=$('ck-district').value;
+  const upSel=$('ck-upazila');
+  upSel.innerHTML='<option value="">— উপজেলা/থানা সিলেক্ট করুন —</option>';
+  $('ck-union').innerHTML='<option value="">— আগে উপজেলা সিলেক্ট করুন —</option>';
+  $('ck-union').disabled=true;
+  if(!dist||!div){upSel.disabled=true;return;}
+  upSel.disabled=false;
+  const distData=BD_GEO[div]?.districts?.[dist];
+  if(distData){
+    distData.upazilas.forEach(u=>{
+      const opt=document.createElement('option'); opt.value=u; opt.textContent=u;
+      upSel.appendChild(opt);
+    });
+    // Show delivery estimate
+    const est=$('ck-delivery-est'), txt=$('ck-delivery-text');
+    if(est&&txt){
+      txt.textContent=`${dist} জেলায় ডেলিভারি সময়: ${distData.delivery}`;
+      est.style.display='flex';
+    }
+  }
+  buildFullAddress();
+}
+
+function onUpazilaChange(){
+  const upazila=$('ck-upazila').value;
+  const unionSel=$('ck-union');
+  unionSel.innerHTML='<option value="">— ইউনিয়ন/পৌরসভা (optional) —</option>';
+  // Generic union options based on upazila
+  const commons=['পৌরসভা','সদর ইউনিয়ন','উত্তর ইউনিয়ন','দক্ষিণ ইউনিয়ন','পূর্ব ইউনিয়ন','পশ্চিম ইউনিয়ন','মধ্য ইউনিয়ন'];
+  commons.forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unionSel.appendChild(o);});
+  unionSel.disabled=false;
+  buildFullAddress();
+}
+
+function buildFullAddress(){
+  const parts=[
+    $('ck-house')?.value.trim(),
+    $('ck-village')?.value.trim(),
+    $('ck-union')?.value,
+    $('ck-upazila')?.value,
+    $('ck-district')?.value,
+    $('ck-division')?.value ? BD_GEO[$('ck-division').value]?.name : '',
+  ].filter(Boolean);
+  const addr=$('ck-address');
+  if(addr && parts.length>=2) { addr.value=parts.join(', '); addr.classList.add('valid-addr'); }
+}
+
+// Auto-build address when house/village changes
+document.addEventListener('DOMContentLoaded',()=>{
+  ['ck-house','ck-village'].forEach(id=>{
+    const el=$(id); if(el) el.addEventListener('input',buildFullAddress);
+  });
+  // Autofill if user logged in
+  if(currentUser){
+    const hint=$('ck-autofill-hint'); if(hint) hint.style.display='inline-flex';
+  }
+});
+
+function autofillFromProfile(){
+  if(!currentUser) return;
+  if($('ck-name')) $('ck-name').value=currentUser.name||'';
+  if($('ck-phone')) $('ck-phone').value=currentUser.phone||'';
+  if($('ck-email')) $('ck-email').value=currentUser.email||'';
+  showToast('তথ্য auto-fill হয়েছে!','user');
+}
+
+function validateCkPhone(input){
+  const v=(input.value||'').replace(/\D/g,'');
+  input.value=v.slice(0,11);
+  const msg=$('ck-phone-msg');
+  if(!msg) return;
+  if(v.length===0){msg.className='field-msg';msg.textContent='';return;}
+  if(/^01[3-9]\d{8}$/.test(v)){
+    input.classList.add('valid'); input.classList.remove('invalid');
+    msg.className='field-msg ok'; msg.textContent='✓ Valid number';
+  } else if(v.length>=11){
+    input.classList.add('invalid'); input.classList.remove('valid');
+    msg.className='field-msg err'; msg.textContent='✗ সঠিক BD number দিন';
+  } else {
+    msg.className='field-msg'; msg.textContent='';
+  }
+}
+
+
+
+
+</script>
+<!-- auth handled inline -->
+
+<!-- COMMENT MODAL -->
+<div id="comment-modal">
+  <div class="cm-backdrop" onclick="closeCommentModal()"></div>
+  <div class="cm-card">
+    <div class="cm-head">
+      <div class="cm-head-title"><i class="fa-solid fa-comments" style="color:var(--brand)"></i> <span id="cm-product-name">পণ্যের রিভিউ</span></div>
+      <button onclick="closeCommentModal()" style="width:32px;height:32px;border-radius:50%;background:var(--bg2);border:none;cursor:pointer;font-size:16px;color:var(--text2)"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="cm-body" id="cm-body">
+      <!-- Write comment form -->
+      <div class="cm-form" id="cm-write-area">
+        <div id="cm-login-required" style="display:none">
+          <div class="cm-login-hint">রিভিউ লিখতে <a href="#" onclick="closeCommentModal();openAuth('login');return false">Login করুন</a> অথবা <a href="#" onclick="closeCommentModal();openAuth('register');return false">Register করুন</a></div>
+        </div>
+        <div id="cm-write-form">
+          <div class="cm-star-row">
+            <span>রেটিং দিন:</span>
+            <div class="cm-stars-select" id="cm-star-select">
+              <i class="fa-regular fa-star" onclick="setCommentStar(1)" onmouseover="hoverStar(1)" onmouseout="resetStarHover()"></i>
+              <i class="fa-regular fa-star" onclick="setCommentStar(2)" onmouseover="hoverStar(2)" onmouseout="resetStarHover()"></i>
+              <i class="fa-regular fa-star" onclick="setCommentStar(3)" onmouseover="hoverStar(3)" onmouseout="resetStarHover()"></i>
+              <i class="fa-regular fa-star" onclick="setCommentStar(4)" onmouseover="hoverStar(4)" onmouseout="resetStarHover()"></i>
+              <i class="fa-regular fa-star" onclick="setCommentStar(5)" onmouseover="hoverStar(5)" onmouseout="resetStarHover()"></i>
+            </div>
+          </div>
+          <textarea id="cm-text" placeholder="আপনার অভিজ্ঞতা শেয়ার করুন — এই পণ্যটি কেমন লাগলো?"></textarea>
+          <button class="cm-submit" onclick="submitComment()"><i class="fa-solid fa-paper-plane"></i> রিভিউ পাঠান</button>
+        </div>
+      </div>
+      <!-- Comments list -->
+      <div id="cm-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== COMMENT SYSTEM ===== */
+let currentCommentPid = null;
+let selectedCommentStar = 5;
+
+function openComments(pid, name) {
+  currentCommentPid = pid;
+  document.getElementById('cm-product-name').textContent = name + ' — রিভিউ';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('comment-modal').classList.add('open');
+  
+  // Show/hide write form based on login
+  const writeForm = document.getElementById('cm-write-form');
+  const loginReq = document.getElementById('cm-login-required');
+  if (currentUser) {
+    writeForm.style.display = 'block';
+    loginReq.style.display = 'none';
+  } else {
+    writeForm.style.display = 'none';
+    loginReq.style.display = 'block';
+  }
+  
+  loadComments(pid);
+}
+
+function closeCommentModal() {
+  document.getElementById('comment-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function setCommentStar(n) {
+  selectedCommentStar = n;
+  updateStarUI(n);
+}
+function hoverStar(n) { updateStarUI(n); }
+function resetStarHover() { updateStarUI(selectedCommentStar); }
+function updateStarUI(n) {
+  document.querySelectorAll('#cm-star-select i').forEach((s,i) => {
+    s.className = i < n ? 'fa-solid fa-star active' : 'fa-regular fa-star';
+  });
+}
+
+function loadComments(pid) {
+  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  const comments = (allComments[pid] || []).filter(c => !c.hidden);
+  const list = document.getElementById('cm-list');
+  
+  if (!comments.length) {
+    list.innerHTML = '<div class="cm-empty"><i class="fa-regular fa-comment"></i><p>এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!</p></div>';
+    return;
+  }
+  
+  list.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:10px;letter-spacing:.5px">সকল রিভিউ (' + comments.length + ')</div>' +
+    comments.map((c, i) => `
+    <div class="comment-item" id="cm-item-${pid}-${i}">
+      <div class="ci-head">
+        <div class="ci-avatar">${(c.name||'A')[0].toUpperCase()}</div>
+        <div>
+          <div class="ci-name">${c.name || 'Anonymous'}</div>
+          <div class="ci-date">${c.date || ''}</div>
+        </div>
+        <div class="ci-stars">${'<i class="fa-solid fa-star"></i>'.repeat(c.rating || 5)}</div>
+      </div>
+      <div class="ci-text">${c.text}</div>
+      <div class="ci-actions">
+        <button class="ci-action-btn" onclick="likeComment(${pid},${i},this)"><i class="fa-regular fa-thumbs-up"></i> <span>${c.likes || 0}</span> Helpful</button>
+        ${currentUser && currentUser.isAdmin ? `<button class="ci-action-btn" style="color:var(--brand)" onclick="adminDeleteComment(${pid},${i})"><i class="fa-solid fa-trash"></i> Remove</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function submitComment() {
+  if (!currentUser) { showToast('আগে Login করুন!', 'exclamation'); return; }
+  const text = document.getElementById('cm-text').value.trim();
+  if (!text || text.length < 5) { showToast('কমপক্ষে ৫ অক্ষরের রিভিউ লিখুন!', 'exclamation'); return; }
+  
+  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  if (!allComments[currentCommentPid]) allComments[currentCommentPid] = [];
+  
+  const comment = {
+    name: currentUser.name || 'User',
+    text,
+    rating: selectedCommentStar,
+    date: new Date().toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}),
+    likes: 0,
+    hidden: false,
+    userId: currentUser.id || currentUser.phone
+  };
+  
+  allComments[currentCommentPid].unshift(comment);
+  localStorage.setItem('slx_comments', JSON.stringify(allComments));
+  
+  document.getElementById('cm-text').value = '';
+  selectedCommentStar = 5;
+  updateStarUI(5);
+  
+  loadComments(currentCommentPid);
+  updateCommentCount(currentCommentPid);
+  showToast('রিভিউ পাঠানো হয়েছে! ধন্যবাদ 🎉', 'star');
+}
+
+function likeComment(pid, idx, btn) {
+  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  if (!allComments[pid] || !allComments[pid][idx]) return;
+  allComments[pid][idx].likes = (allComments[pid][idx].likes || 0) + 1;
+  localStorage.setItem('slx_comments', JSON.stringify(allComments));
+  const countEl = btn.querySelector('span');
+  if (countEl) countEl.textContent = allComments[pid][idx].likes;
+  btn.style.color = 'var(--brand)';
+}
+
+function adminDeleteComment(pid, idx) {
+  if (!confirm('এই রিভিউটি hide করবেন?')) return;
+  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  if (allComments[pid] && allComments[pid][idx]) {
+    allComments[pid][idx].hidden = true;
+    localStorage.setItem('slx_comments', JSON.stringify(allComments));
+    loadComments(pid);
+    updateCommentCount(pid);
+    showToast('রিভিউ hide করা হয়েছে!', 'trash');
+  }
+}
+
+function updateCommentCount(pid) {
+  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  const count = (allComments[pid] || []).filter(c => !c.hidden).length;
+  document.querySelectorAll(`.pc-comment-count[data-pid="${pid}"]`).forEach(el => {
+    el.textContent = count + ' রিভিউ';
+  });
+}
+
+function getCommentCount(pid) {
+  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  return (allComments[pid] || []).filter(c => !c.hidden).length;
+}
 </script>
 </body>
 </html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+<title>আমার Profile — Shoplixo</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --brand:#E41E26;--brand-d:#B8101E;--brand-l:#fff0f0;
+  --dark:#0D0D1A;--dark2:#1A1A2E;
+  --gold:#FFB800;--green:#00C58A;--green-l:#e6faf4;
+  --text:#1A1A2E;--text2:#4A4A6A;--text3:#8B8BAA;
+  --bg:#F4F5FB;--bg2:#fff;--border:rgba(0,0,0,.08);
+  --r:12px;--r-lg:16px;--r-xl:24px;--r-full:999px;
+  --sh:0 4px 20px rgba(0,0,0,.07);--sh-lg:0 8px 40px rgba(0,0,0,.10);
+  --t:.22s cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-family:inherit}
+.container{max-width:960px;margin:0 auto;padding:0 20px}
+
+/* HEADER */
+.pf-header{background:var(--dark2);padding:16px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.hd-inner{display:flex;align-items:center;justify-content:space-between}
+.hd-logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}.hd-logo span{color:var(--gold)}
+.hd-back{color:rgba(255,255,255,.7);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:var(--t)}
+.hd-back:hover{color:#fff}
+
+/* LOGIN WALL */
+#login-wall{min-height:70vh;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.lw-card{background:#fff;border-radius:var(--r-xl);padding:50px 40px;text-align:center;max-width:420px;width:100%;box-shadow:var(--sh-lg)}
+.lw-icon{font-size:56px;margin-bottom:16px}
+.lw-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--dark);margin-bottom:8px}
+.lw-sub{color:var(--text2);font-size:14px;margin-bottom:28px;line-height:1.6}
+.btn-lw-login{display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;padding:13px 30px;border-radius:var(--r-full);font-weight:700;font-size:15px;transition:var(--t)}
+.btn-lw-login:hover{background:var(--brand-d);transform:translateY(-2px)}
+
+/* PROFILE LAYOUT */
+#profile-app{display:none;padding:32px 0 80px}
+.pf-layout{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start}
+
+/* SIDEBAR */
+.pf-sidebar{background:#fff;border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--sh);position:sticky;top:80px}
+.pf-avatar-section{background:linear-gradient(135deg,var(--dark2),#2D1B6E);padding:28px 20px;text-align:center}
+.pf-ava{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#ff6b35);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:0 auto 12px;font-family:'Syne',sans-serif}
+.pf-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff}
+.pf-phone{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+.pf-pts{background:rgba(255,255,255,.1);border-radius:var(--r-full);padding:5px 14px;display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:700;color:var(--gold)}
+.pf-nav{padding:10px 0}
+.pf-nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:var(--t);border-left:3px solid transparent}
+.pf-nav-item:hover{background:var(--bg);color:var(--text)}
+.pf-nav-item.active{color:var(--brand);background:var(--brand-l);border-left-color:var(--brand)}
+.pf-nav-item i{width:18px;text-align:center;font-size:15px}
+.pf-logout{padding:14px 20px;border-top:1px solid var(--border)}
+.btn-logout{width:100%;background:var(--bg);color:var(--text2);padding:10px;border-radius:var(--r);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--t)}
+.btn-logout:hover{background:var(--brand-l);color:var(--brand)}
+
+/* MAIN SECTIONS */
+.pf-main{}
+.pf-section{display:none;animation:fadeUp .3s ease}
+.pf-section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.section-card{background:#fff;border-radius:var(--r-xl);box-shadow:var(--sh);overflow:hidden;margin-bottom:20px}
+.sc-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sc-title{font-size:16px;font-weight:700;color:var(--dark);display:flex;align-items:center;gap:8px}
+.sc-title i{color:var(--brand)}
+.sc-body{padding:20px 22px}
+
+/* STATS GRID */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.stat-box{background:#fff;border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh);text-align:center}
+.stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--dark);margin-bottom:4px}
+.stat-lbl{font-size:12px;color:var(--text3)}
+
+/* ORDERS */
+.order-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);transition:var(--t)}
+.order-row:last-child{border-bottom:none}
+.or-id{font-weight:700;color:var(--brand);font-size:14px;min-width:100px}
+.or-info{flex:1}
+.or-items{font-size:13px;font-weight:600;color:var(--dark)}
+.or-date{font-size:12px;color:var(--text3);margin-top:2px}
+.or-total{font-size:15px;font-weight:700;color:var(--dark);min-width:80px;text-align:right}
+.status-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--r-full);margin-top:4px;display:inline-flex;align-items:center;gap:4px}
+.sb-pending{background:#fff8e6;color:#b35900}
+.sb-confirmed{background:#e6f0ff;color:#1a5ca8}
+.sb-processing{background:#f3f0ff;color:#6d28d9}
+.sb-shipped{background:#e6faf4;color:#065f46}
+.sb-delivered{background:var(--green-l);color:var(--green)}
+.sb-cancelled{background:var(--brand-l);color:var(--brand)}
+.btn-track{background:var(--bg);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:var(--r-full);font-size:12px;font-weight:600;transition:var(--t)}
+.btn-track:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* FORM STYLE */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-g label{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.3px;display:block;margin-bottom:6px}
+.form-g input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-family:inherit;outline:none;transition:var(--t)}
+.form-g input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.08)}
+.form-g.full{grid-column:1/-1}
+.btn-save{background:var(--brand);color:#fff;padding:12px 24px;border-radius:var(--r-full);font-size:14px;font-weight:700;transition:var(--t);display:inline-flex;align-items:center;gap:7px}
+.btn-save:hover{background:var(--brand-d);transform:translateY(-1px)}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:50px 20px}
+.empty-state i{font-size:48px;opacity:.25;margin-bottom:14px;display:block}
+.empty-state p{color:var(--text2);font-size:14px}
+
+/* MOBILE */
+@media(max-width:700px){
+  .pf-layout{grid-template-columns:1fr}
+  .pf-sidebar{position:static}
+  .pf-nav{display:grid;grid-template-columns:repeat(3,1fr)}
+  .pf-nav-item{flex-direction:column;text-align:center;padding:12px 6px;font-size:11px;border-left:none;border-bottom:3px solid transparent}
+  .pf-nav-item.active{border-left:none;border-bottom-color:var(--brand)}
+  .form-grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="pf-header">
+  <div class="container">
+    <div class="hd-inner">
+      <a href="/" class="hd-logo">Shop<span>lixo</span></a>
+      <a href="/" class="hd-back"><i class="fa-solid fa-chevron-left"></i> হোমে ফিরুন</a>
+    </div>
+  </div>
+</header>
+
+<!-- LOGIN WALL (shown if not logged in) -->
+<div id="login-wall">
+  <div class="lw-card">
+    <div class="lw-icon">👤</div>
+    <div class="lw-title">Login করুন</div>
+    <div class="lw-sub">আপনার profile, orders এবং wishlist দেখতে Login করুন।</div>
+    <a href="/?login=1" class="btn-lw-login">
+      <i class="fa-solid fa-right-to-bracket"></i> Login করুন
+    </a>
+    <div style="margin-top:16px;font-size:13px;color:var(--text3)">
+      Account নেই? <a href="/?register=1" style="color:var(--brand);font-weight:700">Register করুন</a>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE APP -->
+<div id="profile-app">
+  <div class="container">
+
+    <!-- Stats Summary -->
+    <div class="stats-row" id="stats-row" style="display:none">
+      <div class="stat-box">
+        <div class="stat-val" id="stat-orders">0</div>
+        <div class="stat-lbl">মোট অর্ডার</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-spent" style="font-size:20px">৳0</div>
+        <div class="stat-lbl">মোট ব্যয়</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-points" style="color:var(--gold)">0</div>
+        <div class="stat-lbl">Loyalty Points</div>
+      </div>
+    </div>
+
+    <div class="pf-layout">
+
+      <!-- Sidebar -->
+      <div class="pf-sidebar">
+        <div class="pf-avatar-section">
+          <div class="pf-ava" id="pf-ava">T</div>
+          <div class="pf-name" id="pf-name">Tushar</div>
+          <div class="pf-phone" id="pf-phone">01516511889</div>
+          <div class="pf-pts"><i class="fa-solid fa-star"></i> <span id="pf-pts">0</span> Points</div>
+        </div>
+        <nav class="pf-nav">
+          <div class="pf-nav-item active" onclick="showSection('orders')">
+            <i class="fa-solid fa-bag-shopping"></i> আমার Orders
+          </div>
+          <div class="pf-nav-item" onclick="showSection('info')">
+            <i class="fa-solid fa-user-pen"></i> Profile Edit
+          </div>
+          <div class="pf-nav-item" onclick="showSection('password')">
+            <i class="fa-solid fa-lock"></i> Password
+          </div>
+          <div class="pf-nav-item" onclick="showSection('wishlist')">
+            <i class="fa-solid fa-heart"></i> Wishlist
+          </div>
+        </nav>
+        <div class="pf-logout">
+          <button class="btn-logout" onclick="doLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="pf-main">
+
+        <!-- ORDERS SECTION -->
+        <div id="sec-orders" class="pf-section active">
+          <div class="section-card">
+            <div class="sc-head">
+              <div class="sc-title"><i class="fa-solid fa-bag-shopping"></i> আমার Orders</div>
+            </div>
+            <div class="sc-body" id="orders-body">
+              <div class="empty-state">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <p>Orders লোড হচ্ছে...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INFO SECTION -->
+        <div id="sec-info" class="pf-section">
+          <div class="section-card">
+            <div class="sc-head">
+              <div class="sc-title"><i class="fa-solid fa-user-pen"></i> Profile তথ্য</div>
+            </div>
+            <div class="sc-body">
+              <div class="form-grid">
+                <div class="form-g"><label>পুরো নাম</label><input id="pf-edit-name" placeholder="আপনার নাম"></div>
+                <div class="form-g"><label>Phone নম্বর</label><input id="pf-edit-phone" disabled placeholder="01XXXXXXXXX" style="background:var(--bg);opacity:.7"></div>
+                <div class="form-g full"><label>Email Address</label><input type="email" id="pf-edit-email" placeholder="email@example.com"></div>
+              </div>
+              <div style="margin-top:20px">
+                <button class="btn-save" onclick="saveProfile()">
+                  <i class="fa-solid fa-floppy-disk"></i> Save করুন
+                </button>
+              </div>
+              <div id="info-msg" style="margin-top:12px;font-size:13px;display:none"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PASSWORD SECTION -->
+        <div id="sec-password" class="pf-section">
+          <div class="section-card">
+            <div class="sc-head">
+              <div class="sc-title"><i class="fa-solid fa-lock"></i> Password পরিবর্তন</div>
+            </div>
+            <div class="sc-body">
+              <div class="form-grid">
+                <div class="form-g full"><label>পুরানো Password</label><input type="password" id="pw-old" placeholder="বর্তমান password"></div>
+                <div class="form-g"><label>নতুন Password</label><input type="password" id="pw-new" placeholder="কমপক্ষে ৮ অক্ষর"></div>
+                <div class="form-g"><label>Confirm Password</label><input type="password" id="pw-new2" placeholder="আবার দিন"></div>
+              </div>
+              <div style="margin-top:20px">
+                <button class="btn-save" onclick="changePassword()">
+                  <i class="fa-solid fa-lock"></i> Password পরিবর্তন
+                </button>
+              </div>
+              <div id="pw-msg" style="margin-top:12px;font-size:13px;display:none"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WISHLIST SECTION -->
+        <div id="sec-wishlist" class="pf-section">
+          <div class="section-card">
+            <div class="sc-head">
+              <div class="sc-title"><i class="fa-solid fa-heart"></i> Wishlist</div>
+            </div>
+            <div class="sc-body" id="wishlist-body">
+              <div class="empty-state">
+                <i class="fa-regular fa-heart"></i>
+                <p>আপনার Wishlist খালি। হোম পেজ থেকে পণ্য wishlist এ add করুন।</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+let currentUser = null;
+let authToken   = null;
+
+/* ── INIT ─────────────────────────────────────────────────── */
+async function init() {
+  const stored  = localStorage.getItem('slx_user');
+  const token   = localStorage.getItem('slx_token');
+
+  if (!stored || !token) {
+    // Check URL params to open login/register on homepage
+    const back = encodeURIComponent(location.href);
+    const params = new URLSearchParams(location.search);
+    if (params.get('login'))    { window.location = `/?auth=login#auth`; return; }
+    if (params.get('register')) { window.location = `/?auth=register#auth`; return; }
+    showLoginWall();
+    return;
+  }
+
+  try {
+    authToken   = token;
+    currentUser = JSON.parse(stored);
+    await loadProfile();
+    showProfileApp();
+  } catch {
+    showLoginWall();
+  }
+}
+
+function showLoginWall() {
+  document.getElementById('login-wall').style.display = 'flex';
+}
+
+function showProfileApp() {
+  document.getElementById('login-wall').style.display = 'none';
+  document.getElementById('profile-app').style.display = 'block';
+  document.getElementById('stats-row').style.display = 'grid';
+  loadOrders();
+  loadWishlist();
+}
+
+/* ── LOAD PROFILE ────────────────────────────────────────── */
+async function loadProfile() {
+  try {
+    const res  = await fetch(`${API_BASE}/api/auth?action=profile`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    const data = await res.json();
+    if (data.ok) {
+      currentUser = data.user;
+      localStorage.setItem('slx_user', JSON.stringify(data.user));
+    }
+  } catch {}
+
+  if (!currentUser) return;
+
+  const u   = currentUser;
+  const ini = (u.name || 'U')[0].toUpperCase();
+
+  document.getElementById('pf-ava').textContent     = ini;
+  document.getElementById('pf-name').textContent    = u.name || '';
+  document.getElementById('pf-phone').textContent   = u.phone || '';
+  document.getElementById('pf-pts').textContent     = u.loyaltyPoints || 0;
+  document.getElementById('stat-orders').textContent= u.totalOrders || 0;
+  document.getElementById('stat-spent').textContent = '৳' + Number(u.totalSpent || 0).toLocaleString();
+  document.getElementById('stat-points').textContent= u.loyaltyPoints || 0;
+
+  document.getElementById('pf-edit-name').value  = u.name  || '';
+  document.getElementById('pf-edit-phone').value = u.phone || '';
+  document.getElementById('pf-edit-email').value = u.email || '';
+}
+
+/* ── LOAD ORDERS ─────────────────────────────────────────── */
+async function loadOrders() {
+  const body = document.getElementById('orders-body');
+  // Orders come from localStorage (placed via main site) or API
+  const localOrders = JSON.parse(localStorage.getItem('slx_orders') || '[]');
+
+  if (!localOrders.length) {
+    body.innerHTML = `<div class="empty-state">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <p>কোনো অর্ডার নেই।<br>আমাদের <a href="/" style="color:var(--brand);font-weight:700">Shop</a> থেকে কিনুন!</p>
+    </div>`;
+    return;
+  }
+
+  const STATUS_LABELS = {
+    pending:'pending', confirmed:'confirmed', processing:'processing',
+    shipped:'shipped', delivered:'delivered', cancelled:'cancelled',
+  };
+
+  const html = localOrders.slice().reverse().map(o => `
+    <div class="order-row">
+      <div>
+        <div class="or-id">${esc(o.id)}</div>
+        <div>
+          <span class="status-badge sb-${o.status||'pending'}">
+            ${getBadgeIcon(o.status)} ${o.status || 'Pending'}
+          </span>
+        </div>
+      </div>
+      <div class="or-info">
+        <div class="or-items">${o.items ? o.items.length + 'টি পণ্য' : ''}</div>
+        <div class="or-date">${o.date ? new Date(o.date).toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'}) : ''}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="or-total">৳${Number(o.total||0).toLocaleString()}</div>
+        <a href="/track?id=${esc(o.id)}" class="btn-track" style="display:inline-block;margin-top:6px">
+          <i class="fa-solid fa-magnifying-glass"></i> Track
+        </a>
+      </div>
+    </div>`).join('');
+
+  body.innerHTML = html;
+}
+
+function getBadgeIcon(status) {
+  const icons = { pending:'⏳', confirmed:'✅', processing:'⚙️', shipped:'🚚', delivered:'📦', cancelled:'❌' };
+  return icons[status] || '⏳';
+}
+
+/* ── LOAD WISHLIST ────────────────────────────────────────── */
+function loadWishlist() {
+  const body   = document.getElementById('wishlist-body');
+  const wlIds  = JSON.parse(localStorage.getItem('slx_wishlist') || '[]');
+
+  if (!wlIds.length) {
+    body.innerHTML = `<div class="empty-state">
+      <i class="fa-regular fa-heart"></i>
+      <p>Wishlist খালি। পণ্যের হার্ট আইকনে click করে add করুন।</p>
+    </div>`;
+    return;
+  }
+
+  // Try to get products from products.js global
+  if (typeof PRODUCTS !== 'undefined') {
+    const wished = PRODUCTS.filter(p => wlIds.includes(p.id) || wlIds.includes(String(p.id)));
+    if (wished.length) {
+      body.innerHTML = wished.map(p => `
+        <div class="order-row">
+          <img src="${esc(p.img)}" style="width:60px;height:74px;object-fit:cover;border-radius:var(--r);flex-shrink:0" alt="${esc(p.name)}">
+          <div class="or-info">
+            <div class="or-items">${esc(p.name)}</div>
+            <div class="or-date" style="color:var(--brand);font-weight:700">৳${Number(p.price).toLocaleString()}</div>
+          </div>
+          <a href="/?product=${p.id}" style="background:var(--brand);color:#fff;padding:8px 16px;border-radius:var(--r-full);font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px">
+            <i class="fa-solid fa-eye"></i> দেখুন
+          </a>
+        </div>`).join('');
+      return;
+    }
+  }
+
+  body.innerHTML = `<div style="padding:20px;font-size:14px;color:var(--text2);text-align:center">
+    ${wlIds.length}টি পণ্য Wishlist এ আছে। হোমে গিয়ে দেখুন।<br>
+    <a href="/" style="color:var(--brand);font-weight:700;margin-top:10px;display:inline-block">
+      Shop করুন →
+    </a>
+  </div>`;
+}
+
+/* ── SAVE PROFILE ─────────────────────────────────────────── */
+async function saveProfile() {
+  const name  = document.getElementById('pf-edit-name').value.trim();
+  const email = document.getElementById('pf-edit-email').value.trim();
+  const msg   = document.getElementById('info-msg');
+
+  if (!name || name.length < 2) { showMsg(msg, 'সঠিক নাম দিন!', false); return; }
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/auth?action=update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body:    JSON.stringify({ name, email }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      currentUser = data.user;
+      localStorage.setItem('slx_user', JSON.stringify(data.user));
+      document.getElementById('pf-name').textContent = data.user.name;
+      document.getElementById('pf-ava').textContent  = data.user.name[0].toUpperCase();
+      showMsg(msg, '✅ Profile update হয়েছে!', true);
+    } else {
+      showMsg(msg, data.error || 'Error হয়েছে', false);
+    }
+  } catch {
+    showMsg(msg, 'Connection error. আবার চেষ্টা করুন।', false);
+  }
+}
+
+/* ── CHANGE PASSWORD ─────────────────────────────────────── */
+async function changePassword() {
+  const oldPw = document.getElementById('pw-old').value;
+  const newPw = document.getElementById('pw-new').value;
+  const newPw2= document.getElementById('pw-new2').value;
+  const msg   = document.getElementById('pw-msg');
+
+  if (!oldPw)              { showMsg(msg, 'পুরানো password দিন!', false); return; }
+  if (newPw.length < 8)   { showMsg(msg, 'নতুন password কমপক্ষে ৮ অক্ষর!', false); return; }
+  if (newPw !== newPw2)   { showMsg(msg, 'Password দুটো মিলছে না!', false); return; }
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/auth?action=password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body:    JSON.stringify({ oldPassword: oldPw, newPassword: newPw }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      ['pw-old','pw-new','pw-new2'].forEach(id => document.getElementById(id).value = '');
+      showMsg(msg, '✅ Password পরিবর্তন হয়েছে!', true);
+    } else {
+      showMsg(msg, data.error || 'Error হয়েছে', false);
+    }
+  } catch {
+    showMsg(msg, 'Connection error', false);
+  }
+}
+
+/* ── LOGOUT ───────────────────────────────────────────────── */
+function doLogout() {
+  if (!confirm('Logout করতে চান?')) return;
+  localStorage.removeItem('slx_user');
+  localStorage.removeItem('slx_token');
+  window.location = '/';
+}
+
+/* ── NAV ─────────────────────────────────────────────────── */
+function showSection(name) {
+  document.querySelectorAll('.pf-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.pf-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`sec-${name}`)?.classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+/* ── HELPERS ─────────────────────────────────────────────── */
+function showMsg(el, text, ok) {
+  el.textContent = text;
+  el.style.color = ok ? 'var(--green)' : 'var(--brand)';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+function esc(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ── START ───────────────────────────────────────────────── */
+init();
+</script>
+</body>
+</html>
