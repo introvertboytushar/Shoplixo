@@ -1,9 +1,6 @@
 {
   "version": 2,
   "name": "shoplixo",
-  "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" }
-  ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/track", "dest": "/track-order.html" },
