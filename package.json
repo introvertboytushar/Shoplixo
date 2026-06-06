@@ -1,25 +1,24 @@
 {
-  name shoplixo,
-  version 1.0.0,
-  description Bangladesh's #1 Dropshipping Store - Shoplixo Backend,
-  private true,
-  engines {
-    node =18.x
+  "name": "shoplixo",
+  "version": "1.0.0",
+  "description": "Bangladesh's #1 Dropshipping Store — Shoplixo Vercel Backend",
+  "private": true,
+  "engines": {
+    "node": ">=18.x"
   },
-  scripts {
-    dev vercel dev,
-    deploy vercel --prod,
-    lint eslint api.js
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "build": "echo 'No build step needed'"
   },
-  dependencies {
-    mongoose ^8.2.0,
-    bcryptjs ^2.4.3,
-    jsonwebtoken ^9.0.2,
-    nodemailer ^6.9.10,
-    cors ^2.8.5,
-    multer ^1.4.5-lts.1
+  "dependencies": {
+    "mongoose": "^8.2.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.13",
+    "cors": "^2.8.5"
   },
-  devDependencies {
-    vercel ^33.0.0
+  "devDependencies": {
+    "vercel": "^33.5.0"
   }
 }
