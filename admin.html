@@ -218,6 +218,65 @@ tr:hover td{background:var(--bg)}
   .om-row{grid-template-columns:1fr}
   .su-form{grid-template-columns:1fr 1fr}
 }
+
+/* ─── IMAGE UPLOAD SYSTEM ─── */
+.img-upload-zone{border:3px dashed var(--border);border-radius:var(--r-xl);padding:40px 20px;text-align:center;cursor:pointer;transition:var(--t);background:var(--bg);position:relative}
+.img-upload-zone:hover,.img-upload-zone.drag-over{border-color:var(--brand);background:var(--brand-l)}
+.img-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-upload-icon{font-size:48px;color:var(--text3);margin-bottom:10px;display:block}
+.img-upload-title{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:6px}
+.img-upload-sub{font-size:12px;color:var(--text3)}
+.img-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin-top:14px}
+.img-preview-item{position:relative;aspect-ratio:1;border-radius:var(--r);overflow:hidden;border:2px solid var(--border);background:var(--bg)}
+.img-preview-item img{width:100%;height:100%;object-fit:cover}
+.img-preview-item .img-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none}
+.img-preview-item.primary{border-color:var(--green)}
+.img-primary-badge{position:absolute;bottom:4px;left:4px;background:var(--green);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px}
+.upload-progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px}
+.upload-progress-bar{height:100%;background:linear-gradient(90deg,var(--brand),var(--green));border-radius:2px;transition:width .3s ease;width:0%}
+
+/* ─── PRODUCT ADD/EDIT MODAL ─── */
+#product-modal{position:fixed;inset:0;z-index:3000;display:flex;align-items:flex-start;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:var(--t);overflow-y:auto}
+#product-modal.open{opacity:1;visibility:visible}
+.pm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.pm-card{background:#fff;border-radius:var(--r-xl);width:100%;max-width:700px;position:relative;z-index:1;box-shadow:var(--sh-lg);margin:20px auto}
+.pm-head{padding:18px 22px;background:var(--dark2);border-radius:var(--r-xl) var(--r-xl) 0 0;display:flex;align-items:center;justify-content:space-between}
+.pm-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;display:flex;align-items:center;gap:9px}
+.pm-body{padding:22px;display:grid;gap:16px}
+.pm-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pm-field label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:5px}
+.pm-field input,.pm-field select,.pm-field textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;transition:var(--t);font-family:inherit;background:#fff}
+.pm-field input:focus,.pm-field select:focus,.pm-field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.06)}
+.pm-checkboxes{display:flex;gap:16px;flex-wrap:wrap}
+.pm-check{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer}
+.pm-check input{width:16px;height:16px;accent-color:var(--brand)}
+.btn-save-product{background:linear-gradient(135deg,var(--green),#00a575);color:#fff;padding:12px 24px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;transition:var(--t)}
+.btn-save-product:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,197,138,.3)}
+
+/* ─── ANALYTICS CHARTS UPGRADE ─── */
+.analytics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:768px){.analytics-grid{grid-template-columns:1fr}}
+.mini-stat{background:#fff;border-radius:var(--r-xl);padding:16px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px}
+.ms-icon{width:44px;height:44px;border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ms-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--dark);line-height:1}
+.ms-label{font-size:11px;color:var(--text3);margin-top:2px}
+.ms-change{font-size:11px;font-weight:700;display:flex;align-items:center;gap:3px;margin-top:3px}
+.ms-change.up{color:var(--green)}.ms-change.dn{color:var(--brand)}
+
+/* ─── FLASH SALE UPGRADE ─── */
+.fs-item{background:var(--bg);border-radius:var(--r-lg);padding:16px;border:1px solid var(--border);margin-bottom:10px;transition:var(--t)}
+.fs-item:hover{border-color:var(--gold);box-shadow:0 4px 16px rgba(255,184,0,.1)}
+.fs-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fs-item-title{font-size:14px;font-weight:700;color:var(--dark)}
+.fs-status-badge{padding:3px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700}
+.fsb-active{background:var(--green-l);color:var(--green)}
+.fsb-scheduled{background:var(--blue-l);color:var(--blue)}
+.fsb-ended{background:var(--bg3);color:var(--text3)}
+.fs-item-meta{font-size:12px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap}
+.fs-item-meta span{display:flex;align-items:center;gap:5px}
+.fs-item-meta i{color:var(--text3);font-size:11px}
+.fs-countdown-mini{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--brand);margin-top:6px}
+
 </style>
 <style>
 /* v3: Comment management */
@@ -453,20 +512,60 @@ tr:hover td{background:var(--bg)}
 
       <!-- ── SETTINGS ── -->
       <div class="section" id="sec-settings">
-        <div style="background:#fff;border-radius:var(--r-xl);padding:28px;box-shadow:var(--sh);max-width:540px">
-          <h3 style="font-family:'Syne',sans-serif;margin-bottom:20px;font-size:17px">Admin Settings</h3>
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div>
-              <label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:6px">Admin Password Change</label>
-              <input type="password" id="new-pw" placeholder="New password" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;margin-bottom:8px">
-              <button onclick="changePassword()" style="background:var(--brand);color:#fff;padding:10px 20px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer">Update Password</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:960px">
+          <!-- Admin Password -->
+          <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh)">
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-lock" style="color:var(--brand)"></i> Admin Security</h3>
+            <input type="password" id="new-pw" placeholder="New password" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;margin-bottom:8px">
+            <button onclick="changePassword()" style="background:var(--brand);color:#fff;padding:10px 20px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer">Update Password</button>
+            <div style="margin-top:12px;font-size:12px;color:var(--text3)"><strong>API:</strong> /api/admin &nbsp; <strong>Header:</strong> x-admin-key</div>
+          </div>
+          <!-- Pending Sync -->
+          <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh)">
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-rotate" style="color:var(--green)"></i> Product Sync</h3>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">Server offline থাকলে products locally save হয়। এখানে server এ sync করুন।</p>
+            <button onclick="syncPendingProducts()" style="background:var(--green);color:#fff;padding:11px 20px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fa-solid fa-cloud-arrow-up"></i> Sync Pending Products</button>
+            <div style="margin-top:12px;font-size:12px;color:var(--text3);font-weight:600">Local Scheduled Flash Sales:</div>
+            <div id="local-flash-list" style="margin-top:8px;max-height:180px;overflow-y:auto"></div>
+          </div>
+          <!-- SMS Notifications -->
+          <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh);grid-column:1/-1">
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-message" style="color:var(--blue)"></i> SMS Notification Settings</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Enable SMS</label><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="sms-enabled" style="width:16px;height:16px;accent-color:var(--brand)"> SMS চালু করুন</label></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">SMS Provider</label><select id="sms-provider" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;background:#fff"><option value="infobip">Infobip BD</option><option value="twilio">Twilio</option><option value="smsbd">SMS.com.bd</option><option value="bulksms">BulkSMS</option></select></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">API Key</label><input id="sms-api-key" type="password" placeholder="Your SMS API Key" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Sender ID</label><input id="sms-sender" placeholder="SHOPLIXO" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Order Confirm Template</label><input id="sms-order-template" placeholder="Shoplixo: আপনার Order {orderId} confirm হয়েছে। Total: {total}" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"><div style="font-size:11px;color:var(--text3);margin-top:3px">Variables: {orderId} {name} {total} {phone}</div></div>
+              <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Order Shipped Template</label><input id="sms-shipped-template" placeholder="Shoplixo: আপনার Order {orderId} shipped হয়েছে।" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
             </div>
-            <hr style="border:none;border-top:1px solid var(--border)">
-            <div>
-              <div style="font-size:13px;color:var(--text2);line-height:1.7">
-                <strong>API Endpoint:</strong> <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">/api/admin</code><br>
-                <strong>Auth Header:</strong> <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px">x-admin-key: [password]</code>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <button onclick="saveSmsConfig()" style="background:var(--blue);color:#fff;padding:10px 20px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+              <input id="sms-test-phone" placeholder="01XXXXXXXXX" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;width:150px">
+              <button onclick="testSms()" style="background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer">Test SMS</button>
+            </div>
+            <div style="margin-top:12px;background:var(--bg);border-radius:var(--r);padding:10px;font-size:12px;color:var(--text2)"><strong>Note:</strong> Real SMS এর জন্য /api/orders.js এ SMS credentials configure করতে হবে।</div>
+          </div>
+          <!-- Bulk Operations -->
+          <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh)">
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-layer-group" style="color:var(--purple)"></i> Bulk Stock Update</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button onclick="bulkUpdateStock('',10)" style="background:var(--green-l,#e6faf4);color:var(--green);border:1px solid var(--green);padding:7px 12px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer">+10 সব পণ্যে</button>
+              <button onclick="bulkUpdateStock('mens-shirts',20)" style="background:var(--brand-l);color:var(--brand);border:1px solid var(--brand);padding:7px 12px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer">+20 Shirts</button>
+              <button onclick="bulkUpdateStock('gadgets',15)" style="background:#e6f0ff;color:var(--blue);border:1px solid var(--blue);padding:7px 12px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer">+15 Gadgets</button>
+              <button onclick="bulkUpdateStock('women',25)" style="background:#fff0f9;color:#E91E8C;border:1px solid #E91E8C;padding:7px 12px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer">+25 Women's</button>
+            </div>
+          </div>
+          <!-- Flash Sale Quick Scheduler -->
+          <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh)">
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-bolt" style="color:var(--gold)"></i> Quick Flash Sale</h3>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input id="quick-flash-title" placeholder="Weekend Sale" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><label style="font-size:10px;font-weight:700;color:var(--text3);display:block;margin-bottom:3px">Discount %</label><input id="quick-flash-discount" type="number" placeholder="30" min="5" max="90" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+                <div><label style="font-size:10px;font-weight:700;color:var(--text3);display:block;margin-bottom:3px">Duration (hours)</label><input id="quick-flash-hours" type="number" placeholder="8" min="1" max="72" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
               </div>
+              <button onclick="quickScheduleFlash()" style="background:linear-gradient(135deg,var(--gold),#ff9900);color:var(--dark);padding:10px;border-radius:var(--r-full);font-size:13px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px"><i class="fa-solid fa-bolt"></i> Schedule করুন</button>
             </div>
           </div>
         </div>
@@ -474,6 +573,21 @@ tr:hover td{background:var(--bg)}
 
       <!-- ── PRODUCTS ── -->
       <div class="section" id="sec-products">
+        <!-- Analytics Mini Stats -->
+        <div class="analytics-grid" id="prod-analytics">
+          <div class="mini-stat">
+            <div class="ms-icon" style="background:rgba(228,30,38,.1);color:var(--brand)"><i class="fa-solid fa-box"></i></div>
+            <div><div class="ms-val" id="pa-total">—</div><div class="ms-label">Total Products</div><div class="ms-change up"><i class="fa-solid fa-arrow-up"></i> Active</div></div>
+          </div>
+          <div class="mini-stat">
+            <div class="ms-icon" style="background:rgba(255,184,0,.1);color:var(--gold)"><i class="fa-solid fa-fire"></i></div>
+            <div><div class="ms-val" id="pa-flash">—</div><div class="ms-label">Flash Sale Items</div><div class="ms-change" style="color:var(--gold)"><i class="fa-solid fa-bolt"></i> Live</div></div>
+          </div>
+          <div class="mini-stat">
+            <div class="ms-icon" style="background:rgba(0,197,138,.1);color:var(--green)"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div><div class="ms-val" id="pa-low">—</div><div class="ms-label">Low Stock (≤5)</div><div class="ms-change dn"><i class="fa-solid fa-arrow-down"></i> Restock soon</div></div>
+          </div>
+        </div>
         <div class="table-card" style="margin-bottom:20px">
           <div class="tc-head">
             <div class="tc-title"><i class="fa-solid fa-box" style="color:var(--brand)"></i> Products Management</div>
@@ -489,6 +603,7 @@ tr:hover td{background:var(--bg)}
                 <option value="accessories">Accessories</option>
                 <option value="kids">Kids</option>
               </select>
+              <button class="tc-btn tc-btn-brand" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> Add Product</button>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -506,9 +621,15 @@ tr:hover td{background:var(--bg)}
 
       <!-- ── REVIEWS ── -->
       <div class="section" id="sec-reviews">
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+          <div class="stat-card"><div class="sc-label">Total Reviews</div><div class="sc-val" id="rv-total" style="color:var(--gold)">—</div><div class="sc-sub up"><i class="fa-solid fa-star"></i> সব রিভিউ</div><div class="sc-icon" style="background:rgba(255,184,0,.1);color:var(--gold)"><i class="fa-solid fa-comments"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Pending Approval</div><div class="sc-val" id="rv-pending" style="color:var(--brand)">—</div><div class="sc-sub"><i class="fa-solid fa-clock"></i> অপেক্ষায়</div><div class="sc-icon si-pending"><i class="fa-solid fa-hourglass-half"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Avg Rating</div><div class="sc-val" id="rv-avg" style="color:var(--green)">—</div><div class="sc-sub up"><i class="fa-solid fa-star"></i> Overall</div><div class="sc-icon si-revenue"><i class="fa-solid fa-chart-line"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Verified Purchase</div><div class="sc-val" id="rv-verified">—</div><div class="sc-sub up"><i class="fa-solid fa-check"></i> Authentic</div><div class="sc-icon si-users"><i class="fa-solid fa-shield-check"></i></div></div>
+        </div>
         <div class="table-card">
           <div class="tc-head">
-            <div class="tc-title"><i class="fa-solid fa-star" style="color:var(--gold)"></i> Reviews & Comments</div>
+            <div class="tc-title"><i class="fa-solid fa-star" style="color:var(--gold)"></i> Reviews & Comments Management</div>
             <div class="tc-actions">
               <select class="tc-select" id="review-status-filter" onchange="loadReviews()">
                 <option value="">All Reviews</option>
@@ -516,7 +637,15 @@ tr:hover td{background:var(--bg)}
                 <option value="approved">Approved</option>
                 <option value="hidden">Hidden</option>
               </select>
+              <select class="tc-select" id="review-rating-filter" onchange="loadReviews()">
+                <option value="">All Ratings</option>
+                <option value="5">⭐⭐⭐⭐⭐ 5 Star</option>
+                <option value="4">⭐⭐⭐⭐ 4 Star</option>
+                <option value="3">⭐⭐⭐ 3 Star</option>
+                <option value="1,2">⭐⭐ 1-2 Star</option>
+              </select>
               <button class="tc-btn tc-btn-brand" onclick="approveAllReviews()"><i class="fa-solid fa-check-double"></i> Approve All</button>
+              <button class="tc-btn tc-btn-outline" onclick="loadReviews()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
             </div>
           </div>
           <div id="reviews-body" style="padding:10px"></div>
@@ -716,6 +845,75 @@ tr:hover td{background:var(--bg)}
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /app -->
+
+<!-- PRODUCT ADD/EDIT MODAL -->
+<div id="product-modal">
+  <div class="pm-backdrop" onclick="closeProductModal()"></div>
+  <div class="pm-card">
+    <div class="pm-head">
+      <div class="pm-title"><i class="fa-solid fa-box"></i> <span id="pm-modal-title">নতুন Product যোগ করুন</span></div>
+      <button onclick="closeProductModal()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="pm-body">
+      <div class="pm-form-grid">
+        <div class="pm-field"><label>Product Name *</label><input id="pm-name" placeholder="Premium Cotton Shirt"></div>
+        <div class="pm-field"><label>Category *</label>
+          <select id="pm-cat">
+            <option value="mens-shirts">Men's Shirts</option>
+            <option value="mens-pants">Men's Pants</option>
+            <option value="shoes">Shoes</option>
+            <option value="women">Women</option>
+            <option value="women-bags">Women Bags</option>
+            <option value="women-shoes">Women Shoes</option>
+            <option value="gadgets">Gadgets</option>
+            <option value="kids">Kids</option>
+            <option value="accessories">Accessories</option>
+          </select>
+        </div>
+        <div class="pm-field"><label>Sale Price (৳) *</label><input id="pm-price" type="number" placeholder="1299" min="1"></div>
+        <div class="pm-field"><label>Original MRP (৳)</label><input id="pm-orig" type="number" placeholder="2499" min="1"></div>
+        <div class="pm-field"><label>Stock Quantity</label><input id="pm-stock" type="number" placeholder="50" min="0"></div>
+        <div class="pm-field"><label>Rating (3.5-5.0)</label><input id="pm-rating" type="number" placeholder="4.5" min="3.5" max="5" step="0.1"></div>
+        <div class="pm-field"><label>Reviews Count</label><input id="pm-reviews" type="number" placeholder="128" min="0"></div>
+        <div class="pm-field"><label>Badge</label>
+          <select id="pm-badge">
+            <option value="hot">🔥 Hot</option>
+            <option value="new">✨ New</option>
+            <option value="sale">🏷️ Sale</option>
+          </select>
+        </div>
+        <div class="pm-field"><label>Sizes (comma separated)</label><input id="pm-sizes" placeholder="S, M, L, XL, XXL"></div>
+        <div class="pm-field"><label>Colors</label><input id="pm-colors" placeholder="Black, White, Red, Blue"></div>
+        <div class="pm-field"><label>Material</label><input id="pm-material" placeholder="Cotton, Polyester..."></div>
+        <div class="pm-field"><label>Viewers Now</label><input id="pm-viewers" type="number" placeholder="12" min="1"></div>
+      </div>
+      <div class="pm-field"><label>Description</label><textarea id="pm-desc" rows="3" placeholder="পণ্যের বিস্তারিত বিবরণ..."></textarea></div>
+      <div class="pm-field"><label>Product Image URL</label>
+        <input id="pm-img" placeholder="https://images.unsplash.com/..." oninput="previewImgUrl(this.value)" onpaste="setTimeout(()=>previewImgUrl(this.value),100)">
+        <div id="pm-img-url-preview" style="display:none;margin-top:10px;position:relative;width:120px;height:150px;border-radius:10px;overflow:hidden;border:2px solid var(--border)"><img id="pm-img-url-img" style="width:100%;height:100%;object-fit:cover" onerror="document.getElementById('pm-img-url-preview').style.display='none'"><div style="position:absolute;bottom:0;left:0;right:0;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:3px;text-align:center">Preview</div></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px"><i class="fa-solid fa-info-circle"></i> Unsplash, Imgur, বা যেকোনো image URL দিন। অথবা নিচে drag & drop করুন।</div>
+      </div>
+      <!-- Image Upload Zone -->
+      <div class="img-upload-zone" id="img-upload-zone" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleImgDrop(event)">
+        <input type="file" accept="image/*" multiple onchange="handleImgUpload(this.files)">
+        <span class="img-upload-icon">📸</span>
+        <div class="img-upload-title">ছবি Upload করুন</div>
+        <div class="img-upload-sub">Click করুন অথবা drag & drop করুন (JPG, PNG, WebP — Max 5MB)</div>
+        <div class="upload-progress" id="upload-progress" style="display:none"><div class="upload-progress-bar" id="upload-bar"></div></div>
+      </div>
+      <div class="img-preview-grid" id="img-preview-grid"></div>
+      <div class="pm-checkboxes">
+        <label class="pm-check"><input type="checkbox" id="pm-featured"> Featured</label>
+        <label class="pm-check"><input type="checkbox" id="pm-new"> New Arrival</label>
+        <label class="pm-check"><input type="checkbox" id="pm-flash"> Flash Sale</label>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-save-product" onclick="saveProduct()"><i class="fa-solid fa-check"></i> Product Save করুন</button>
+        <button onclick="closeProductModal()" style="background:var(--bg);border:1.5px solid var(--border);color:var(--text2);padding:12px 20px;border-radius:var(--r-full);font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ORDER DETAIL MODAL -->
 <div id="order-modal">
@@ -1260,36 +1458,55 @@ function viewProductDetail(id) {
 ═══════════════════════════════════════════ */
 async function loadReviews() {
   const status = $('review-status-filter')?.value || '';
+  const rating = $('review-rating-filter')?.value || '';
   $('reviews-body').innerHTML = `<div style="text-align:center;padding:40px"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
   try {
-    const data = await adminFetch(`action=reviews${status?'&status='+status:''}`);
+    let url = `action=reviews${status?'&status='+status:''}${rating?'&rating='+rating:''}`;
+    const data = await adminFetch(url);
     if (!data.ok) throw new Error(data.error);
     const reviews = data.reviews || [];
+    
+    // Update stats
+    const total = reviews.length;
+    const pending = reviews.filter(r=>!r.isApproved&&!r.isHidden).length;
+    const verified = reviews.filter(r=>r.isVerifiedPurchase).length;
+    const avg = total ? (reviews.reduce((s,r)=>s+(r.rating||5),0)/total).toFixed(1) : '—';
+    if($('rv-total')) $('rv-total').textContent = total;
+    if($('rv-pending')) $('rv-pending').textContent = pending;
+    if($('rv-avg')) $('rv-avg').textContent = avg + ' ⭐';
+    if($('rv-verified')) $('rv-verified').textContent = verified;
+    
     if (!reviews.length) {
       $('reviews-body').innerHTML = `<div class="empty-state"><i class="fa-solid fa-star"></i><p>কোনো review নেই</p></div>`;
       return;
     }
     $('reviews-body').innerHTML = reviews.map((r,i) => `
-      <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px">
+      <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:box-shadow .2s" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow='none'">
         <div style="display:flex;align-items:flex-start;gap:12px">
           <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--dark2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;font-size:15px">${(r.customerName||'?')[0].toUpperCase()}</div>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
               <strong style="font-size:14px">${esc(r.customerName)}</strong>
-              ${r.isVerifiedPurchase?'<span style="background:#e6faf4;color:var(--green);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">✅ Verified</span>':''}
-              ${r.isApproved?'<span style="background:#e6f0ff;color:var(--blue);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">Approved</span>':r.isHidden?'<span style="background:#f5f5f5;color:var(--text3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">Hidden</span>':'<span style="background:#fff8e6;color:var(--gold);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">Pending</span>'}
+              ${r.isVerifiedPurchase?'<span style="background:#e6faf4;color:var(--green);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">✅ Verified Purchase</span>':''}
+              ${r.isApproved?'<span style="background:#e6f0ff;color:var(--blue);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">✓ Approved</span>':r.isHidden?'<span style="background:#f5f5f5;color:var(--text3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">Hidden</span>':'<span style="background:#fff8e6;color:var(--gold);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">⏳ Pending</span>'}
               <span style="margin-left:auto;font-size:11px;color:var(--text3)">${r.createdAt?new Date(r.createdAt).toLocaleDateString('en-BD'):'—'}</span>
             </div>
-            <div style="display:flex;gap:2px;margin-bottom:6px">${'⭐'.repeat(r.rating||5)}</div>
-            ${r.title?`<div style="font-size:14px;font-weight:700;margin-bottom:4px">${esc(r.title)}</div>`:''}
+            <div style="display:flex;gap:2px;margin-bottom:6px">
+              ${'<i class="fa-solid fa-star" style="color:var(--gold);font-size:13px"></i>'.repeat(r.rating||5)}
+              ${'<i class="fa-regular fa-star" style="color:var(--border2);font-size:13px"></i>'.repeat(5-(r.rating||5))}
+              <span style="font-size:12px;color:var(--text3);margin-left:5px">${r.rating||5}.0</span>
+            </div>
+            ${r.title?`<div style="font-size:14px;font-weight:700;margin-bottom:4px;color:var(--dark)">${esc(r.title)}</div>`:''}
             <div style="font-size:13px;color:var(--text2);line-height:1.6">${esc(r.body)}</div>
-            ${r.reply?.text?`<div style="background:var(--bg);border-radius:8px;padding:10px;margin-top:8px;font-size:12px;border-left:3px solid var(--brand)"><strong style="color:var(--brand)">Admin Reply:</strong><br>${esc(r.reply.text)}</div>`:''}
+            ${r.helpfulCount>0?`<div style="font-size:11px;color:var(--text3);margin-top:6px"><i class="fa-solid fa-thumbs-up"></i> ${r.helpfulCount} জন helpful পেয়েছেন</div>`:''}
+            ${r.reply?.text?`<div style="background:var(--bg);border-radius:8px;padding:10px;margin-top:8px;font-size:12px;border-left:3px solid var(--brand)"><strong style="color:var(--brand)"><i class="fa-solid fa-reply"></i> Admin Reply:</strong><br>${esc(r.reply.text)}</div>`:''}
             <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
               ${!r.isApproved&&!r.isHidden?`<button class="cmr-btn" style="background:#e6faf4;color:var(--green)" onclick="reviewAction('${r._id}','approve')"><i class="fa-solid fa-check"></i> Approve</button>`:''}
               ${r.isApproved?`<button class="cmr-btn" style="background:#f5f5f5;color:var(--text3)" onclick="reviewAction('${r._id}','hide')"><i class="fa-solid fa-eye-slash"></i> Hide</button>`:''}
               ${r.isHidden?`<button class="cmr-btn" style="background:#e6f0ff;color:var(--blue)" onclick="reviewAction('${r._id}','approve')"><i class="fa-solid fa-eye"></i> Unhide</button>`:''}
               <button class="cmr-btn" style="background:#e6f0ff;color:var(--blue)" onclick="showReplyBox('${r._id}',${i})"><i class="fa-solid fa-reply"></i> Reply</button>
               <button class="cmr-btn" style="background:#fdf0f0;color:var(--brand)" onclick="reviewAction('${r._id}','delete')"><i class="fa-solid fa-trash"></i> Delete</button>
+              <span style="font-size:11px;color:var(--text3);margin-left:auto;align-self:center">Product: ${r.productId||'—'}</span>
             </div>
             <div id="reply-box-${r._id}" style="display:none;margin-top:10px">
               <textarea id="reply-text-${r._id}" placeholder="Admin reply লিখুন..." rows="2" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea>
@@ -1298,9 +1515,10 @@ async function loadReviews() {
           </div>
         </div>
       </div>`).join('');
-    $('review-badge').style.display = reviews.filter(r=>!r.isApproved&&!r.isHidden).length ? 'flex' : 'none';
+    $('review-badge').style.display = pending > 0 ? 'flex' : 'none';
+    if($('review-badge')) $('review-badge').textContent = pending > 0 ? pending : '!';
   } catch(e) {
-    $('reviews-body').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Review API unavailable. Configure api/comments.js</p></div>`;
+    $('reviews-body').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Review API unavailable. Configure api/comments.js<br><small style="color:var(--text3)">${e.message}</small></p></div>`;
   }
 }
 
@@ -1562,6 +1780,371 @@ async function deleteBundle(id) {
 }
 
 function esc(s) { return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ══════════════════════════════════════════
+   PRODUCT ADD/EDIT MODAL v5
+══════════════════════════════════════════ */
+let editingProductId = null;
+let uploadedImages = [];
+
+function openProductModal(prod = null) {
+  editingProductId = prod ? prod.id : null;
+  uploadedImages = [];
+  const modal = document.getElementById('product-modal');
+  if(!modal) return;
+  document.getElementById('pm-modal-title').textContent = prod ? 'Product Edit করুন' : 'নতুন Product যোগ করুন';
+  if(prod) {
+    document.getElementById('pm-name').value = prod.name || '';
+    document.getElementById('pm-cat').value = prod.cat || 'mens-shirts';
+    document.getElementById('pm-price').value = prod.price || '';
+    document.getElementById('pm-orig').value = prod.orig || '';
+    document.getElementById('pm-stock').value = prod.stock || '';
+    document.getElementById('pm-rating').value = prod.rating || '4.5';
+    document.getElementById('pm-reviews').value = prod.reviews || '';
+    document.getElementById('pm-badge').value = prod.badge || 'hot';
+    document.getElementById('pm-sizes').value = (prod.sizes||[]).join(', ');
+    document.getElementById('pm-colors').value = (prod.colors||[]).join(', ');
+    document.getElementById('pm-material').value = prod.material || '';
+    document.getElementById('pm-viewers').value = prod.viewers || '12';
+    document.getElementById('pm-desc').value = prod.desc || '';
+    document.getElementById('pm-img').value = prod.img || '';
+    document.getElementById('pm-featured').checked = !!prod.isFeatured;
+    document.getElementById('pm-new').checked = !!prod.isNew;
+    document.getElementById('pm-flash').checked = !!prod.isFlash;
+    if(prod.img) showImgPreview([prod.img]);
+  } else {
+    ['pm-name','pm-price','pm-orig','pm-stock','pm-reviews','pm-sizes','pm-colors','pm-material','pm-desc','pm-img'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('pm-rating').value = '4.5';
+    document.getElementById('pm-viewers').value = '12';
+    document.getElementById('pm-featured').checked = false;
+    document.getElementById('pm-new').checked = true;
+    document.getElementById('pm-flash').checked = false;
+    document.getElementById('img-preview-grid').innerHTML = '';
+  }
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeProductModal() {
+  const modal = document.getElementById('product-modal');
+  if(modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function showImgPreview(urls) {
+  const grid = document.getElementById('img-preview-grid');
+  if(!grid) return;
+  grid.innerHTML = urls.map((url, i) => `
+    <div class="img-preview-item ${i===0?'primary':''}">
+      <img src="${url}" onerror="this.src='https://picsum.photos/90/90'">
+      <button class="img-del" onclick="removePreviewImg(${i})"><i class="fa-solid fa-xmark"></i></button>
+      ${i===0?'<span class="img-primary-badge">Main</span>':''}
+    </div>`).join('');
+}
+function removePreviewImg(i) {
+  uploadedImages.splice(i,1);
+  showImgPreview(uploadedImages);
+}
+
+function handleImgUpload(files) {
+  const progress = document.getElementById('upload-progress');
+  const bar = document.getElementById('upload-bar');
+  if(progress) progress.style.display = 'block';
+  let loaded = 0;
+  [...files].forEach((file, idx) => {
+    if(file.size > 5*1024*1024) { toast('Image 5MB এর বেশি হতে পারবে না!','warning'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      uploadedImages.push(e.target.result);
+      if(uploadedImages.length === 1) document.getElementById('pm-img').value = 'uploaded';
+      loaded++;
+      if(bar) bar.style.width = (loaded/files.length*100)+'%';
+      if(loaded === files.length) {
+        setTimeout(()=>{if(progress)progress.style.display='none';},600);
+        showImgPreview(uploadedImages);
+        toast(`${loaded}টি ছবি upload হয়েছে! ✅`,'success');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function handleImgDrop(e) {
+  e.preventDefault();
+  document.getElementById('img-upload-zone').classList.remove('drag-over');
+  if(e.dataTransfer.files.length) handleImgUpload(e.dataTransfer.files);
+}
+
+async function saveProduct() {
+  const name = document.getElementById('pm-name')?.value?.trim();
+  const cat = document.getElementById('pm-cat')?.value;
+  const price = parseFloat(document.getElementById('pm-price')?.value);
+  const orig = parseFloat(document.getElementById('pm-orig')?.value)||price;
+  const stock = parseInt(document.getElementById('pm-stock')?.value)||50;
+  const rating = parseFloat(document.getElementById('pm-rating')?.value)||4.5;
+  const reviews = parseInt(document.getElementById('pm-reviews')?.value)||0;
+  const badge = document.getElementById('pm-badge')?.value;
+  const sizes = (document.getElementById('pm-sizes')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const colors = (document.getElementById('pm-colors')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const material = document.getElementById('pm-material')?.value?.trim();
+  const viewers = parseInt(document.getElementById('pm-viewers')?.value)||12;
+  const desc = document.getElementById('pm-desc')?.value?.trim();
+  let img = document.getElementById('pm-img')?.value?.trim();
+  const isFeatured = document.getElementById('pm-featured')?.checked;
+  const isNew = document.getElementById('pm-new')?.checked;
+  const isFlash = document.getElementById('pm-flash')?.checked;
+
+  if(!name || !cat || !price) { toast('Name, Category, Price আবশ্যক!','warning'); return; }
+
+  // Use first uploaded image if available
+  if(uploadedImages.length > 0 && img === 'uploaded') img = uploadedImages[0];
+  if(!img) img = `https://source.unsplash.com/400x500/?${cat.replace(/-/g,',')}`;
+
+  const productData = { name, cat, price, orig, stock, rating, reviews, badge, sizes, colors, material, viewers, desc, img, isFeatured, isNew, isFlash };
+
+  try {
+    const method = editingProductId ? 'PATCH' : 'POST';
+    if(editingProductId) productData.id = editingProductId;
+    const data = await fetch('/api/admin?action=product', {
+      method,
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(productData),
+    }).then(r=>r.json());
+    if(data.ok) {
+      toast(editingProductId ? 'Product updated! ✅' : 'Product added! ✅', 'success');
+      closeProductModal();
+      if(typeof loadAdminProducts === 'function') loadAdminProducts();
+    } else toast(data.error||'Error saving product','warning');
+  } catch {
+    // Offline: save to localStorage for later sync
+    toast('Server offline — local এ save হয়েছে','warning');
+    const localProds = JSON.parse(localStorage.getItem('slx_pending_products')||'[]');
+    localProds.push({...productData, _pending: true, _time: Date.now()});
+    localStorage.setItem('slx_pending_products', JSON.stringify(localProds));
+    closeProductModal();
+  }
+}
+
+/* Update product analytics */
+function updateProductAnalytics() {
+  const PRODUCTS = window.SHOPLIXA_PRODUCTS || [];
+  const total = PRODUCTS.length;
+  const flash = PRODUCTS.filter(p=>p.isFlash).length;
+  const low = PRODUCTS.filter(p=>p.stock<=5).length;
+  const elT = document.getElementById('pa-total');
+  const elF = document.getElementById('pa-flash');
+  const elL = document.getElementById('pa-low');
+  if(elT) elT.textContent = total;
+  if(elF) elF.textContent = flash;
+  if(elL) { elL.textContent = low; elL.style.color = low > 0 ? 'var(--brand)' : 'var(--dark)'; }
+}
+
+// Call on section show
+const _origShowSection = window.showSection;
+window.showSection = function(name) {
+  if(_origShowSection) _origShowSection(name);
+  if(name === 'products') setTimeout(updateProductAnalytics, 100);
+};
+
+/* ══════════════════════════════════════════════════
+   ADMIN v6 ULTRA PRO — Extra Features
+══════════════════════════════════════════════════ */
+
+/* Image URL Live Preview */
+function previewImgUrl(url) {
+  const preview = document.getElementById('pm-img-url-preview');
+  const img = document.getElementById('pm-img-url-img');
+  if(!preview || !img) return;
+  if(url && (url.startsWith('http') || url.startsWith('data:'))) {
+    preview.style.display = 'block';
+    img.src = url;
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+/* Flash Sale Scheduler — Enhanced localStorage sync */
+function scheduleLocalFlashSale(title, productIds, discount, startISO, endISO) {
+  const scheduled = JSON.parse(localStorage.getItem('slx_flash_schedule') || '[]');
+  scheduled.push({
+    id: Date.now(),
+    title,
+    productIds: productIds.map(Number),
+    discount: Number(discount),
+    startTime: new Date(startISO).getTime(),
+    endTime: new Date(endISO).getTime(),
+    active: false,
+    createdAt: Date.now(),
+  });
+  localStorage.setItem('slx_flash_schedule', JSON.stringify(scheduled));
+  toast(`Flash Sale "${title}" scheduled locally! ✅`, 'success');
+  renderScheduledFlashSales();
+}
+
+function renderScheduledFlashSales() {
+  const scheduled = JSON.parse(localStorage.getItem('slx_flash_schedule') || '[]');
+  const el = document.getElementById('local-flash-list');
+  if(!el) return;
+  el.innerHTML = scheduled.length ? scheduled.map(s => `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px">${s.title}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">
+          ${s.discount}% ছাড় · ${new Date(s.startTime).toLocaleString('bn-BD')} → ${new Date(s.endTime).toLocaleString('bn-BD')}
+        </div>
+        <div style="font-size:11px;margin-top:3px">
+          <span style="background:${s.active?'var(--green)':'var(--gold)'};color:#fff;padding:1px 7px;border-radius:4px;font-size:10px">${s.active?'LIVE':'SCHEDULED'}</span>
+          · Products: ${s.productIds?.length || 0}টি
+        </div>
+      </div>
+      <button onclick="deleteLocalSale(${s.id})" style="background:var(--brand-l);color:var(--brand);border:none;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700"><i class="fa-solid fa-trash"></i></button>
+    </div>
+  `).join('') : '<div style="text-align:center;padding:20px;color:var(--text3)">কোনো scheduled sale নেই।</div>';
+}
+
+function deleteLocalSale(id) {
+  let scheduled = JSON.parse(localStorage.getItem('slx_flash_schedule') || '[]');
+  scheduled = scheduled.filter(s => s.id !== id);
+  localStorage.setItem('slx_flash_schedule', JSON.stringify(scheduled));
+  renderScheduledFlashSales();
+  toast('Sale deleted', 'success');
+}
+
+/* Product duplicate function */
+function duplicateProduct(pid) {
+  const PRODS = window.SHOPLIXA_PRODUCTS || [];
+  const p = PRODS.find(x => x.id === pid);
+  if(!p) return;
+  openProductModal();
+  setTimeout(() => {
+    const fields = {
+      'pm-name': p.name + ' (Copy)',
+      'pm-price': p.price,
+      'pm-orig': p.orig,
+      'pm-stock': p.stock,
+      'pm-rating': p.rating,
+      'pm-reviews': 0,
+      'pm-badge': p.badge,
+      'pm-sizes': (p.sizes || []).join(', '),
+      'pm-colors': (p.colors || []).join(', '),
+      'pm-material': p.material || '',
+      'pm-viewers': p.viewers || 12,
+      'pm-desc': p.desc || '',
+      'pm-img': p.img || '',
+    };
+    Object.entries(fields).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if(el) el.value = val;
+    });
+    if(p.img) previewImgUrl(p.img);
+    ['pm-featured', 'pm-new', 'pm-flash'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.checked = id === 'pm-featured' ? p.isFeatured : id === 'pm-new' ? p.isNew : p.isFlash;
+    });
+    const catEl = document.getElementById('pm-cat');
+    if(catEl) catEl.value = p.cat;
+    toast('Product duplicated — edit and save', 'copy');
+  }, 200);
+}
+
+/* Bulk stock update */
+function bulkUpdateStock(category, amount) {
+  const PRODS = window.SHOPLIXA_PRODUCTS || [];
+  const targets = category ? PRODS.filter(p => p.cat === category) : PRODS;
+  targets.forEach(p => { p.stock = Math.max(0, (p.stock || 0) + amount); });
+  const localProds = JSON.parse(localStorage.getItem('slx_admin_products') || '[]');
+  targets.forEach(p => {
+    const idx = localProds.findIndex(x => x.id === p.id);
+    if(idx !== -1) localProds[idx].stock = p.stock;
+    else localProds.push({ id: p.id, stock: p.stock });
+  });
+  localStorage.setItem('slx_admin_products', JSON.stringify(localProds));
+  toast(`${targets.length}টি product এ stock update হয়েছে!`, 'success');
+  if(typeof loadAdminProducts === 'function') loadAdminProducts();
+}
+
+/* SMS notification settings */
+const SMS_CONFIG = JSON.parse(localStorage.getItem('slx_sms_config') || '{}');
+function saveSmsConfig() {
+  const config = {
+    enabled: document.getElementById('sms-enabled')?.checked,
+    provider: document.getElementById('sms-provider')?.value,
+    apiKey: document.getElementById('sms-api-key')?.value,
+    senderId: document.getElementById('sms-sender')?.value,
+    templates: {
+      orderConfirm: document.getElementById('sms-order-template')?.value,
+      orderShipped: document.getElementById('sms-shipped-template')?.value,
+    },
+  };
+  localStorage.setItem('slx_sms_config', JSON.stringify(config));
+  toast('SMS settings saved! ✅', 'success');
+}
+
+/* Test SMS */
+async function testSms() {
+  const phone = document.getElementById('sms-test-phone')?.value;
+  if(!phone) { toast('Phone number দিন!', 'warning'); return; }
+  toast(`Test SMS পাঠানো হচ্ছে ${phone} এ...`, 'message');
+  try {
+    const r = await fetch('/api/orders?action=test-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ phone }),
+    }).then(res => res.json());
+    toast(r.ok ? 'SMS sent! ✅' : r.error || 'SMS failed', r.ok ? 'success' : 'warning');
+  } catch(e) {
+    toast('SMS API unavailable — check settings', 'warning');
+  }
+}
+
+/* Admin Products — sync local with server */
+async function syncPendingProducts() {
+  const pending = JSON.parse(localStorage.getItem('slx_pending_products') || '[]');
+  if(!pending.length) { toast('কোনো pending product নেই।', 'info'); return; }
+  let synced = 0;
+  for(const p of pending) {
+    try {
+      const r = await fetch('/api/admin?action=product', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify(p),
+      }).then(res => res.json());
+      if(r.ok) synced++;
+    } catch(e) {}
+  }
+  if(synced > 0) {
+    localStorage.removeItem('slx_pending_products');
+    toast(`${synced}টি product sync হয়েছে! ✅`, 'success');
+    if(typeof loadAdminProducts === 'function') loadAdminProducts();
+  } else {
+    toast('Sync failed — server offline', 'warning');
+  }
+}
+
+/* Initialize */
+document.addEventListener('DOMContentLoaded', () => {
+  renderScheduledFlashSales();
+  // Load SMS config
+  const cfg = JSON.parse(localStorage.getItem('slx_sms_config') || '{}');
+  if(document.getElementById('sms-enabled')) document.getElementById('sms-enabled').checked = cfg.enabled || false;
+  if(document.getElementById('sms-api-key')) document.getElementById('sms-api-key').value = cfg.apiKey || '';
+  if(document.getElementById('sms-sender')) document.getElementById('sms-sender').value = cfg.senderId || '';
+  if(document.getElementById('sms-order-template')) document.getElementById('sms-order-template').value = cfg.templates?.orderConfirm || 'Shoplixo: আপনার Order {orderId} confirm হয়েছে। Total: ৳{total}। ধন্যবাদ!';
+  if(document.getElementById('sms-shipped-template')) document.getElementById('sms-shipped-template').value = cfg.templates?.orderShipped || 'Shoplixo: আপনার Order {orderId} shipped হয়েছে। Track করুন: shoplixo.shop/track';
+
+  // Check pending products
+  const pending = JSON.parse(localStorage.getItem('slx_pending_products') || '[]');
+  if(pending.length > 0) {
+    toast(`${pending.length}টি pending product আছে। Sync করুন।`, 'warning');
+  }
+});
+
+window.previewImgUrl = previewImgUrl;
+window.scheduleLocalFlashSale = scheduleLocalFlashSale;
+window.duplicateProduct = duplicateProduct;
+window.syncPendingProducts = syncPendingProducts;
+window.saveSmsConfig = saveSmsConfig;
+window.testSms = testSms;
+window.bulkUpdateStock = bulkUpdateStock;
+
 </script>
 </body>
 </html>
