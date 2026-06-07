@@ -1,1723 +1,340 @@
 /**
- * ╔══════════════════════════════════════════════════════════════╗
- * ║           SHOPLIXO — ULTRA PROFESSIONAL PRODUCTS FILE       ║
- * ║          Bangladesh's #1 E-Commerce Products Database       ║
- * ╠══════════════════════════════════════════════════════════════╣
- * ║  ✅ 60+ Premium Products                                    ║
- * ║  ✅ Real High-Quality Images (Unsplash)                     ║
- * ║  ✅ Realistic BDT Pricing                                   ║
- * ║  ✅ Full Bengali Descriptions                               ║
- * ║  ✅ Flash Sale / New Arrivals / Featured Config             ║
- * ║  ✅ Advanced Coupon System                                  ║
- * ║  ✅ Promotional Banners Config                              ║
- * ║  ✅ Social Proof / Testimonials                             ║
- * ╠══════════════════════════════════════════════════════════════╣
- * ║  কিভাবে নতুন প্রোডাক্ট যোগ করবেন?                        ║
- * ║  SHOPLIXA_PRODUCTS array তে নতুন {} object যোগ করুন।      ║
- * ║  id: সবসময় unique নতুন নম্বর দিন।                        ║
- * ╚══════════════════════════════════════════════════════════════╝
+ * ══════════════════════════════════════════════════════════════
+ *  SHOPLIXO — /api/products  (Enhanced v2)
  *
- * ──── FIELD GUIDE ────────────────────────────────────────────
- *  id         → unique number (প্রতিটি প্রোডাক্টের আলাদা)
- *  name       → প্রোডাক্টের নাম (বাংলা বা English)
- *  cat        → category slug (নিচে দেখুন)
- *  price      → বিক্রয় মূল্য (৳)
- *  orig       → আসল MRP (৳) — price এর চেয়ে বেশি হবে
- *  img        → ছবির URL
- *  badge      → "hot" | "new" | "sale" | "sold"
- *  rating     → 3.5 থেকে 5.0
- *  reviews    → রিভিউ সংখ্যা
- *  stock      → স্টক (≤5 হলে "মাত্র X টি বাকি!" দেখাবে)
- *  viewers    → এখন দেখছেন (4–35)
- *  isFeatured → Featured Products section এ দেখাবে
- *  isNew      → New Arrivals section এ দেখাবে
- *  isFlash    → Flash Sale section এ দেখাবে
- *  sizes      → ["S","M","L","XL","XXL"] বা ["28","30"...]
- *  colors     → ["Black","White","Red"...]
- *  material   → কাপড়ের ধরন (optional)
- *  warranty   → ওয়ারেন্টি (gadgets এর জন্য)
- *  sku        → Stock Keeping Unit (optional)
- *  tags       → search tags array
- *  desc       → বিস্তারিত বিবরণ
+ *  GET  /api/products                      → list with filters
+ *  GET  /api/products?id=xxx               → single product detail
+ *  GET  /api/products?action=compare&ids=a,b,c → compare products
+ *  GET  /api/products?action=batch&ids=a,b,c   → batch fetch (recently viewed)
+ *  GET  /api/products?action=related&id=xxx    → related products
+ *  POST /api/products?action=view&id=xxx       → increment viewer count
  *
- * ──── CATEGORIES ─────────────────────────────────────────────
- *  "mens-shirts"  → পুরুষের শার্ট ও টি-শার্ট
- *  "mens-pants"   → পুরুষের প্যান্ট, জিন্স, ট্রাউজার
- *  "shoes"        → পুরুষের জুতা
- *  "women"        → মহিলাদের পোশাক (কুর্তি, ড্রেস, শাড়ি)
- *  "women-bags"   → মহিলাদের ব্যাগ ও পার্স
- *  "women-shoes"  → মহিলাদের জুতা ও স্যান্ডেল
- *  "gadgets"      → গ্যাজেট ও ইলেকট্রনিক্স
- *  "kids"         → শিশুদের পোশাক
- *  "accessories"  → অ্যাক্সেসরিজ (বেল্ট, ঘড়ি, চশমা)
+ *  Admin (x-admin-key required):
+ *  POST  /api/products                    → create product
+ *  PATCH /api/products?id=xxx             → update product
+ *  DELETE /api/products?id=xxx            → soft delete (isActive=false)
+ *  POST  /api/products?action=toggle&id=xxx → toggle isActive
+ *  POST  /api/products?action=stock       → update stock (bulk)
+ * ══════════════════════════════════════════════════════════════
  */
+const { connectDB, Product } = require('../_db');
+const { handleCors, isAdmin, sanitize, sendEmail, lowStockAlertEmail } = require('../_helpers');
 
-/* ================================================================
-   🛍️ SHOPLIXA PRODUCTS — COMPLETE CATALOG
-================================================================ */
-const SHOPLIXA_PRODUCTS = [
+const LOW_STOCK_THRESHOLD = 5;
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     👔 MEN'S SHIRTS & T-SHIRTS (ID: 1–12)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 1,
-    name: "Premium Oxford Cotton Shirt — Navy Blue",
-    cat: "mens-shirts",
-    price: 1299,
-    orig: 1899,
-    img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.8,
-    reviews: 312,
-    stock: 5,
-    viewers: 14,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Navy Blue","Sky Blue","White"],
-    material: "100% Cotton Oxford",
-    sku: "SLX-SH-001",
-    tags: ["shirt","oxford","navy","formal","office"],
-    desc: "Premium Oxford cotton fabric দিয়ে তৈরি এই শার্টটি আপনার formal look কে নিয়ে যাবে একটি নতুন মাত্রায়। Wrinkle-resistant এবং moisture-wicking প্রযুক্তি আপনাকে সারাদিন fresh রাখবে। Office থেকে casual dinner — সব জায়গায় মানানসই। Machine washable, easy iron.",
-  },
-  {
-    id: 2,
-    name: "Casual Linen Blend Shirt — Summer Edition",
-    cat: "mens-shirts",
-    price: 899,
-    orig: 1399,
-    img: "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.6,
-    reviews: 245,
-    stock: 18,
-    viewers: 9,
-    isFeatured: true,
-    isNew: true,
-    sizes: ["S","M","L","XL"],
-    colors: ["Beige","White","Sage Green","Powder Blue"],
-    material: "55% Linen, 45% Cotton",
-    sku: "SLX-SH-002",
-    tags: ["linen","summer","casual","breathable"],
-    desc: "বাংলাদেশের গরম আবহাওয়ার জন্য আদর্শ এই linen blend শার্টটি আপনাকে দেবে সারাদিনের comfort। Natural linen fiber-এর breathability এবং cotton-এর softness একসাথে পাচ্ছেন। Weekend outing বা casual office wear হিসেবে পারফেক্ট। ঘাম শুষে নেয়, দুর্গন্ধ করে না।",
-  },
-  {
-    id: 3,
-    name: "Classic Slim Fit White Formal Shirt",
-    cat: "mens-shirts",
-    price: 1499,
-    orig: 1999,
-    img: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 198,
-    stock: 12,
-    viewers: 7,
-    isFeatured: true,
-    isNew: true,
-    sizes: ["S","M","L","XL","XXL","3XL"],
-    colors: ["White","Light Blue","Pale Pink"],
-    material: "Poplin Cotton 120TC",
-    sku: "SLX-SH-003",
-    tags: ["formal","white","office","slim fit","smart"],
-    desc: "Office, interview বা যেকোনো formal occasion-এর জন্য অপরিহার্য এই classic slim fit শার্ট। 120 thread count poplin cotton-এ তৈরি, অত্যন্ত মসৃণ এবং দীর্ঘস্থায়ী। Hidden button placket এবং French seam finishing আপনাকে দেবে একটি truly premium feel। বিয়ের অনুষ্ঠান থেকে board meeting — সব ক্ষেত্রে প্রথম পছন্দ।",
-  },
-  {
-    id: 4,
-    name: "Premium Polo T-Shirt — Piqué Fabric",
-    cat: "mens-shirts",
-    price: 849,
-    orig: 1299,
-    img: "https://images.unsplash.com/photo-1627225924765-552d49cf47ad?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.5,
-    reviews: 445,
-    stock: 22,
-    viewers: 16,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Black","White","Red","Navy","Forest Green","Burgundy"],
-    material: "100% Piqué Cotton",
-    sku: "SLX-SH-004",
-    tags: ["polo","tshirt","casual","sport","semi-formal"],
-    desc: "আন্তর্জাতিক মানের piqué cotton fabric দিয়ে তৈরি এই polo t-shirt টি casual এবং semi-formal উভয় look এর জন্যই মানানসই। Moisture-wicking technology আপনার ঘাম শুষে নেবে এবং body temperature নিয়ন্ত্রণে রাখবে। Ribbed collar এবং reinforced placket দীর্ঘস্থায়িত্ব নিশ্চিত করে। Jeans বা chino উভয়ের সাথেই আইডিয়াল।",
-  },
-  {
-    id: 5,
-    name: "Denim Casual Shirt — Washed Blue",
-    cat: "mens-shirts",
-    price: 1199,
-    orig: 1799,
-    img: "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.4,
-    reviews: 134,
-    stock: 9,
-    viewers: 6,
-    isNew: true,
-    sizes: ["M","L","XL","XXL"],
-    colors: ["Washed Light Blue","Dark Indigo","Grey Wash"],
-    material: "Light Denim 6oz",
-    sku: "SLX-SH-005",
-    tags: ["denim","casual","street style","trendy"],
-    desc: "Street style এর নতুন সংজ্ঞা দেবে এই washed denim casual shirt। 6oz lightweight denim fabric-এ তৈরি, গরমেও comfortable। Double chest pocket এবং roll-up sleeves design আপনাকে দেবে একটি effortlessly cool look। Dark jeans বা white pants এর সাথে পরুন — দুটোই ভালো লাগে।",
-  },
-  {
-    id: 6,
-    name: "Printed Short Sleeve Summer Shirt",
-    cat: "mens-shirts",
-    price: 699,
-    orig: 1099,
-    img: "https://images.unsplash.com/photo-1503341455253-b2522ef30c66?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.3,
-    reviews: 167,
-    stock: 25,
-    viewers: 8,
-    isNew: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Blue Print","White Print","Green Print"],
-    material: "Rayon Viscose",
-    sku: "SLX-SH-006",
-    tags: ["printed","summer","short sleeve","beach","vacation"],
-    desc: "গরমের দিনে fresh এবং stylish থাকুন এই printed summer shirt-এ। Rayon fabric-এর natural drape এবং breathability এটিকে বাংলাদেশের জলবায়ুর জন্য পারফেক্ট করে তুলেছে। Beach outing, ঈদের ছুটি বা weekend trip — যেকোনো casual occasion-এ পরফেক্ট।",
-  },
-  {
-    id: 7,
-    name: "Striped Business Casual Shirt",
-    cat: "mens-shirts",
-    price: 1099,
-    orig: 1599,
-    img: "https://images.unsplash.com/photo-1541336032412-2048a678540d?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.5,
-    reviews: 89,
-    stock: 14,
-    viewers: 5,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Navy Stripe","Blue Stripe","Pink Stripe"],
-    material: "Cotton Poplin",
-    sku: "SLX-SH-007",
-    tags: ["striped","business","casual","formal"],
-    desc: "Classic pinstripe ডিজাইনে তৈরি এই business casual shirt আপনার office wardrobe কে আরও সমৃদ্ধ করবে। Semi-spread collar এবং single cuff design professional look নিশ্চিত করে। Formal meeting থেকে after-work dinner পর্যন্ত confidently পরুন।",
-  },
-  {
-    id: 8,
-    name: "Round Neck Graphic T-Shirt — Premium",
-    cat: "mens-shirts",
-    price: 599,
-    orig: 999,
-    img: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.4,
-    reviews: 378,
-    stock: 30,
-    viewers: 12,
-    isFlash: true,
-    sizes: ["S","M","L","XL","XXL","3XL"],
-    colors: ["White","Black","Grey","Navy"],
-    material: "180 GSM Cotton Jersey",
-    sku: "SLX-SH-008",
-    tags: ["tshirt","graphic","casual","round neck","daily wear"],
-    desc: "180 GSM premium cotton jersey দিয়ে তৈরি এই t-shirt টি অত্যন্ত soft এবং comfortable। Pre-shrunk fabric নিশ্চিত করে wash-এর পরেও size ঠিক থাকে। Unique graphic print গুলো fade-resistant। Daily wear থেকে gym workout পর্যন্ত সব কাজে আদর্শ।",
-  },
-  {
-    id: 9,
-    name: "Mandarin Collar Kurta Shirt — Festive",
-    cat: "mens-shirts",
-    price: 1399,
-    orig: 1999,
-    img: "https://images.unsplash.com/photo-1580657018950-c7f7d6a6d990?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 234,
-    stock: 8,
-    viewers: 11,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["White","Off-White","Light Blue","Peach"],
-    material: "Premium Cotton Lawn",
-    sku: "SLX-SH-009",
-    tags: ["kurta","panjabi","eid","festive","ethnic"],
-    desc: "ঈদ, পূজা বা যেকোনো উৎসবে আপনার ব্যক্তিত্বকে ফুটিয়ে তুলুন এই premium kurta shirt-এ। Cotton lawn fabric-এর সূক্ষ্ম texture এবং mandarin collar design এটিকে দেয় একটি রাজকীয় ভাব। Subtle embroidery work আপনাকে ভিড়ের মধ্যে আলাদা করে তুলবে। Pajama বা churidar-এর সাথে পরুন।",
-  },
-  {
-    id: 10,
-    name: "Muscle Fit Stretch T-Shirt — Gym Pro",
-    cat: "mens-shirts",
-    price: 749,
-    orig: 1199,
-    img: "https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.6,
-    reviews: 456,
-    stock: 28,
-    viewers: 19,
-    isFlash: true,
-    isFeatured: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Black","White","Royal Blue","Red","Grey Marl"],
-    material: "92% Polyester, 8% Spandex",
-    sku: "SLX-SH-010",
-    tags: ["gym","fitness","muscle fit","sports","athletic"],
-    desc: "Gym lovers-দের জন্য তৈরি এই muscle fit t-shirt চার দিকে stretch করে আপনার প্রতিটি movement follow করে। Quick-dry technology মাত্র ৩০ মিনিটে শুকিয়ে যায়। Anti-odor treatment bacteria growth বন্ধ করে। Raglan sleeve design shoulder movement এর স্বাধীনতা দেয়।",
-  },
-  {
-    id: 11,
-    name: "Full Sleeve Henley T-Shirt",
-    cat: "mens-shirts",
-    price: 799,
-    orig: 1199,
-    img: "https://images.unsplash.com/photo-1608234808654-2a8875faa7fd?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.4,
-    reviews: 112,
-    stock: 16,
-    viewers: 7,
-    isNew: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Charcoal","Burgundy","Olive","Navy","White"],
-    material: "Cotton Slub Knit",
-    sku: "SLX-SH-011",
-    tags: ["henley","full sleeve","casual","winter","layering"],
-    desc: "Henley neck design সবসময়ই timeless। Cotton slub knit fabric-এর natural texture এই t-shirt-কে দেয় একটি premium handcrafted look। শীতের দিনে jacket-এর নিচে layer হিসেবে অথবা এককভাবে casual wear হিসেবে — দুভাবেই stylish।",
-  },
-  {
-    id: 12,
-    name: "Embroidered Festive Panjabi",
-    cat: "mens-shirts",
-    price: 1899,
-    orig: 2699,
-    img: "https://images.unsplash.com/photo-1578932750294-f5075e85f44a?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.9,
-    reviews: 567,
-    stock: 4,
-    viewers: 23,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["White with Gold","Cream with Silver","Sky Blue with White"],
-    material: "Egyptian Cotton with Embroidery",
-    sku: "SLX-SH-012",
-    tags: ["panjabi","eid","festive","embroidered","traditional","bangladeshi"],
-    desc: "মাত্র ৪টি স্টক বাকি! ঈদের সবচেয়ে popular পাঞ্জাবি এটি। Egyptian cotton-এ হাতে কাজ করা intricate embroidery আপনাকে দেবে একটি truly royal look। Premium finishing, strong stitching এবং pre-washed fabric নিশ্চিত করে wash করার পরেও design ঠিক থাকে। এটি order করুন এবং ঈদে সবার নজর কাড়ুন।",
-  },
+module.exports = async (req, res) => {
+  if (handleCors(req, res)) return;
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     👖 MEN'S PANTS & BOTTOMS (ID: 13–20)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 13,
-    name: "Slim Fit Stretch Chino Pants",
-    cat: "mens-pants",
-    price: 1599,
-    orig: 2299,
-    img: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.7,
-    reviews: 334,
-    stock: 7,
-    viewers: 10,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["28","30","32","34","36","38"],
-    colors: ["Khaki Beige","Olive Green","Navy","Charcoal","Stone Grey"],
-    material: "98% Cotton, 2% Elastane",
-    sku: "SLX-PN-001",
-    tags: ["chino","pants","slim fit","office","casual"],
-    desc: "2% elastane blend-এর কারণে এই slim fit chino pants আপনার সারাদিনের movement-এ কোনো restriction দেবে না। Slim leg cut আপনাকে দেবে একটি modern, tailored silhouette। Office-এ formal shirt-এর সাথে বা weekend-এ polo shirt-এর সাথে — দুটোতেই perfect। Durable গজরা weave দীর্ঘস্থায়িত্ব নিশ্চিত করে।",
-  },
-  {
-    id: 14,
-    name: "Classic Black Formal Trousers",
-    cat: "mens-pants",
-    price: 1899,
-    orig: 2699,
-    img: "https://images.unsplash.com/photo-1594938298607-f9e8b8899c1d?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.8,
-    reviews: 223,
-    stock: 11,
-    viewers: 6,
-    isFeatured: true,
-    isNew: true,
-    sizes: ["28","30","32","34","36","38","40"],
-    colors: ["Jet Black","Navy Blue","Charcoal Grey","Dark Brown"],
-    material: "Poly-Viscose Blend",
-    sku: "SLX-PN-002",
-    tags: ["formal","trouser","office","black","interview"],
-    desc: "Job interview, corporate meeting বা formal event — এই classic black trousers সব ক্ষেত্রেই আপনাকে দেবে একটি commanding presence। Poly-viscose blend fabric natural crease ধরে রাখে এবং wrinkle resist করে। Flat front design এবং straight leg cut modern professional look নিশ্চিত করে। Anti-static lining comfortable feel দেয়।",
-  },
-  {
-    id: 15,
-    name: "Premium Stretch Denim Jeans",
-    cat: "mens-pants",
-    price: 1799,
-    orig: 2499,
-    img: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.6,
-    reviews: 445,
-    stock: 16,
-    viewers: 13,
-    isFeatured: true,
-    sizes: ["28","30","32","34","36","38"],
-    colors: ["Medium Wash","Dark Indigo","Light Blue","Black"],
-    material: "98% Cotton, 2% Stretch Denim",
-    sku: "SLX-PN-003",
-    tags: ["jeans","denim","stretch","casual","everyday"],
-    desc: "দিনে ১২ ঘণ্টা পরলেও uncomfortable লাগবে না এই stretch denim jeans-এ। 2% stretch fiber আপনার সব movement-এ সাথে থাকে। Mid-rise waist এবং straight fit design সব body type-এ সুন্দর দেখায়। Pre-washed fabric থেকে কোনো color bleed হয় না। Shirt বা t-shirt — সব কিছুর সাথে match করে।",
-  },
-  {
-    id: 16,
-    name: "Cargo Pants — Utility Edition",
-    cat: "mens-pants",
-    price: 1699,
-    orig: 2299,
-    img: "https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.5,
-    reviews: 156,
-    stock: 14,
-    viewers: 8,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["28","30","32","34","36","38"],
-    colors: ["Khaki","Olive","Black","Grey","Tan"],
-    material: "Ripstop Cotton",
-    sku: "SLX-PN-004",
-    tags: ["cargo","utility","tactical","outdoor","street"],
-    desc: "৬টি functional pocket সহ এই utility cargo pants আপনার দৈনন্দিন জীবনকে করবে আরও সহজ। Ripstop cotton fabric অত্যন্ত দৃঢ় এবং দীর্ঘস্থায়ী। Reinforced knee panels outdoor activities-এর জন্য আদর্শ। Street style থেকে outdoor adventure — সব ক্ষেত্রে trending।",
-  },
-  {
-    id: 17,
-    name: "Cotton Fleece Jogger Pants",
-    cat: "mens-pants",
-    price: 1099,
-    orig: 1599,
-    img: "https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.5,
-    reviews: 267,
-    stock: 24,
-    viewers: 9,
-    isNew: true,
-    isFlash: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Dark Grey","Black","Navy","Olive","Burgundy"],
-    material: "Cotton Fleece 280 GSM",
-    sku: "SLX-PN-005",
-    tags: ["jogger","sweatpants","gym","casual","home"],
-    desc: "280 GSM heavy cotton fleece-এর এই jogger pants গ্রীষ্মে সান্ধ্য আড্ডায় এবং শীতে gym-এ — সব সময়ের সেরা সঙ্গী। Elastic waistband এবং drawstring comfortable fit নিশ্চিত করে। Tapered leg design fashionable look দেয়। Deep side pockets এবং one back zippered pocket অত্যন্ত practical।",
-  },
-  {
-    id: 18,
-    name: "Slim Fit Formal Suit Trousers",
-    cat: "mens-pants",
-    price: 2199,
-    orig: 2999,
-    img: "https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 145,
-    stock: 9,
-    viewers: 5,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["28","30","32","34","36"],
-    colors: ["Charcoal","Navy","Medium Grey","Dark Brown"],
-    material: "Wool-Poly Blend",
-    sku: "SLX-PN-006",
-    tags: ["suit","formal","wedding","interview","business"],
-    desc: "বিয়ের অনুষ্ঠান, গুরুত্বপূর্ণ meeting বা job interview-তে আপনাকে সবার চেয়ে sharply dressed রাখবে এই formal suit trousers। Wool-poly blend fabric natural body temperature regulate করে এবং premium drape দেয়। Slim fit cut modern gentleman-এর জন্য তৈরি। Matching suit jacket এর সাথে perfect।",
-  },
-  {
-    id: 19,
-    name: "Linen Beach Pants",
-    cat: "mens-pants",
-    price: 1299,
-    orig: 1799,
-    img: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.4,
-    reviews: 123,
-    stock: 20,
-    viewers: 7,
-    isNew: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["White","Natural Beige","Light Blue","Sand"],
-    material: "100% Linen",
-    sku: "SLX-PN-007",
-    tags: ["linen","beach","summer","casual","relaxed"],
-    desc: "Cox's Bazar beach vacation বা ছুটির দিনের আড্ডার জন্য এই linen pants অপরিহার্য। 100% pure linen-এর অতুলনীয় breathability গরমেও শীতল অনুভূতি দেয়। Relaxed fit design আপনাকে দেয় পূর্ণ movement freedom। Machine washable এবং wrinkle-friendly।",
-  },
-  {
-    id: 20,
-    name: "Skinny Fit Denim Jeans — Ripped",
-    cat: "mens-pants",
-    price: 1599,
-    orig: 2199,
-    img: "https://images.unsplash.com/photo-1475178626620-a4d074967452?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.3,
-    reviews: 334,
-    stock: 12,
-    viewers: 15,
-    isFlash: true,
-    sizes: ["28","30","32","34"],
-    colors: ["Light Ripped","Dark Ripped","Medium Ripped"],
-    material: "Stretch Denim",
-    sku: "SLX-PN-008",
-    tags: ["skinny","ripped","jeans","street","trendy"],
-    desc: "Street fashion-এর সবচেয়ে trendy piece — ripped skinny jeans। Strategically placed distressing professional tailors দ্বারা করা হয়েছে। High stretch fabric আপনার প্রতিটি movement-এ comfortable। T-shirt বা hoodie-র সাথে পরুন এবং instant street style icon হয়ে উঠুন।",
-  },
+  try {
+    await connectDB();
+    const action = req.query?.action || '';
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     👞 SHOES (ID: 21–28)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 21,
-    name: "Genuine Leather Oxford Formal Shoes",
-    cat: "shoes",
-    price: 3799,
-    orig: 5499,
-    img: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.9,
-    reviews: 189,
-    stock: 4,
-    viewers: 8,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["39","40","41","42","43","44","45"],
-    colors: ["Jet Black","Dark Brown","Tan Oxford"],
-    material: "Full Grain Genuine Leather Upper, Leather Sole",
-    warranty: "6 months",
-    sku: "SLX-SH-B-001",
-    tags: ["oxford","formal","leather","office","wedding","genuine"],
-    desc: "Full grain genuine leather-এ handcrafted এই Oxford formal shoes আপনার personality-কে নিয়ে যাবে একটি completely different level-এ। Goodyear welt construction দীর্ঘস্থায়িত্ব নিশ্চিত করে এবং resoling-এর সুবিধা দেয়। Cushioned leather insole সারাদিন standing করার পরেও feet কে comfortable রাখে। Corporate executives-দের প্রথম পছন্দ।",
-  },
-  {
-    id: 22,
-    name: "Sports Performance Running Shoes",
-    cat: "shoes",
-    price: 2799,
-    orig: 3999,
-    img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 312,
-    stock: 11,
-    viewers: 14,
-    isFeatured: true,
-    isNew: true,
-    sizes: ["39","40","41","42","43","44","45","46"],
-    colors: ["White/Black","All Black","Grey/Blue","Neon Green/Black"],
-    material: "Mesh Upper, EVA Midsole, Rubber Outsole",
-    warranty: "3 months",
-    sku: "SLX-SH-B-002",
-    tags: ["running","sports","gym","sneaker","performance","athletic"],
-    desc: "Serious runners এবং fitness enthusiasts-দের জন্য তৈরি এই performance running shoes-এ রয়েছে dual-density EVA midsole যা প্রতিটি foot strike-এ perfect cushioning দেয়। Breathable mesh upper পা ঠান্ডা রাখে। Durable rubber outsole excellent grip নিশ্চিত করে। Weight মাত্র ২৮০ গ্রাম — হালকা এবং দ্রুত।",
-  },
-  {
-    id: 23,
-    name: "Premium Leather Loafer — Slip-On",
-    cat: "shoes",
-    price: 2299,
-    orig: 3199,
-    img: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.5,
-    reviews: 234,
-    stock: 14,
-    viewers: 6,
-    isFeatured: true,
-    sizes: ["39","40","41","42","43","44"],
-    colors: ["Dark Brown","Cognac Tan","Black","Burgundy"],
-    material: "PU Leather Upper, Non-slip Rubber Sole",
-    warranty: "3 months",
-    sku: "SLX-SH-B-003",
-    tags: ["loafer","slip-on","casual","office","smart casual"],
-    desc: "Lace বাঁধার ঝামেলা ছাড়াই professional look পান এই premium leather loafer-এ। Sleek moccasin stitching detail এটিকে দেয় একটি classic elegance। Non-slip rubber outsole wet surface-এও secure footing নিশ্চিত করে। Formal চিনো বা smart casual jeans — উভয়ের সাথেই flawless।",
-  },
-  {
-    id: 24,
-    name: "Classic Canvas High-Top Sneakers",
-    cat: "shoes",
-    price: 1499,
-    orig: 2199,
-    img: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.4,
-    reviews: 445,
-    stock: 19,
-    viewers: 16,
-    isNew: true,
-    isFlash: true,
-    sizes: ["38","39","40","41","42","43","44","45"],
-    colors: ["White","All Black","Navy","Red","Olive"],
-    material: "Canvas Upper, Vulcanized Rubber Sole",
-    sku: "SLX-SH-B-004",
-    tags: ["high-top","canvas","sneaker","casual","street","classic"],
-    desc: "Timeless canvas high-top sneakers — কখনো out of style হয় না। Classic vulcanized rubber sole দীর্ঘস্থায়ী এবং flexible। Reinforced ankle support দেয়। Jeans, shorts বা track pants — যার সাথেই পরুন, সুন্দর লাগে। সব বয়সের জন্য উপযুক্ত।",
-  },
-  {
-    id: 25,
-    name: "Derby Leather Office Shoes",
-    cat: "shoes",
-    price: 2999,
-    orig: 4199,
-    img: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.6,
-    reviews: 167,
-    stock: 8,
-    viewers: 5,
-    isNew: true,
-    sizes: ["39","40","41","42","43","44"],
-    colors: ["Black","Dark Brown","Tan"],
-    material: "Genuine Leather",
-    warranty: "6 months",
-    sku: "SLX-SH-B-005",
-    tags: ["derby","office","formal","leather","businessman"],
-    desc: "Open lacing system সহ এই Derby shoes formal Oxford-এর চেয়ে একটু comfortable এবং versatile। Genuine leather upper premium polish নেয় এবং বছরের পর বছর সুন্দর থাকে। Memory foam insole সারাদিনের office wear-এ feet কে fatigue থেকে রক্ষা করে। আপনার professional image-এ বিনিয়োগ করুন।",
-  },
-  {
-    id: 26,
-    name: "Casual Boat Shoes — Deck Style",
-    cat: "shoes",
-    price: 1799,
-    orig: 2499,
-    img: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.3,
-    reviews: 123,
-    stock: 16,
-    viewers: 7,
-    sizes: ["39","40","41","42","43","44"],
-    colors: ["Tan/White","Navy/White","Brown/Beige"],
-    material: "Genuine Suede Leather",
-    sku: "SLX-SH-B-006",
-    tags: ["boat","deck","casual","summer","suede"],
-    desc: "Authentic suede leather deck shoes — summer casual style-এর quintessential choice। Classic hand-sewn moccasin construction দেয় অতুলনীয় craftsmanship। Non-marking siped rubber sole wet dock এবং boat surfaces-এও safe। Chino বা linen pants-এর সাথে পরুন — instant resort style।",
-  },
-  {
-    id: 27,
-    name: "Chelsea Boots — Ankle High",
-    cat: "shoes",
-    price: 3499,
-    orig: 4999,
-    img: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 145,
-    stock: 6,
-    viewers: 9,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["39","40","41","42","43","44"],
-    colors: ["Black","Dark Brown","Tan"],
-    material: "Genuine Leather",
-    warranty: "6 months",
-    sku: "SLX-SH-B-007",
-    tags: ["chelsea","boots","formal","winter","leather","ankle"],
-    desc: "British heritage design-এর এই Chelsea boots শীতের season-এ আপনার style game-কে নিয়ে যাবে সম্পূর্ণ অন্য মাত্রায়। Elastic side panel perfect fit নিশ্চিত করে এবং on/off করা যায় মাত্র কয়েক সেকেন্ডে। Genuine leather upper এবং Goodyear welt construction premium durability নিশ্চিত করে। Jeans বা formal trousers — উভয়ের সাথেই impeccable।",
-  },
-  {
-    id: 28,
-    name: "Diabetic Comfort Sandal — Daily Wear",
-    cat: "shoes",
-    price: 1299,
-    orig: 1799,
-    img: "https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.8,
-    reviews: 289,
-    stock: 22,
-    viewers: 6,
-    sizes: ["39","40","41","42","43","44","45"],
-    colors: ["Black","Brown","Navy"],
-    material: "Genuine Leather Upper, EVA Sole",
-    warranty: "3 months",
-    sku: "SLX-SH-B-008",
-    tags: ["sandal","comfort","diabetic","casual","daily wear"],
-    desc: "Orthopedic design-এর এই comfort sandal বিশেষভাবে যারা দীর্ঘ সময় দাঁড়িয়ে বা হেঁটে কাজ করেন তাদের কথা মাথায় রেখে তৈরি। Deep heel cup pronation control করে এবং arch support plantar fasciitis এর ব্যথা কমায়। Extra wide toe box আঙুলের পূর্ণ স্বাধীনতা দেয়।",
-  },
+    /* ══════════════════════════════════════════════════════════
+       GET REQUESTS
+    ══════════════════════════════════════════════════════════ */
+    if (req.method === 'GET') {
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     👗 WOMEN'S FASHION (ID: 29–38)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 29,
-    name: "Handcrafted Embroidered Kurti Set",
-    cat: "women",
-    price: 1499,
-    orig: 2199,
-    img: "https://images.unsplash.com/photo-1617922001439-4a2e6562f328?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.9,
-    reviews: 567,
-    stock: 5,
-    viewers: 24,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Rose Red","Royal Blue","Emerald Green","Saffron Yellow","Peacock Teal"],
-    material: "Premium Cotton with Hand Embroidery",
-    sku: "SLX-WM-001",
-    tags: ["kurti","set","embroidered","eid","festive","women"],
-    desc: "মাত্র ৫টি স্টক বাকি! দক্ষ কারিগরদের হাতে তৈরি এই embroidered kurti set প্রতিটি মহিলাকে করবে আরও উজ্জ্বল। Premium cotton fabric-এ সূক্ষ্ম thread embroidery work করা হয়েছে। Set-এ রয়েছে kurti + matching bottom + dupatta। Eid, বিয়ে বা যেকোনো celebration-এ পরুন এবং সবার মধ্যে সেরা দেখান।",
-  },
-  {
-    id: 30,
-    name: "Flowy Chiffon Party Maxi Dress",
-    cat: "women",
-    price: 2099,
-    orig: 2999,
-    img: "https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 289,
-    stock: 9,
-    viewers: 12,
-    isFeatured: true,
-    isNew: true,
-    sizes: ["XS","S","M","L","XL"],
-    colors: ["Midnight Black","Wine Red","Navy","Sage Green","Dusty Rose"],
-    material: "100% Chiffon",
-    sku: "SLX-WM-002",
-    tags: ["maxi dress","party","chiffon","elegant","women","formal"],
-    desc: "প্রতিটি মহিলার closet-এ থাকা উচিত একটি perfect maxi dress — এটিই সেই dress। Pure chiffon-এর natural drape এবং movement আপনাকে দেবে একটি ethereal, goddess-like appearance। V-neck design এবং empire waist silhouette সব body type-এ flattering। Wedding reception, birthday party বা dinner date-এর জন্য আদর্শ।",
-  },
-  {
-    id: 31,
-    name: "Trendy Printed Palazzo Set",
-    cat: "women",
-    price: 1699,
-    orig: 2399,
-    img: "https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.6,
-    reviews: 234,
-    stock: 17,
-    viewers: 9,
-    isFeatured: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Floral Blue","Geometric Pink","Abstract Orange","Botanical Green"],
-    material: "Rayon Crepe",
-    sku: "SLX-WM-003",
-    tags: ["palazzo","set","printed","rayon","casual","women"],
-    desc: "Modern Bangladeshi women-এর জন্য তৈরি এই trendy palazzo set comfort এবং style-কে combine করেছে অসাধারণভাবে। Rayon crepe fabric-এর soft texture এবং natural drape গরমেও আপনাকে রাখবে শীতল ও সতেজ। Wide-leg palazzo pants পায়ে দেয় full freedom। Office casual থেকে friend's gathering পর্যন্ত পারফেক্ট।",
-  },
-  {
-    id: 32,
-    name: "Cotton Sharara Set — Festive",
-    cat: "women",
-    price: 2299,
-    orig: 3299,
-    img: "https://images.unsplash.com/photo-1609310588875-b0e2ac698bb4?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.8,
-    reviews: 345,
-    stock: 6,
-    viewers: 18,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["S","M","L","XL","XXL"],
-    colors: ["Magenta Pink","Royal Purple","Teal Green","Burnt Orange"],
-    material: "Cotton Silk with Gota Work",
-    sku: "SLX-WM-004",
-    tags: ["sharara","festive","eid","cotton silk","gota","traditional"],
-    desc: "Eid-এর সবচেয়ে popular choice এখন available! Cotton silk-এ intricate gota work করা এই sharara set আপনাকে দেবে একটি truly regal appearance। Set-এ রয়েছে embroidered top + flared sharara pants। Beautifully finished hem এবং quality zari work — প্রতিটি detail-এ perfection।",
-  },
-  {
-    id: 33,
-    name: "Casual Daily Wear Tunic Dress",
-    cat: "women",
-    price: 999,
-    orig: 1499,
-    img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.4,
-    reviews: 456,
-    stock: 25,
-    viewers: 11,
-    sizes: ["S","M","L","XL","XXL","3XL"],
-    colors: ["Coral Pink","Sky Blue","Mint Green","Lemon Yellow","White"],
-    material: "Cotton Jersey",
-    sku: "SLX-WM-005",
-    tags: ["tunic","casual","daily","dress","comfortable","cotton"],
-    desc: "Daily wear-এর জন্য আদর্শ এই cotton tunic dress আপনাকে দেবে সারাদিনের comfort। A-line cut সব body type-এ flattering। Machine washable এবং easy care। Leggings বা jeggings-এর সাথে পরুন বা এককভাবে। Plus sizes available — সব মহিলার জন্য সুন্দর।",
-  },
-  {
-    id: 34,
-    name: "Designer Silk Blouse — Office Wear",
-    cat: "women",
-    price: 1899,
-    orig: 2699,
-    img: "https://images.unsplash.com/photo-1551163943-3f6a855d1153?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 167,
-    stock: 10,
-    viewers: 8,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["XS","S","M","L","XL"],
-    colors: ["White","Blush Pink","Powder Blue","Champagne","Black"],
-    material: "Satin Silk Blend",
-    sku: "SLX-WM-006",
-    tags: ["blouse","silk","office","formal","women","professional"],
-    desc: "Professional woman-এর জন্য তৈরি এই satin silk blend blouse office environment-এ আপনার confidence এবং elegance দুটোই বৃদ্ধি করবে। Subtle sheen fabric low light-এও আপনাকে করবে দীপ্তিমান। Pencil skirt বা formal trousers-এর সাথে combine করুন। Collar design versatile styling option দেয়।",
-  },
-  {
-    id: 35,
-    name: "Anarkali Suit — Wedding Collection",
-    cat: "women",
-    price: 3299,
-    orig: 4999,
-    img: "https://images.unsplash.com/photo-1621184455862-c163dfb30e0f?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.9,
-    reviews: 234,
-    stock: 3,
-    viewers: 21,
-    isFeatured: true,
-    isFlash: true,
-    sizes: ["S","M","L","XL"],
-    colors: ["Wine & Gold","Royal Blue & Silver","Emerald & Gold","Peach & Rose Gold"],
-    material: "Georgette with Heavy Embroidery",
-    sku: "SLX-WM-007",
-    tags: ["anarkali","wedding","heavy work","georgette","bridal","reception"],
-    desc: "মাত্র ৩টি বাকি! বিয়ের reception বা বড় অনুষ্ঠানের জন্য সবচেয়ে sought-after piece। Georgette fabric-এ heavy zardozi এবং stone work করা হয়েছে। Floor-length anarkali silhouette আপনাকে দেবে একটি princess-like presence। Set-এ রয়েছে full embroidered anarkali + churidar + heavy dupatta।",
-  },
-  {
-    id: 36,
-    name: "Casual Linen Shirt Dress",
-    cat: "women",
-    price: 1399,
-    orig: 1999,
-    img: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.5,
-    reviews: 189,
-    stock: 15,
-    viewers: 9,
-    isNew: true,
-    sizes: ["XS","S","M","L","XL"],
-    colors: ["White","Sage Green","Dusty Rose","Natural Beige"],
-    material: "55% Linen, 45% Cotton",
-    sku: "SLX-WM-008",
-    tags: ["shirt dress","linen","casual","summer","women","minimal"],
-    desc: "Minimal aesthetic প্রিয়দের জন্য তৈরি এই linen shirt dress effortlessly chic। Button-down front, relaxed fit এবং belted waist option আপনাকে দেয় styling flexibility। গরমে breathable linen আপনাকে রাখবে comfortable। Sneakers বা sandals-এর সাথে পরুন।",
-  },
-  {
-    id: 37,
-    name: "Printed Saree — Cotton Silk",
-    cat: "women",
-    price: 2499,
-    orig: 3499,
-    img: "https://images.unsplash.com/photo-1623091411395-09e79fdbfcf3?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.6,
-    reviews: 312,
-    stock: 12,
-    viewers: 14,
-    isFeatured: true,
-    sizes: ["Free Size (5.5m)"],
-    colors: ["Vermillion Red","Deep Blue","Forest Green","Golden Yellow","Plum Purple"],
-    material: "Cotton Silk with Digital Print",
-    sku: "SLX-WM-009",
-    tags: ["saree","cotton silk","printed","traditional","ethnic","women"],
-    desc: "Premium cotton silk-এ digital printed এই saree আধুনিক মহিলার traditional fashion-এর প্রতি ভালোবাসার perfect expression। Rich color saturation এবং crisp print quality দীর্ঘস্থায়ী। Lightweight fabric draping করা সহজ এবং comfortable। Matching blouse piece included। বিয়ে, পূজা বা office-এ formal wear হিসেবে দারুণ।",
-  },
-  {
-    id: 38,
-    name: "Premium Ladies Abaya — Modest Wear",
-    cat: "women",
-    price: 1999,
-    orig: 2899,
-    img: "https://images.unsplash.com/photo-1629948418954-a5f8e2c5b7a7?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.8,
-    reviews: 445,
-    stock: 13,
-    viewers: 16,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["S","M","L","XL","XXL","3XL"],
-    colors: ["Classic Black","Midnight Navy","Deep Maroon","Ash Grey","Dark Olive"],
-    material: "Nida Fabric",
-    sku: "SLX-WM-010",
-    tags: ["abaya","modest","islamic","women","modest wear","nida"],
-    desc: "Premium Nida fabric-এ তৈরি এই modern abaya modest fashion-এর নতুন সংজ্ঞা দেয়। Structured shoulder seam এবং tailored sleeve আপনার figure-কে elegantly frame করে। Lightweight এবং wrinkle-resistant। Zip closure front এবং hidden pocket practical। Daily wear থেকে formal occasion পর্যন্ত perfect choice।",
-  },
+      /* ── Single product by productId ──────────────────────── */
+      if (req.query.id) {
+        const pid = sanitize(req.query.id, 50);
+        const product = await Product.findOne({ productId: pid, isActive: true }).lean();
+        if (!product) return res.status(404).json({ ok: false, error: 'পণ্য পাওয়া যায়নি' });
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     👜 WOMEN'S BAGS (ID: 39–43)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 39,
-    name: "Premium PU Leather Tote Bag",
-    cat: "women-bags",
-    price: 2799,
-    orig: 3999,
-    img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.8,
-    reviews: 389,
-    stock: 6,
-    viewers: 17,
-    isFeatured: true,
-    isFlash: true,
-    colors: ["Black","Tan Brown","Burgundy","Nude Beige","Deep Navy"],
-    material: "Premium PU Leather",
-    sku: "SLX-BG-001",
-    tags: ["tote","handbag","leather","women","office","shoulder"],
-    desc: "Size এবং functionality-তে perfect এই oversized tote bag office documents, laptop, makeup — সব কিছু একসাথে carry করতে পারে। Premium PU leather exterior scuff এবং water resistant। Interior-এ রয়েছে zippered pocket, phone pocket এবং key ring clip। Reinforced handles এবং detachable shoulder strap দেয় multiple carrying options।",
-  },
-  {
-    id: 40,
-    name: "Crossbody Mini Bag — Chain Strap",
-    cat: "women-bags",
-    price: 1599,
-    orig: 2299,
-    img: "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.6,
-    reviews: 267,
-    stock: 10,
-    viewers: 12,
-    isNew: true,
-    isFeatured: true,
-    colors: ["Gold/Black","Silver/White","Rose Gold/Pink","Black/Black"],
-    material: "Structured PU Leather",
-    sku: "SLX-BG-002",
-    tags: ["crossbody","mini","chain","evening","party","women"],
-    desc: "Party night বা dinner date-এর জন্য এই chic mini crossbody bag আপনার complete look-এর perfect finishing touch। Adjustable chain strap দেয় styling versatility। Magnetic snap closure quick access নিশ্চিত করে। Phone, card এবং essentials easily fit হয়। Trending style যা আপনার look কে instantly elevate করবে।",
-  },
-  {
-    id: 41,
-    name: "Canvas Shopper Tote Bag",
-    cat: "women-bags",
-    price: 899,
-    orig: 1399,
-    img: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.4,
-    reviews: 334,
-    stock: 28,
-    viewers: 8,
-    colors: ["Natural Canvas","Black Canvas","Navy","Olive"],
-    material: "12oz Canvas",
-    sku: "SLX-BG-003",
-    tags: ["canvas","tote","shopper","eco","casual","daily"],
-    desc: "Eco-friendly 12oz canvas-এ তৈরি এই shopper tote bag আপনার daily companion। বাজার, office বা gym — সব জায়গায় use করা যায়। Machine washable। Reinforced bottom load bearing capacity বৃদ্ধি করে। হালকা ওজন এবং foldable design — সর্বদা সাথে রাখুন।",
-  },
-  {
-    id: 42,
-    name: "Backpack Purse — Anti-Theft",
-    cat: "women-bags",
-    price: 2299,
-    orig: 3299,
-    img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 189,
-    stock: 9,
-    viewers: 11,
-    isNew: true,
-    colors: ["Black","Grey","Wine Red","Forest Green"],
-    material: "Water-Resistant Oxford",
-    warranty: "1 year",
-    sku: "SLX-BG-004",
-    tags: ["backpack","anti-theft","travel","women","secure","waterproof"],
-    desc: "Travel-এর জন্য এর চেয়ে safe bag আর নেই। Hidden back pocket এবং lockable zipper theft থেকে আপনার valuables রক্ষা করে। RFID-blocking pocket card skimming prevent করে। USB charging port built-in করা আছে। Water-resistant coating হঠাৎ বৃষ্টিতে contents রক্ষা করে।",
-  },
-  {
-    id: 43,
-    name: "Clutch Wallet — Evening Bag",
-    cat: "women-bags",
-    price: 1299,
-    orig: 1899,
-    img: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.5,
-    reviews: 212,
-    stock: 14,
-    viewers: 9,
-    colors: ["Gold Glitter","Silver","Black Satin","Rose Gold"],
-    material: "Satin & Beaded Work",
-    sku: "SLX-BG-005",
-    tags: ["clutch","evening","wedding","party","formal","women"],
-    desc: "বিয়ে বা formal evening event-এর জন্য এই beaded clutch আপনার outfit-এর সাথে সুন্দরভাবে complement করবে। Hand-crafted beading এবং sequin work প্রতিটি piece কে unique করে তোলে। Detachable wrist strap। Interior-এ card slots এবং small mirror সহ।",
-  },
+        // Increment viewer count atomically (don't await — fire & forget)
+        Product.findOneAndUpdate({ productId: pid }, { $inc: { viewers: 1 } }).catch(() => {});
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     👠 WOMEN'S SHOES (ID: 44–47)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 44,
-    name: "Block Heel Ladies Sandals",
-    cat: "women-shoes",
-    price: 1499,
-    orig: 2199,
-    img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.6,
-    reviews: 234,
-    stock: 10,
-    viewers: 12,
-    isFeatured: true,
-    sizes: ["35","36","37","38","39","40","41"],
-    colors: ["Nude Beige","Black","Blush Pink","White","Metallic Gold"],
-    material: "PU Upper, Block Heel",
-    sku: "SLX-WS-001",
-    tags: ["block heel","sandal","women","party","formal","comfortable"],
-    desc: "Stiletto-র fashionable look কিন্তু block heel-এর stability — এই sandals-এ পাবেন দুটো। ৩.৫ ইঞ্চি block heel comfortable posture maintain করে এবং sore feet prevent করে। Ankle strap secure fit নিশ্চিত করে। Party dress, saree বা formal wear — সব কিছুর সাথে perfect।",
-  },
-  {
-    id: 45,
-    name: "Ladies Mule Slip-On Flats",
-    cat: "women-shoes",
-    price: 1199,
-    orig: 1699,
-    img: "https://images.unsplash.com/photo-1535043934128-cf0b28d52f95?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.5,
-    reviews: 178,
-    stock: 15,
-    viewers: 8,
-    isNew: true,
-    sizes: ["35","36","37","38","39","40"],
-    colors: ["Black","Camel","White","Blush"],
-    material: "Suede Upper, TPR Sole",
-    sku: "SLX-WS-002",
-    tags: ["mule","flats","casual","slip-on","comfortable","women"],
-    desc: "Office থেকে casual outing — এই suede mule flats সব জায়গায় effortlessly stylish। Pointed toe design আপনার legs কে দেখায় আরও elongated। Cushioned insole সারাদিনের wear-এর জন্য comfortable। Quick slip-on design rush hour-এ ideal।",
-  },
-  {
-    id: 46,
-    name: "Stiletto Pump Heels — Party Wear",
-    cat: "women-shoes",
-    price: 1999,
-    orig: 2999,
-    img: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.4,
-    reviews: 145,
-    stock: 8,
-    viewers: 10,
-    sizes: ["35","36","37","38","39","40"],
-    colors: ["Classic Black","Nude","Red","Metallic Silver"],
-    material: "Patent Faux Leather",
-    sku: "SLX-WS-003",
-    tags: ["stiletto","pump","heels","party","formal","women"],
-    desc: "কোনো outfit-কে instantly glamorous করে তুলতে এই classic stiletto pumps অপরিহার্য। 4 ইঞ্চি heel পায়ের আকৃতিকে করে সুন্দর। Patent leather-এর high-gloss finish আপনার look কে দেয় ultra-polished feel। Non-slip sole indoor events-এ safe footing নিশ্চিত করে।",
-  },
-  {
-    id: 47,
-    name: "Kolhapuri Style Ethnic Sandal",
-    cat: "women-shoes",
-    price: 899,
-    orig: 1399,
-    img: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 267,
-    stock: 20,
-    viewers: 9,
-    isNew: true,
-    sizes: ["35","36","37","38","39","40","41"],
-    colors: ["Gold","Silver","Multi-color","Brown & Gold"],
-    material: "Genuine Leather with Mirror Work",
-    sku: "SLX-WS-004",
-    tags: ["ethnic","kolhapuri","sandal","traditional","festive","women"],
-    desc: "Ethnic outfit-এর সাথে perfect match করার জন্য এই handcrafted kolhapuri style sandal আপনার festival look কে complete করবে। Genuine leather sole comfortable এবং durable। Traditional mirror work এবং cut-out patterns প্রতিটি পদক্ষেপকে করে দৃষ্টিনন্দন। Saree, lehenga বা salwar-কameez-এর সাথে আদর্শ।",
-  },
+        return res.json({ ok: true, product });
+      }
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     📱 GADGETS & ELECTRONICS (ID: 48–57)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 48,
-    name: "TWS Wireless Earbuds Pro X5 — ANC",
-    cat: "gadgets",
-    price: 1199,
-    orig: 2199,
-    img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.7,
-    reviews: 678,
-    stock: 3,
-    viewers: 28,
-    isFeatured: true,
-    isFlash: true,
-    colors: ["Glossy White","Matte Black","Sky Blue"],
-    material: "ABS Plastic",
-    warranty: "1 year",
-    sku: "SLX-GD-001",
-    tags: ["earbuds","tws","anc","wireless","bluetooth","music"],
-    desc: "মাত্র ৩টি স্টক! Active Noise Cancellation technology আশেপাশের সব শব্দ block করে pure music experience দেয়। Bluetooth 5.3 — ৩০ মিটার পর্যন্ত stable connection। Buds-এ ৬ ঘণ্টা + case-এ ১৮ ঘণ্টা — মোট ২৪ ঘণ্টার battery। IPX5 waterproof — gym বা বৃষ্টিতেও নির্ভয়ে use করুন। Touch controls এবং voice assistant support।",
-  },
-  {
-    id: 49,
-    name: "Smart Watch Ultra — Health Monitor",
-    cat: "gadgets",
-    price: 3299,
-    orig: 4999,
-    img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 345,
-    stock: 8,
-    viewers: 19,
-    isFeatured: true,
-    isNew: true,
-    colors: ["Space Black","Silver","Rose Gold","Dark Green"],
-    material: "Aluminum Case, Silicone Strap",
-    warranty: "1 year",
-    sku: "SLX-GD-002",
-    tags: ["smartwatch","health","fitness","monitor","android","ios"],
-    desc: "আপনার health-এর সব তথ্য এক জায়গায়! Heart rate, SpO2 (blood oxygen), blood pressure, sleep tracking, stress level সব monitor করে। ১০০+ workout modes। 1.96\" AMOLED display — bright sunlight-এও clearly visible। IP68 waterproof — সাঁতার কাটতে পারবেন। iOS এবং Android উভয়ের সাথে compatible।",
-  },
-  {
-    id: 50,
-    name: "20000mAh Portable Power Bank — PD65W",
-    cat: "gadgets",
-    price: 1799,
-    orig: 2699,
-    img: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.8,
-    reviews: 567,
-    stock: 14,
-    viewers: 11,
-    isFeatured: true,
-    colors: ["Matte Black","White","Navy Blue"],
-    material: "Aircraft-grade Aluminum",
-    warranty: "1 year",
-    sku: "SLX-GD-003",
-    tags: ["power bank","portable","charger","20000mah","fast charge","pd"],
-    desc: "20000mAh capacity-তে iPhone ৪-৫ বার এবং Android phone ৫-৬ বার fully charge হবে। PD 65W output laptop-ও charge করতে পারে। Triple output: 2x USB-A + 1x USB-C। LCD digital display real-time remaining power দেখায়। Pass-through charging আপনাকে এবং bank-কে একসাথে charge করতে দেয়। Travel-এর জন্য অপরিহার্য।",
-  },
-  {
-    id: 51,
-    name: "Bluetooth Speaker — 360° Surround Sound",
-    cat: "gadgets",
-    price: 1499,
-    orig: 2299,
-    img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.5,
-    reviews: 289,
-    stock: 11,
-    viewers: 9,
-    isFeatured: true,
-    isFlash: true,
-    colors: ["Midnight Black","Ocean Blue","Forest Green","Sunset Red"],
-    material: "Durable Polymer",
-    warranty: "6 months",
-    sku: "SLX-GD-004",
-    tags: ["speaker","bluetooth","portable","waterproof","bass","outdoor"],
-    desc: "360° surround sound technology সব দিক থেকে equally loud এবং clear audio দেয়। 15 ঘণ্টার battery life। IPX7 waterproof — pool party বা beach-এ নিয়ে যান। TWS mode — দুটো speaker connect করে stereo sound পান। Built-in microphone crystal-clear call করতে দেয়। Outdoor adventure-এর নিত্যসঙ্গী।",
-  },
-  {
-    id: 52,
-    name: "65W GaN USB-C Fast Charger",
-    cat: "gadgets",
-    price: 799,
-    orig: 1399,
-    img: "https://images.unsplash.com/photo-1601999109332-542b18dbec8a?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.6,
-    reviews: 445,
-    stock: 28,
-    viewers: 7,
-    isNew: true,
-    colors: ["White","Black"],
-    material: "GaN Technology",
-    warranty: "1 year",
-    sku: "SLX-GD-005",
-    tags: ["charger","65w","gan","usb-c","fast charge","laptop"],
-    desc: "GaN (Gallium Nitride) technology conventional charger-এর চেয়ে ৩ গুণ বেশি efficient এবং ৪০% ছোট। iPhone 15 Pro ১৯ মিনিটে 0-50% charge। MacBook, iPad এবং সব modern laptop charge করতে পারে। Intelligent multi-device protection overheating এবং short circuit prevent করে। Travel adapter হিসেবে আদর্শ।",
-  },
-  {
-    id: 53,
-    name: "Wireless Charging Pad — 15W Magsafe",
-    cat: "gadgets",
-    price: 999,
-    orig: 1699,
-    img: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.4,
-    reviews: 234,
-    stock: 18,
-    viewers: 8,
-    isNew: true,
-    colors: ["White","Black"],
-    material: "Aluminum",
-    warranty: "6 months",
-    sku: "SLX-GD-006",
-    tags: ["wireless charger","qi","magsafe","charging pad","fast wireless"],
-    desc: "Cable-এর ঝামেলা ছাড়াই phone charge করুন। 15W wireless charging iPhone Magsafe এবং সব Qi-compatible Android-এর সাথে কাজ করে। Slim 8mm design desk-এ space কম নেয়। LED indicator charging status দেখায়। Foreign object detection protective। Smart IC overcharge prevention করে।",
-  },
-  {
-    id: 54,
-    name: "Gaming Headset — 7.1 Surround Sound",
-    cat: "gadgets",
-    price: 1799,
-    orig: 2799,
-    img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.6,
-    reviews: 312,
-    stock: 9,
-    viewers: 15,
-    isFlash: true,
-    isFeatured: true,
-    colors: ["Black/Red","Black/Blue","White/Blue"],
-    material: "ABS Plastic, Leatherette Cushion",
-    warranty: "6 months",
-    sku: "SLX-GD-007",
-    tags: ["gaming","headset","7.1","surround","microphone","rgb"],
-    desc: "7.1 virtual surround sound technology gaming-এ আপনাকে দেবে complete immersion। প্রতিটি footstep, gunshot এবং explosion কে locate করুন precisely। Noise-cancelling microphone crystal-clear voice chat নিশ্চিত করে। RGB lighting customizable। Memory foam ear cushion long gaming sessions-এ ear fatigue prevent করে। PC, PS4/5 এবং Xbox compatible।",
-  },
-  {
-    id: 55,
-    name: "LED Desk Lamp — Eye Care Smart",
-    cat: "gadgets",
-    price: 1299,
-    orig: 1999,
-    img: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.5,
-    reviews: 178,
-    stock: 16,
-    viewers: 6,
-    isNew: true,
-    colors: ["White","Black"],
-    material: "Aluminum",
-    warranty: "1 year",
-    sku: "SLX-GD-008",
-    tags: ["desk lamp","led","eye care","study","office","usb"],
-    desc: "রাত জেগে পড়াশোনা করলেও চোখ ক্ষতিগ্রস্ত হবে না এই eye care LED lamp-এ। ৫টি color mode (warm/neutral/cool) এবং ৫ brightness level আপনার environment অনুযায়ী adjust করুন। Built-in USB port phone charge করতে দেয়। Memory function সবসময় আপনার preferred setting মনে রাখে। Flicker-free এবং zero UV radiation।",
-  },
-  {
-    id: 56,
-    name: "Mini Projector — 4K WiFi",
-    cat: "gadgets",
-    price: 5999,
-    orig: 8999,
-    img: "https://images.unsplash.com/photo-1626379953822-baec19c3accd?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.5,
-    reviews: 145,
-    stock: 5,
-    viewers: 13,
-    isFeatured: true,
-    isFlash: true,
-    colors: ["White","Black"],
-    material: "DLP Technology",
-    warranty: "1 year",
-    sku: "SLX-GD-009",
-    tags: ["projector","mini","4k","wifi","bluetooth","home theater"],
-    desc: "ঘরে বসেই cinema experience! 4K support, 300\" পর্যন্ত screen size। Built-in WiFi screen mirroring করতে দেয়। ২০০০ ANSI lumens bright room-এও clear image দেয়। Android 9.0 operating system — Netflix, YouTube directly চলে। Built-in stereo speaker। ৩০,০০০ ঘণ্টার LED bulb life। Home theater, outdoor movie night এর জন্য ideal।",
-  },
-  {
-    id: 57,
-    name: "Smart Door Lock — Fingerprint + PIN",
-    cat: "gadgets",
-    price: 7999,
-    orig: 11999,
-    img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.6,
-    reviews: 123,
-    stock: 7,
-    viewers: 10,
-    isNew: true,
-    colors: ["Silver","Gold","Black"],
-    material: "Zinc Alloy",
-    warranty: "2 years",
-    sku: "SLX-GD-010",
-    tags: ["smart lock","fingerprint","door lock","security","keyless","pin"],
-    desc: "আপনার বাড়ির নিরাপত্তায় AI-powered smart lock। ০.৩ সেকেন্ডে fingerprint recognition — ৯৯.৯% accuracy। ১০০টি fingerprint এবং ২০টি PIN store করতে পারে। APP control দিয়ে যেকোনো জায়গা থেকে door control করুন। Activity log সব entry/exit record করে। AA battery-powered — power cut-এও কাজ করে।",
-  },
+      /* ── Compare Products ─────────────────────────────────── */
+      if (action === 'compare') {
+        const ids = String(req.query.ids || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4);
+        if (ids.length < 2) return res.status(400).json({ ok: false, error: 'কমপক্ষে ২টি product ID দিন' });
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     👶 KIDS (ID: 58–61)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 58,
-    name: "Kids Premium Panjabi Set — Eid Special",
-    cat: "kids",
-    price: 899,
-    orig: 1399,
-    img: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.9,
-    reviews: 312,
-    stock: 10,
-    viewers: 18,
-    isFeatured: true,
-    isNew: true,
-    sizes: ["2Y","4Y","6Y","8Y","10Y","12Y"],
-    colors: ["Pristine White","Royal Blue","Sage Green","Cream Gold"],
-    material: "100% Soft Cotton",
-    sku: "SLX-KD-001",
-    tags: ["kids","panjabi","eid","festive","boys","traditional"],
-    desc: "আপনার ছোট্ট রাজপুত্রকে ঈদে করুন আরও সুন্দর। 100% soft cotton fabric শিশুর নরম ত্বকে কোনো irritation করবে না। Set-এ রয়েছে panjabi + pajama। Machine washable, quick dry। Durable stitching বারবার wash করলেও টেকসই থাকে। ঈদের সকাল থেকে রাত পর্যন্ত comfortable থাকবে।",
-  },
-  {
-    id: 59,
-    name: "Kids Summer Dress — Floral Print",
-    cat: "kids",
-    price: 699,
-    orig: 1099,
-    img: "https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.8,
-    reviews: 234,
-    stock: 15,
-    viewers: 11,
-    isNew: true,
-    sizes: ["2Y","4Y","6Y","8Y","10Y","12Y"],
-    colors: ["Pink Floral","Blue Floral","Yellow Floral","White Floral"],
-    material: "Cotton Poplin",
-    sku: "SLX-KD-002",
-    tags: ["kids","dress","girls","floral","summer","cute"],
-    desc: "আপনার ছোট্ট পরীকে করুন আরও adorable। Cotton poplin fabric গরমেও comfortable এবং breathable। Fun floral prints vibrant colors-এ — রোদেও fade হয় না। Hidden side zipper for easy dressing। Machine washable, easy iron। বাচ্চাদের school, party বা casual outing-এ perfect।",
-  },
-  {
-    id: 60,
-    name: "Kids T-Shirt Combo Pack — 3 pieces",
-    cat: "kids",
-    price: 699,
-    orig: 1199,
-    img: "https://images.unsplash.com/photo-1519278409-1f56fdda7fe5?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.7,
-    reviews: 445,
-    stock: 20,
-    viewers: 14,
-    sizes: ["2Y","4Y","6Y","8Y","10Y","12Y"],
-    colors: ["Mixed Bright Colors"],
-    material: "Combed Cotton",
-    sku: "SLX-KD-003",
-    tags: ["kids","tshirt","combo","pack","boys","girls","daily"],
-    desc: "৩টি premium quality combed cotton t-shirt — একটি দামে তিনটি! Super soft fabric শিশুর sensitive skin-এর জন্য gentle। Fun cartoon prints বাচ্চাদের পছন্দের। Anti-pilling treatment দীর্ঘস্থায়িত্ব নিশ্চিত করে। Daily school wear বা play-এর জন্য ideal।",
-  },
-  {
-    id: 61,
-    name: "Kids Sneakers — Light-Up Sole",
-    cat: "kids",
-    price: 1199,
-    orig: 1799,
-    img: "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.8,
-    reviews: 289,
-    stock: 8,
-    viewers: 16,
-    isNew: true,
-    isFeatured: true,
-    sizes: ["25","26","27","28","29","30","31","32","33","34","35"],
-    colors: ["Blue/White","Pink/White","Red/Black","Black/Yellow"],
-    material: "Canvas Upper, LED Sole",
-    sku: "SLX-KD-004",
-    tags: ["kids","sneaker","light up","shoes","boys","girls"],
-    desc: "বাচ্চারা এই জুতা দেখলেই পরতে চাইবে! LED light-up sole প্রতিটি পদক্ষেপে আলো জ্বলে — রাতেও clearly visible। Velcro closure ছোট বাচ্চারা নিজেই পরতে পারে। Lightweight এবং flexible sole খেলাধুলায় বাধা দেয় না। Machine washable। Battery USB charging করে।",
-  },
+        const products = await Product.find({ productId: { $in: ids }, isActive: true })
+          .select('productId name cat price orig img badge rating reviews stock sizes colors material warranty desc specifications').lean();
 
-  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     💍 ACCESSORIES (ID: 62–66)
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  {
-    id: 62,
-    name: "Polarized Aviator Sunglasses — UV400",
-    cat: "accessories",
-    price: 699,
-    orig: 1199,
-    img: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.6,
-    reviews: 334,
-    stock: 22,
-    viewers: 13,
-    isNew: true,
-    colors: ["Gold/Green","Silver/Grey","Black/Black","Gold/Brown"],
-    material: "Metal Frame, Polarized Lens",
-    sku: "SLX-AC-001",
-    tags: ["sunglasses","aviator","polarized","uv400","fashion","men","women"],
-    desc: "Tom Cruise style iconic aviator design — চিরকালের classic। UV400 polarized lens ক্ষতিকর UV ray থেকে চোখ রক্ষা করে এবং glare কমায়। Lightweight metal frame comfortable fit নিশ্চিত করে। Unisex design। Includes hard case এবং cleaning cloth। Driving, outdoor activities বা fashion statement — সব কাজে perfect।",
-  },
-  {
-    id: 63,
-    name: "Genuine Leather Belt — Ratchet System",
-    cat: "accessories",
-    price: 599,
-    orig: 999,
-    img: "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.7,
-    reviews: 412,
-    stock: 32,
-    viewers: 6,
-    sizes: ["S (28-32)","M (32-36)","L (36-40)","XL (40-44)"],
-    colors: ["Black","Brown Tan","Dark Brown"],
-    material: "Full Grain Genuine Leather",
-    sku: "SLX-AC-002",
-    tags: ["belt","leather","men","ratchet","formal","genuine"],
-    desc: "Traditional hole system-এর পরিবর্তে এই ratchet belt system দেয় ১/৪ ইঞ্চি precise adjustment — perfect fit সবসময়। Full grain genuine leather বছরের পর বছর সুন্দর থাকে। Solid zinc alloy buckle heavy-duty এবং scratch-resistant। Formal office wear বা casual — উভয় ক্ষেত্রে equally smart।",
-  },
-  {
-    id: 64,
-    name: "Analog Leather Strap Watch — Minimalist",
-    cat: "accessories",
-    price: 1799,
-    orig: 2799,
-    img: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400&h=500&fit=crop&q=80",
-    badge: "new",
-    rating: 4.7,
-    reviews: 234,
-    stock: 11,
-    viewers: 10,
-    isNew: true,
-    isFeatured: true,
-    colors: ["Brown Leather/Gold","Black Leather/Silver","Tan/Rose Gold"],
-    material: "Stainless Steel Case, Genuine Leather Strap",
-    warranty: "1 year",
-    sku: "SLX-AC-003",
-    tags: ["watch","analog","leather","minimalist","men","women","fashion"],
-    desc: "Minimalist design-এর এই analog watch যেকোনো outfit-কে instant class দেয়। 40mm stainless steel case timeless aesthetic দেয়। Japanese Miyota movement accurate timekeeping নিশ্চিত করে। 3 ATM water resistance light rain-এ নিরাপদ। Vintage-inspired design কখনো out of fashion হবে না।",
-  },
-  {
-    id: 65,
-    name: "Men's Wallet — Slim RFID Blocking",
-    cat: "accessories",
-    price: 899,
-    orig: 1499,
-    img: "https://images.unsplash.com/photo-1627123424574-724758594785?w=400&h=500&fit=crop&q=80",
-    badge: "sale",
-    rating: 4.5,
-    reviews: 345,
-    stock: 25,
-    viewers: 8,
-    colors: ["Black","Dark Brown","Tan","Burgundy"],
-    material: "Genuine Leather, RFID Blocking",
-    sku: "SLX-AC-004",
-    tags: ["wallet","rfid","slim","men","leather","security"],
-    desc: "RFID blocking technology আপনার credit card তথ্য contactless theft থেকে রক্ষা করে। Ultra-slim ৬mm design পকেটে কোনো bulk তৈরি করে না। ৬টি card slot + 2 hidden compartments। Bifold design। Genuine leather exterior দীর্ঘস্থায়ী এবং premium feel দেয়। Gift box-এ দেওয়া হয়।",
-  },
-  {
-    id: 66,
-    name: "Sports Gym Bag — Waterproof",
-    cat: "accessories",
-    price: 1499,
-    orig: 2199,
-    img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=500&fit=crop&q=80",
-    badge: "hot",
-    rating: 4.6,
-    reviews: 267,
-    stock: 13,
-    viewers: 12,
-    isNew: true,
-    isFlash: true,
-    colors: ["All Black","Navy/Grey","Olive/Black","Red/Black"],
-    material: "Waterproof Nylon",
-    sku: "SLX-AC-005",
-    tags: ["gym bag","sports","duffel","waterproof","men","travel"],
-    desc: "Serious gym-goers-দের জন্য designed এই sports bag-এ রয়েছে separate wet/dry compartment — sweaty clothes বা wet towel আলাদা রাখুন। Shoe pocket আলাদা। Main compartment-এ clothes এবং gym equipment সব রাখা যায়। Water-resistant coating বৃষ্টিতেও contents safe রাখে। Ergonomic padded shoulder strap comfortable carry নিশ্চিত করে।",
-  },
+        // Build comparison matrix
+        const allKeys = ['price', 'rating', 'stock', 'material', 'warranty', 'sizes', 'colors'];
+        const comparison = allKeys.reduce((acc, key) => {
+          acc[key] = products.map(p => ({
+            productId: p.productId,
+            value: Array.isArray(p[key]) ? p[key].join(', ') : p[key],
+          }));
+          return acc;
+        }, {});
 
-]; // ──── END OF PRODUCTS ARRAY ────────────────────────────────
+        return res.json({ ok: true, products, comparison });
+      }
 
-/* ================================================================
-   ⚙️ SITE CONFIGURATION
-   এখানে আপনার সাইটের সব information পরিবর্তন করুন
-================================================================ */
-const SHOPLIXA_CONFIG = {
+      /* ── Batch Fetch (Recently Viewed) ────────────────────── */
+      if (action === 'batch') {
+        const ids = String(req.query.ids || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 20);
+        if (!ids.length) return res.json({ ok: true, products: [] });
 
-  // ── Site Identity ──────────────────────────────────────────
-  siteName:   "Shoplixo",
-  tagline:    "Bangladesh's #1 Online Shopping Destination",
-  domain:     "shoplixo.shop",
+        const products = await Product.find({ productId: { $in: ids }, isActive: true })
+          .select('productId name cat price orig img badge rating reviews stock viewers').lean();
 
-  // ── Contact & Social ───────────────────────────────────────
-  phone:      "+880 1516-511889",
-  whatsapp:   "8801516511889",
-  email:      "support@shoplixo.shop",
-  facebook:   "https://facebook.com/shoplixo",
-  instagram:  "https://instagram.com/shoplixo",
-  tiktok:     "https://tiktok.com/@shoplixo",
-  youtube:    "https://youtube.com/@shoplixo",
-  address:    "Dhaka, Bangladesh",
+        // Preserve order
+        const ordered = ids.map(id => products.find(p => p.productId === id)).filter(Boolean);
+        return res.json({ ok: true, products: ordered });
+      }
 
-  // ── Payment Numbers ───────────────────────────────────────
-  bkash:      "01516511889",
-  nagad:      "01516511889",
-  rocket:     "01516511889",
-  upay:       "01516511889",
+      /* ── Related Products ─────────────────────────────────── */
+      if (action === 'related') {
+        const pid = sanitize(req.query.id || '', 50);
+        if (!pid) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
 
-  // ── Shipping ──────────────────────────────────────────────
-  currency:           "৳",
-  freeShippingMin:    999,   // এর উপরে অর্ডার করলে free delivery
-  shippingCost:       60,    // regular shipping charge
-  dhakaCost:          40,    // ঢাকার মধ্যে delivery charge
-  outsideDhakaCost:   80,    // ঢাকার বাইরে delivery charge
+        const product = await Product.findOne({ productId: pid }).select('cat tags').lean();
+        if (!product) return res.status(404).json({ ok: false, error: 'পণ্য পাওয়া যায়নি' });
 
-  // ── Flash Sale ────────────────────────────────────────────
-  flashSaleActive:       true,
-  flashSaleHours:        8,     // কত ঘণ্টা flash sale চলবে
-  flashSaleMinutes:      45,
-  flashSaleDiscountExtra: 0,    // flash sale-এ extra % off (0 মানে no extra)
+        const related = await Product.find({
+          isActive: true,
+          productId: { $ne: pid },
+          $or: [
+            { cat: product.cat },
+            { tags: { $in: product.tags || [] } },
+          ],
+        }).limit(8).select('productId name price orig img badge rating reviews stock').lean();
 
-  // ── Business Policy ───────────────────────────────────────
-  returnDays:     7,
-  warrantyNote:   "৭ দিনের রিটার্ন পলিসি",
-  deliveryDhaka:  "২৪ ঘণ্টার মধ্যে",
-  deliveryOutside: "২-৩ কার্যদিবস",
+        return res.json({ ok: true, products: related });
+      }
 
+      /* ── Products List ────────────────────────────────────── */
+      const {
+        cat, featured, flash, isNew, badge,
+        limit = 100, page = 1, sort = 'newest',
+        minPrice, maxPrice, minRating, inStock,
+        search,
+      } = req.query;
+
+      const query = { isActive: { $ne: false } };
+
+      if (cat)              query.cat        = cat;
+      if (featured === 'true') query.isFeatured = true;
+      if (flash === 'true')    query.isFlash    = true;
+      if (isNew === 'true')    query.isNew      = true;
+      if (badge)            query.badge      = badge;
+      if (inStock === 'true') query.stock    = { $gt: 0 };
+      if (minRating)        query.rating     = { $gte: parseFloat(minRating) };
+
+      if (minPrice || maxPrice) {
+        query.price = {};
+        if (minPrice) query.price.$gte = parseFloat(minPrice);
+        if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+      }
+
+      if (search) {
+        query.$or = [
+          { name: { $regex: search, $options: 'i' } },
+          { tags: { $in: [new RegExp(search, 'i')] } },
+          { desc: { $regex: search, $options: 'i' } },
+        ];
+      }
+
+      const sortMap = {
+        newest:     { createdAt: -1 },
+        popular:    { totalSold: -1 },
+        price_asc:  { price: 1 },
+        price_desc: { price: -1 },
+        rating:     { rating: -1 },
+        viewers:    { viewers: -1 },
+      };
+
+      const lim  = Math.min(parseInt(limit) || 100, 200);
+      const skip = (Math.max(parseInt(page), 1) - 1) * lim;
+      const sortOpt = sortMap[sort] || { createdAt: -1 };
+
+      const [items, total] = await Promise.all([
+        Product.find(query).sort(sortOpt).skip(skip).limit(lim).lean(),
+        Product.countDocuments(query),
+      ]);
+
+      return res.status(200).json({
+        ok: true,
+        count: items.length,
+        total,
+        page: parseInt(page),
+        pages: Math.ceil(total / lim),
+        data: items,
+      });
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       POST: Increment Viewer Count (no auth needed)
+    ══════════════════════════════════════════════════════════ */
+    if (req.method === 'POST' && action === 'view') {
+      const pid = sanitize(req.query.id || req.body?.id || '', 50);
+      if (!pid) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
+
+      await Product.findOneAndUpdate({ productId: pid }, { $inc: { viewers: 1 } });
+      return res.json({ ok: true });
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ADMIN ONLY — Create / Update / Delete / Toggle / Stock
+    ══════════════════════════════════════════════════════════ */
+    if (!isAdmin(req)) {
+      return res.status(403).json({ ok: false, error: 'Admin access required' });
+    }
+
+    /* ── POST: Create Product ─────────────────────────────── */
+    if (req.method === 'POST' && !action) {
+      const b = req.body || {};
+
+      if (!b.name || !b.cat || !b.price)
+        return res.status(400).json({ ok: false, error: 'name, cat, price required' });
+
+      // Auto-generate productId if not provided
+      const productId = sanitize(b.productId || '', 50) || `P${Date.now()}`;
+
+      const existing = await Product.findOne({ productId });
+      if (existing) return res.status(409).json({ ok: false, error: 'ProductId already exists' });
+
+      const product = await Product.create({
+        productId,
+        name:        sanitize(b.name, 200),
+        cat:         sanitize(b.cat, 50),
+        price:       Math.max(0, parseFloat(b.price) || 0),
+        orig:        b.orig ? parseFloat(b.orig) : undefined,
+        img:         sanitize(b.img || '', 500),
+        images:      Array.isArray(b.images) ? b.images.slice(0, 10).map(i => sanitize(i, 500)) : [],
+        badge:       ['hot','new','sale','sold','best'].includes(b.badge) ? b.badge : 'new',
+        stock:       Math.max(0, parseInt(b.stock) || 100),
+        isFeatured:  Boolean(b.isFeatured),
+        isNew:       b.isNew !== false,
+        isFlash:     Boolean(b.isFlash),
+        isActive:    b.isActive !== false,
+        sizes:       Array.isArray(b.sizes)  ? b.sizes  : [],
+        colors:      Array.isArray(b.colors) ? b.colors : [],
+        material:    sanitize(b.material  || '', 100),
+        warranty:    sanitize(b.warranty  || '', 100),
+        sku:         sanitize(b.sku       || '', 50),
+        tags:        Array.isArray(b.tags) ? b.tags : [],
+        desc:        sanitize(b.desc      || '', 2000),
+        videoUrl:    sanitize(b.videoUrl  || '', 500),
+        weight:      b.weight ? parseFloat(b.weight) : undefined,
+        seoTitle:    sanitize(b.seoTitle  || '', 200),
+        seoDesc:     sanitize(b.seoDesc   || '', 300),
+        returnPolicy:sanitize(b.returnPolicy || '', 200),
+        specifications: Array.isArray(b.specifications) ? b.specifications.slice(0, 20) : [],
+      });
+
+      return res.status(201).json({ ok: true, product, message: 'পণ্য তৈরি হয়েছে!' });
+    }
+
+    /* ── PATCH: Update Product ────────────────────────────── */
+    if (req.method === 'PATCH') {
+      const pid = sanitize(req.query.id || '', 50);
+      if (!pid) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
+
+      const b = req.body || {};
+      const updates = {};
+
+      if (b.name !== undefined)    updates.name    = sanitize(b.name, 200);
+      if (b.cat  !== undefined)    updates.cat     = sanitize(b.cat, 50);
+      if (b.price !== undefined)   updates.price   = Math.max(0, parseFloat(b.price) || 0);
+      if (b.orig  !== undefined)   updates.orig    = parseFloat(b.orig) || undefined;
+      if (b.img   !== undefined)   updates.img     = sanitize(b.img, 500);
+      if (b.images !== undefined)  updates.images  = Array.isArray(b.images) ? b.images.slice(0, 10) : [];
+      if (b.badge !== undefined)   updates.badge   = b.badge;
+      if (b.stock !== undefined)   updates.stock   = Math.max(0, parseInt(b.stock) || 0);
+      if (b.isFeatured !== undefined) updates.isFeatured = Boolean(b.isFeatured);
+      if (b.isNew  !== undefined)  updates.isNew   = Boolean(b.isNew);
+      if (b.isFlash !== undefined) updates.isFlash = Boolean(b.isFlash);
+      if (b.isActive !== undefined) updates.isActive = Boolean(b.isActive);
+      if (b.sizes  !== undefined)  updates.sizes   = Array.isArray(b.sizes)  ? b.sizes  : [];
+      if (b.colors !== undefined)  updates.colors  = Array.isArray(b.colors) ? b.colors : [];
+      if (b.material !== undefined) updates.material = sanitize(b.material, 100);
+      if (b.warranty !== undefined) updates.warranty = sanitize(b.warranty, 100);
+      if (b.sku    !== undefined)  updates.sku     = sanitize(b.sku, 50);
+      if (b.tags   !== undefined)  updates.tags    = Array.isArray(b.tags) ? b.tags : [];
+      if (b.desc   !== undefined)  updates.desc    = sanitize(b.desc, 2000);
+      if (b.videoUrl !== undefined) updates.videoUrl = sanitize(b.videoUrl, 500);
+      if (b.seoTitle !== undefined) updates.seoTitle = sanitize(b.seoTitle, 200);
+      if (b.seoDesc  !== undefined) updates.seoDesc  = sanitize(b.seoDesc, 300);
+      if (b.returnPolicy !== undefined) updates.returnPolicy = sanitize(b.returnPolicy, 200);
+      if (b.specifications !== undefined) updates.specifications = Array.isArray(b.specifications) ? b.specifications.slice(0, 20) : [];
+
+      const product = await Product.findOneAndUpdate({ productId: pid }, updates, { new: true });
+      if (!product) return res.status(404).json({ ok: false, error: 'পণ্য পাওয়া যায়নি' });
+
+      // Stock alert: if stock fell to low threshold, email admin
+      if (updates.stock !== undefined && updates.stock <= LOW_STOCK_THRESHOLD && process.env.ADMIN_EMAIL) {
+        sendEmail(
+          process.env.ADMIN_EMAIL,
+          `⚠️ Low Stock Alert — ${product.name}`,
+          lowStockAlertEmail([product])
+        ).catch(() => {});
+      }
+
+      return res.json({ ok: true, product, message: 'পণ্য আপডেট হয়েছে!' });
+    }
+
+    /* ── POST: Toggle isActive ────────────────────────────── */
+    if (req.method === 'POST' && action === 'toggle') {
+      const pid = sanitize(req.query.id || req.body?.id || '', 50);
+      if (!pid) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
+
+      const product = await Product.findOne({ productId: pid });
+      if (!product) return res.status(404).json({ ok: false, error: 'পণ্য পাওয়া যায়নি' });
+
+      product.isActive = !product.isActive;
+      await product.save();
+      return res.json({ ok: true, isActive: product.isActive, message: `পণ্য ${product.isActive ? 'active' : 'inactive'} হয়েছে` });
+    }
+
+    /* ── POST: Bulk Stock Update ──────────────────────────── */
+    if (req.method === 'POST' && action === 'stock') {
+      const updates = req.body?.updates; // [{ productId, stock }]
+      if (!Array.isArray(updates) || !updates.length)
+        return res.status(400).json({ ok: false, error: 'updates array দিন' });
+
+      const ops = updates.slice(0, 100).map(u => ({
+        updateOne: {
+          filter: { productId: u.productId },
+          update: { $set: { stock: Math.max(0, parseInt(u.stock) || 0) } },
+        },
+      }));
+
+      const result = await Product.bulkWrite(ops);
+
+      // Check for low stock items after update
+      const lowStockItems = await Product.find({
+        productId: { $in: updates.map(u => u.productId) },
+        stock: { $lte: LOW_STOCK_THRESHOLD },
+        isActive: true,
+      }).select('productId name stock').lean();
+
+      if (lowStockItems.length && process.env.ADMIN_EMAIL) {
+        sendEmail(
+          process.env.ADMIN_EMAIL,
+          `⚠️ Low Stock Alert — ${lowStockItems.length}টি পণ্য`,
+          lowStockAlertEmail(lowStockItems)
+        ).catch(() => {});
+      }
+
+      return res.json({ ok: true, modified: result.modifiedCount, lowStockItems });
+    }
+
+    /* ── DELETE: Soft Delete ──────────────────────────────── */
+    if (req.method === 'DELETE') {
+      const pid = sanitize(req.query.id || '', 50);
+      if (!pid) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
+
+      const product = await Product.findOneAndUpdate(
+        { productId: pid },
+        { isActive: false },
+        { new: true }
+      );
+      if (!product) return res.status(404).json({ ok: false, error: 'পণ্য পাওয়া যায়নি' });
+      return res.json({ ok: true, message: 'পণ্য delete হয়েছে (soft delete)' });
+    }
+
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+
+  } catch (err) {
+    console.error('Products API error:', err);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
 };
-
-/* ================================================================
-   🎟️ COUPON CODES
-   code: discount percentage
-   এখানে নতুন coupon code যোগ বা পরিবর্তন করুন
-================================================================ */
-const SHOPLIXA_COUPONS = {
-  // General coupons
-  "LIXA20":       { discount: 20, type: "percent", desc: "20% ছাড়",       minOrder: 0    },
-  "LIXA25":       { discount: 25, type: "percent", desc: "25% ছাড়",       minOrder: 2000 },
-  "SAVE15":       { discount: 15, type: "percent", desc: "15% ছাড়",       minOrder: 0    },
-  "SHOPLIXO5":    { discount: 5,  type: "percent", desc: "5% ছাড়",        minOrder: 0    },
-
-  // Newsletter coupons
-  "NEWSLIXA10":   { discount: 10, type: "percent", desc: "Newsletter 10% ছাড়", minOrder: 0 },
-  "SUBSCRIBE15":  { discount: 15, type: "percent", desc: "Subscriber 15% ছাড়", minOrder: 500 },
-
-  // Festival coupons
-  "EID2025":      { discount: 30, type: "percent", desc: "ঈদ স্পেশাল ৩০% ছাড়", minOrder: 1500 },
-  "PUJA2025":     { discount: 20, type: "percent", desc: "পূজা স্পেশাল ২০% ছাড়", minOrder: 1000 },
-
-  // Category-specific flat discount
-  "GADGET100":    { discount: 100, type: "flat", desc: "গ্যাজেটে ৳১০০ ছাড়", minOrder: 1000 },
-  "FASHION200":   { discount: 200, type: "flat", desc: "ফ্যাশনে ৳২০০ ছাড়", minOrder: 2000 },
-
-  // First order
-  "FIRSTORDER":   { discount: 20, type: "percent", desc: "প্রথম অর্ডারে ২০% ছাড়", minOrder: 0 },
-  "WELCOME10":    { discount: 10, type: "percent", desc: "স্বাগত ১০% ছাড়", minOrder: 0 },
-};
-
-/* ================================================================
-   🌟 CUSTOMER TESTIMONIALS
-   Testimonials section-এ দেখাবে
-================================================================ */
-const SHOPLIXA_TESTIMONIALS = [
-  {
-    name:     "Rakib Hasan",
-    location: "Mirpur, Dhaka",
-    avatar:   "R",
-    avatarBg: "linear-gradient(135deg,#E41E26,#1A1A2E)",
-    rating:   5,
-    date:     "2 দিন আগে",
-    product:  "Premium Oxford Cotton Shirt",
-    text:     "অসাধারণ quality! ছবির চেয়েও সুন্দর পেয়েছি। মাত্র ১ দিনে delivery পেয়েছি Dhaka-তে। Daraz এর চেয়ে অনেক বেশি reliable। আবার order করব অবশ্যই।",
-    verified: true,
-    helpful:  47,
-  },
-  {
-    name:     "Sumaiya Begum",
-    location: "Chittagong",
-    avatar:   "S",
-    avatarBg: "linear-gradient(135deg,#E91E8C,#8B1A1A)",
-    rating:   5,
-    date:     "5 দিন আগে",
-    product:  "Embroidered Kurti Set",
-    text:     "Kurti টা দেখে মনে হচ্ছে অনেক দামী দোকান থেকে কিনেছি! bKash payment করা ছিল একদম easy। Delivery ২ দিনে এসেছে Chittagong-এ। সব বান্ধবীরা জিজ্ঞেস করছে কোথায় পেয়েছি!",
-    verified: true,
-    helpful:  63,
-  },
-  {
-    name:     "Tanvir Ahmed",
-    location: "Sylhet",
-    avatar:   "T",
-    avatarBg: "linear-gradient(135deg,#00C58A,#0A5C45)",
-    rating:   4,
-    date:     "1 সপ্তাহ আগে",
-    product:  "Smart Watch Ultra",
-    text:     "Smart watch-টা নিয়ে অনেক happy। Heart rate এবং sleep tracking accuracy অনেক ভালো। Price এর তুলনায় quality অনেক বেশি। WhatsApp support খুব fast response দিয়েছে।",
-    verified: true,
-    helpful:  38,
-  },
-  {
-    name:     "Nusrat Jahan",
-    location: "Rajshahi",
-    avatar:   "N",
-    avatarBg: "linear-gradient(135deg,#7C3AED,#4C1D95)",
-    rating:   5,
-    date:     "3 দিন আগে",
-    product:  "Flowy Chiffon Maxi Dress",
-    text:     "Eid-এ dress-টা পরেছিলাম। সবাই এতো compliment করেছে! Fabric quality অনেক ভালো, color ও exact same যেটা ছবিতে ছিল। Sizing chart follow করে order করলে perfect fit পাবেন।",
-    verified: true,
-    helpful:  52,
-  },
-  {
-    name:     "Imran Hossain",
-    location: "Gazipur",
-    avatar:   "I",
-    avatarBg: "linear-gradient(135deg,#0066FF,#0C2A6E)",
-    rating:   5,
-    date:     "4 দিন আগে",
-    product:  "TWS Wireless Earbuds Pro",
-    text:     "Earbuds-এর sound quality অবাক করা! এই দামে এতো ভালো ANC আশা করিনি। বাসায় গান শুনি, office-এ call করি — দুটো কাজেই perfect। Battery life সত্যিই ২৪ ঘণ্টা।",
-    verified: true,
-    helpful:  71,
-  },
-  {
-    name:     "Fatema Khatun",
-    location: "Narayanganj",
-    avatar:   "F",
-    avatarBg: "linear-gradient(135deg,#FF6B35,#C04A00)",
-    rating:   5,
-    date:     "6 দিন আগে",
-    product:  "Premium Tote Bag",
-    text:     "Bag-টা দেখে বিশ্বাস হচ্ছিল না এত কম দামে এতো ভালো quality পাব। Office-এ নিয়ে গেলে সবাই ভাবে অনেক দামী brand-এর। Inside-এ অনেক compartment — সব organized রাখা যায়।",
-    verified: true,
-    helpful:  45,
-  },
-];
-
-/* ================================================================
-   🏷️ PROMOTIONAL BANNERS
-   প্রোমো banner section-এ use করুন
-================================================================ */
-const SHOPLIXA_BANNERS = [
-  {
-    id: 1,
-    tag:     "Exclusive Deal",
-    title:   "Men's Shirts\nUp to 70% OFF",
-    cta:     "Shop Now",
-    link:    "#featured",
-    filter:  "mens-shirts",
-    bgClass: "pc-bg-1",
-    icon:    "fa-shirt",
-  },
-  {
-    id: 2,
-    tag:     "Best Sellers",
-    title:   "Premium Shoes\nFrom ৳1,299",
-    cta:     "View Collection",
-    link:    "#featured",
-    filter:  "shoes",
-    bgClass: "pc-bg-2",
-    icon:    "fa-shoe-prints",
-  },
-  {
-    id: 3,
-    tag:     "New Arrivals",
-    title:   "Latest Gadgets\nBest Prices",
-    cta:     "Explore",
-    link:    "#gadgets-section",
-    filter:  "gadgets",
-    bgClass: "pc-bg-3",
-    icon:    "fa-microchip",
-  },
-];
-
-/* ================================================================
-   📦 CATEGORY METADATA
-   Category icons, labels এবং featured images
-================================================================ */
-const SHOPLIXA_CATEGORIES = {
-  "mens-shirts":  { label: "Men's Shirts",    icon: "fa-shirt",          color: "#E41E26", emoji: "👔" },
-  "mens-pants":   { label: "Pants & Jeans",   icon: "fa-person",         color: "#0066FF", emoji: "👖" },
-  "shoes":        { label: "Shoes",           icon: "fa-shoe-prints",    color: "#8B5E3C", emoji: "👞" },
-  "women":        { label: "Women's Fashion", icon: "fa-vest",           color: "#E91E8C", emoji: "👗" },
-  "women-bags":   { label: "Handbags",        icon: "fa-bag-shopping",   color: "#A0522D", emoji: "👜" },
-  "women-shoes":  { label: "Ladies Shoes",    icon: "fa-shoe-prints",    color: "#C2185B", emoji: "👠" },
-  "gadgets":      { label: "Gadgets & Tech",  icon: "fa-mobile-screen",  color: "#1A1A2E", emoji: "📱" },
-  "kids":         { label: "Kids Wear",       icon: "fa-children",       color: "#FFB800", emoji: "👶" },
-  "accessories":  { label: "Accessories",     icon: "fa-glasses",        color: "#00C58A", emoji: "💍" },
-};
-
-/* ================================================================
-   🚀 SOCIAL PROOF NOTIFICATIONS
-   Real-time purchase notifications — automatic rotation
-================================================================ */
-const SHOPLIXA_SOCIAL_PROOF = [
-  { name: "Rakib H.",   city: "Dhaka",       product: "Oxford Cotton Shirt",     time: "2 মিনিট আগে"  },
-  { name: "Nasrin B.",  city: "Chittagong",  product: "Embroidered Kurti Set",   time: "5 মিনিট আগে"  },
-  { name: "Tanvir A.",  city: "Sylhet",      product: "Smart Watch Ultra",       time: "8 মিনিট আগে"  },
-  { name: "Roksana K.", city: "Rajshahi",    product: "TWS Earbuds Pro ANC",     time: "11 মিনিট আগে" },
-  { name: "Imran H.",   city: "Khulna",      product: "Slim Fit Chino Pants",    time: "14 মিনিট আগে" },
-  { name: "Mitu A.",    city: "Barishal",    product: "Maxi Chiffon Dress",      time: "17 মিনিট আগে" },
-  { name: "Farhan R.",  city: "Comilla",     product: "Leather Oxford Shoes",    time: "21 মিনিট আগে" },
-  { name: "Sadia M.",   city: "Mymensingh",  product: "Premium Tote Bag",        time: "24 মিনিট আগে" },
-  { name: "Ashik U.",   city: "Narayanganj", product: "Gaming Headset 7.1",      time: "28 মিনিট আগে" },
-  { name: "Puja D.",    city: "Gazipur",     product: "Cotton Sharara Set",      time: "32 মিনিট আগে" },
-  { name: "Kawsar A.",  city: "Jessore",     product: "20000mAh Power Bank",     time: "36 মिनিট আগে" },
-  { name: "Lima K.",    city: "Bogra",       product: "Block Heel Sandals",      time: "40 মিনিট আগে" },
-];
-
-/* ================================================================
-   📣 ANNOUNCEMENT BAR MESSAGES
-   Top bar-এ rotate করে দেখাবে
-================================================================ */
-const SHOPLIXA_ANNOUNCEMENTS = [
-  {
-    text: "🚚 <strong>বিনামূল্যে ডেলিভারি</strong> ৳৯৯৯+ এর উপরে সকল অর্ডারে!",
-    link: { text: "Shop Now →", href: "#featured" },
-  },
-  {
-    text: "🎁 প্রথম অর্ডারে কোড <strong>FIRSTORDER</strong> ব্যবহার করুন — পান <strong>20% ছাড়!</strong>",
-    link: { text: "এখনই নিন →", href: "#featured" },
-  },
-  {
-    text: "⚡ Flash Sale চলছে! সেরা পণ্যে <strong>৭০% পর্যন্ত ছাড়</strong> — সীমিত সময়!",
-    link: { text: "দেখুন →", href: "#flash-sale" },
-  },
-  {
-    text: "📱 bKash / Nagad / Rocket / Upay তে পেমেন্ট করুন — <strong>অতিরিক্ত ৫% ছাড়!</strong>",
-    link: null,
-  },
-  {
-    text: "🎉 ঈদ কালেকশন এসে গেছে! কোড <strong>EID2025</strong> দিয়ে পান <strong>৩০% ছাড়!</strong>",
-    link: { text: "Shop Eid →", href: "#new-arrivals" },
-  },
-];
-
-/* ================================================================
-   ✅ MAKE EVERYTHING GLOBALLY AVAILABLE
-   (এই অংশ পরিবর্তন করবেন না)
-================================================================ */
-if (typeof window !== 'undefined') {
-  window.SHOPLIXA_PRODUCTS     = SHOPLIXA_PRODUCTS;
-  window.SHOPLIXA_CONFIG       = SHOPLIXA_CONFIG;
-  window.SHOPLIXA_COUPONS      = SHOPLIXA_COUPONS;
-  window.SHOPLIXA_TESTIMONIALS = SHOPLIXA_TESTIMONIALS;
-  window.SHOPLIXA_BANNERS      = SHOPLIXA_BANNERS;
-  window.SHOPLIXA_CATEGORIES   = SHOPLIXA_CATEGORIES;
-  window.SHOPLIXA_SOCIAL_PROOF = SHOPLIXA_SOCIAL_PROOF;
-  window.SHOPLIXA_ANNOUNCEMENTS = SHOPLIXA_ANNOUNCEMENTS;
-
-  // Backward compatibility
-  window.SHOPLIXA_CONFIG.freeShippingMin = window.SHOPLIXA_CONFIG.freeShippingMin;
-  window.SHOPLIXA_CONFIG.bkash  = window.SHOPLIXA_CONFIG.bkash;
-  window.SHOPLIXA_CONFIG.nagad  = window.SHOPLIXA_CONFIG.nagad;
-  window.SHOPLIXA_CONFIG.rocket = window.SHOPLIXA_CONFIG.rocket;
-  window.SHOPLIXA_CONFIG.upay   = window.SHOPLIXA_CONFIG.upay;
-
-  console.log(`%c✅ Shoplixo Products Loaded`, 'color:#E41E26;font-weight:bold;font-size:14px');
-  console.log(`%c📦 Total Products: ${SHOPLIXA_PRODUCTS.length}`, 'color:#00C58A;font-weight:bold');
-  console.log(`%c⚡ Flash Sale Items: ${SHOPLIXA_PRODUCTS.filter(p=>p.isFlash).length}`, 'color:#FFB800;font-weight:bold');
-  console.log(`%c✨ New Arrivals: ${SHOPLIXA_PRODUCTS.filter(p=>p.isNew).length}`, 'color:#0066FF;font-weight:bold');
-  console.log(`%c🔥 Featured: ${SHOPLIXA_PRODUCTS.filter(p=>p.isFeatured).length}`, 'color:#7C3AED;font-weight:bold');
-}
