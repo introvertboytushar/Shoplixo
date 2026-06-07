@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Bangladesh's #1 Dropshipping Store — Shoplixo Vercel Backend",
   "private": true,
-  "engines": {
-    "node": ">=18.x"
+"engines": {
+  "node": "18.x"
+}
   },
   "scripts": {
     "dev": "vercel dev",
