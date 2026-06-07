@@ -907,6 +907,451 @@ footer{background:var(--dark);padding:60px 0 0}
 .tg-bar{background:linear-gradient(90deg,#229ED9,#0088CC);padding:10px 0;text-align:center;font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:center;gap:12px}
 .tg-bar a{color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:var(--r-full);transition:var(--t)}
 .tg-bar a:hover{background:rgba(255,255,255,.25)}
+/* ====================================================================
+   SHOPLIXO v3 — ULTRA PRO ADDITIONS
+   নতুন features: Image Zoom, Compare, Size Chart, Sticky Cart, 
+   Live Counter, Stock Animation, Advanced Filter, Bundle
+==================================================================== */
+
+/* ── IMAGE ZOOM ON HOVER ── */
+.pc-img-wrap{cursor:zoom-in}
+.zoom-lens{position:absolute;width:120px;height:120px;border:2px solid var(--brand);border-radius:4px;background:rgba(228,30,38,.08);pointer-events:none;z-index:10;display:none}
+.zoom-result{position:absolute;right:-310px;top:0;width:300px;height:380px;background:#fff;border:1.5px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-xl);overflow:hidden;display:none;z-index:100;pointer-events:none}
+.zoom-result img{position:absolute;transform-origin:0 0}
+@media(max-width:992px){.zoom-result,.zoom-lens{display:none!important}}
+
+/* ── SIZE CHART POPUP ── */
+#size-chart-modal{position:fixed;inset:0;z-index:7500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:var(--t);padding:16px}
+#size-chart-modal.open{opacity:1;visibility:visible}
+.sc-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
+.sc-card{background:#fff;border-radius:var(--r-2xl);max-width:560px;width:100%;position:relative;z-index:1;box-shadow:var(--shadow-xl);max-height:90vh;overflow-y:auto}
+.sc-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--dark2),#2D1B6E);border-radius:var(--r-2xl) var(--r-2xl) 0 0}
+.sc-head-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
+.sc-body{padding:22px}
+.sc-tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--bg2);padding:4px;border-radius:var(--r-full)}
+.sc-tab{flex:1;padding:7px 12px;border-radius:var(--r-full);font-size:12px;font-weight:700;text-align:center;cursor:pointer;transition:var(--t);border:none;background:none;color:var(--text2)}
+.sc-tab.active{background:var(--brand);color:#fff}
+.sc-table-wrap{overflow-x:auto}
+.sc-table{width:100%;border-collapse:collapse;font-size:13px}
+.sc-table th{background:var(--dark2);color:#fff;padding:10px 14px;text-align:center;font-weight:700;font-size:11px;letter-spacing:.5px}
+.sc-table td{padding:9px 14px;text-align:center;border-bottom:1px solid var(--border)}
+.sc-table tr:hover td{background:var(--brand-light)}
+.sc-tip{background:var(--blue-light);border-radius:var(--r-lg);padding:12px 14px;font-size:12px;color:var(--text2);margin-top:16px;display:flex;gap:8px;align-items:flex-start}
+.sc-tip i{color:var(--blue);flex-shrink:0;margin-top:2px}
+.btn-size-chart{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;margin-left:8px}
+
+/* ── COMPARE PRODUCTS ── */
+#compare-bar{position:fixed;bottom:0;left:0;right:0;z-index:3000;background:var(--dark2);border-top:2px solid var(--brand);padding:10px 20px;display:none;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.2)}
+#compare-bar.show{display:flex}
+.cmp-slots{display:flex;gap:10px;align-items:center}
+.cmp-slot{width:56px;height:68px;border-radius:var(--r-sm);border:2px dashed rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;flex-shrink:0}
+.cmp-slot img{width:100%;height:100%;object-fit:cover}
+.cmp-slot-x{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--brand);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none}
+.cmp-slot-empty{font-size:22px;color:rgba(255,255,255,.2)}
+.cmp-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.6)}
+.btn-compare-now{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:12px 22px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:var(--t)}
+.btn-compare-now:hover{transform:translateY(-2px)}
+.btn-compare-clear{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);padding:9px 16px;border-radius:var(--r-full);font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.2);cursor:pointer;transition:var(--t)}
+.btn-compare-clear:hover{background:rgba(255,255,255,.15);color:#fff}
+
+/* Compare Modal */
+#compare-modal{position:fixed;inset:0;z-index:8000;display:flex;align-items:flex-start;justify-content:center;opacity:0;visibility:hidden;transition:var(--t);padding:20px;padding-top:60px;overflow-y:auto}
+#compare-modal.open{opacity:1;visibility:visible}
+.cmp-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px)}
+.cmp-modal-card{background:#fff;border-radius:var(--r-2xl);width:100%;max-width:900px;position:relative;z-index:1;box-shadow:var(--shadow-xl)}
+.cmp-modal-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--dark2),#2D1B6E);border-radius:var(--r-2xl) var(--r-2xl) 0 0}
+.cmp-modal-head h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
+.cmp-table-wrap{overflow-x:auto}
+.cmp-table{width:100%;border-collapse:collapse}
+.cmp-table th{background:var(--bg2);padding:14px;text-align:center;font-weight:700;font-size:13px;color:var(--dark);border-bottom:1px solid var(--border);min-width:200px}
+.cmp-table td{padding:12px 14px;text-align:center;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);vertical-align:middle}
+.cmp-table tr:hover td{background:var(--bg2)}
+.cmp-table .row-label{text-align:left;font-weight:700;color:var(--dark);background:var(--bg2);font-size:12px}
+.cmp-win{color:var(--green);font-weight:700}.cmp-lose{color:var(--brand)}
+.cmp-prod-img{width:120px;height:150px;object-fit:cover;border-radius:var(--r-lg);margin-bottom:8px}
+
+/* pc compare button */
+.pc-compare-btn{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);cursor:pointer;transition:var(--t);background:none;border:none;padding:0;margin-top:4px;font-family:inherit}
+.pc-compare-btn:hover{color:var(--blue)}.pc-compare-btn.added{color:var(--blue);font-weight:700}
+
+/* ── LIVE ORDER COUNTER ── */
+#live-counter{background:linear-gradient(135deg,var(--dark2),#2D1B6E);padding:12px 0;position:relative;overflow:hidden}
+#live-counter::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 200px,rgba(255,255,255,.01) 200px,rgba(255,255,255,.01) 201px)}
+.lc-inner{display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap}
+.lc-item{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.85);font-size:13px;font-weight:500}
+.lc-num{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;min-width:48px;display:inline-block;text-align:center}
+.lc-item i{color:var(--gold);font-size:16px}
+.lc-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:lc-blink 1.5s infinite;margin-right:4px}
+@keyframes lc-blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+/* ── STOCK ANIMATION ── */
+.stock-ring{display:inline-flex;align-items:center;gap:6px;animation:stock-pulse 2s infinite}
+@keyframes stock-pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.stock-bar-wrap{height:4px;background:rgba(228,30,38,.15);border-radius:2px;overflow:hidden;margin:4px 0 8px}
+.stock-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--brand));border-radius:2px;transition:width .5s ease}
+
+/* ── VERIFIED PURCHASE BADGE ── */
+.ci-verified{display:inline-flex;align-items:center;gap:3px;background:var(--green-light);color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-left:6px}
+.ci-verified i{font-size:10px}
+.ci-images{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.ci-img-thumb{width:54px;height:54px;border-radius:var(--r-sm);object-fit:cover;cursor:pointer;border:2px solid var(--border);transition:var(--t)}
+.ci-img-thumb:hover{border-color:var(--brand)}
+
+/* ── ADVANCED SEARCH FILTERS ── */
+.search-filters{display:flex;gap:8px;flex-wrap:wrap;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.sf-btn{padding:6px 14px;border-radius:var(--r-full);font-size:12px;font-weight:600;border:1.5px solid var(--border2);color:var(--text2);cursor:pointer;background:#fff;transition:var(--t)}
+.sf-btn.active{background:var(--brand);border-color:var(--brand);color:#fff}
+.search-sort{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.search-sort select{font-size:12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);padding:5px 10px;outline:none;cursor:pointer;background:#fff;font-family:inherit}
+.search-sort select:focus{border-color:var(--brand)}
+.search-result-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 22px;font-size:12px;color:var(--text3)}
+
+/* ── BUNDLE OFFERS ── */
+.bundle-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.bundle-card{background:#fff;border-radius:var(--r-xl);overflow:hidden;border:2px solid var(--gold-light);transition:var(--t);position:relative}
+.bundle-card:hover{border-color:var(--gold);box-shadow:var(--shadow-lg);transform:translateY(-4px)}
+.bc-badge{position:absolute;top:12px;right:12px;background:linear-gradient(135deg,var(--gold),#ff6b35);color:#fff;font-size:10px;font-weight:800;padding:4px 10px;border-radius:var(--r-full);letter-spacing:.5px}
+.bc-imgs{display:flex;height:160px;overflow:hidden}
+.bc-imgs img{flex:1;object-fit:cover}
+.bc-imgs img:not(:last-child){border-right:2px solid #fff}
+.bc-body{padding:14px}
+.bc-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--dark);margin-bottom:6px}
+.bc-desc{font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5}
+.bc-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.bc-price{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--brand)}
+.bc-orig{font-size:13px;color:var(--text3);text-decoration:line-through}
+.bc-save{background:var(--green-light);color:var(--green);font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px}
+.btn-bundle{width:100%;background:linear-gradient(135deg,var(--gold),#ff6b35);color:#fff;padding:10px;border-radius:var(--r-sm);font-size:13px;font-weight:700;border:none;cursor:pointer;transition:var(--t);display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-bundle:hover{opacity:.9;transform:translateY(-1px)}
+@media(max-width:768px){.bundle-grid{grid-template-columns:1fr}}
+@media(max-width:992px){.bundle-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ── ADVANCED FILTER DRAWER ── */
+#adv-filter-drawer{position:fixed;top:0;right:-400px;width:380px;height:100%;background:#fff;z-index:4000;transition:right .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:-4px 0 30px rgba(0,0,0,.12);display:flex;flex-direction:column}
+#adv-filter-drawer.open{right:0}
+#adv-filter-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3999;opacity:0;visibility:hidden;transition:var(--t);backdrop-filter:blur(3px)}
+#adv-filter-overlay.open{opacity:1;visibility:visible}
+.afd-head{padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fff;position:sticky;top:0;z-index:1}
+.afd-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--dark);display:flex;align-items:center;gap:8px}
+.afd-close{width:34px;height:34px;border-radius:50%;background:var(--bg2);border:none;cursor:pointer;font-size:17px;color:var(--text2);transition:var(--t);display:flex;align-items:center;justify-content:center}
+.afd-close:hover{background:var(--brand-light);color:var(--brand)}
+.afd-body{padding:20px 22px;flex:1}
+.afd-section{margin-bottom:24px}
+.afd-label{font-size:11px;font-weight:800;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.afd-label span{color:var(--brand);font-weight:600;font-size:11px;cursor:pointer;letter-spacing:0;text-transform:none}
+/* Price Range */
+.price-range-wrap{padding:4px 0}
+.price-range-inputs{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.price-range-inputs input{flex:1;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;font-family:inherit;outline:none;transition:var(--t);text-align:center}
+.price-range-inputs input:focus{border-color:var(--brand)}
+.price-range-sep{color:var(--text3);font-size:13px;flex-shrink:0}
+.range-slider-track{position:relative;height:6px;background:var(--bg3);border-radius:3px;margin:20px 0 8px}
+.range-slider-fill{position:absolute;height:100%;background:var(--brand);border-radius:3px}
+input[type=range].range-input{position:absolute;width:100%;-webkit-appearance:none;appearance:none;height:6px;background:transparent;pointer-events:none;top:0;left:0}
+input[type=range].range-input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--brand);cursor:pointer;pointer-events:all;box-shadow:0 2px 8px rgba(228,30,38,.35);border:2px solid #fff;transition:transform .15s}
+input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
+/* Size filter */
+.size-opts{display:flex;flex-wrap:wrap;gap:7px}
+.size-opt{padding:6px 13px;border-radius:var(--r-sm);border:1.5px solid var(--border2);font-size:12px;font-weight:700;cursor:pointer;transition:var(--t);background:#fff;color:var(--text2)}
+.size-opt:hover{border-color:var(--brand);color:var(--brand)}
+.size-opt.active{background:var(--brand);border-color:var(--brand);color:#fff}
+/* Color filter */
+.color-opts{display:flex;flex-wrap:wrap;gap:8px}
+.color-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;transition:var(--t);border:2.5px solid transparent;position:relative}
+.color-opt:hover{transform:scale(1.15)}
+.color-opt.active{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.2)}
+.color-opt::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;opacity:0}
+.color-opt.active::after{opacity:1}
+/* Rating filter */
+.rating-opts{display:flex;flex-direction:column;gap:8px}
+.rating-opt{display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 0;transition:var(--t)}
+.rating-opt:hover .ro-label{color:var(--brand)}
+.ro-stars{display:flex;gap:2px}
+.ro-stars i{font-size:13px;color:var(--gold)}
+.ro-label{font-size:13px;color:var(--text2);font-weight:500}
+.ro-count{font-size:11px;color:var(--text3);margin-left:auto}
+.ro-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--t)}
+.rating-opt.active .ro-check{background:var(--brand);border-color:var(--brand);color:#fff}
+.rating-opt.active .ro-check::after{content:'✓';font-size:11px;font-weight:700}
+/* Sort */
+.sort-opts{display:flex;flex-direction:column;gap:6px}
+.sort-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r);border:1.5px solid var(--border);cursor:pointer;transition:var(--t);font-size:13px;font-weight:500;color:var(--text2)}
+.sort-opt:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-light)}
+.sort-opt.active{background:var(--brand-light);border-color:var(--brand);color:var(--brand);font-weight:700}
+.sort-opt i{width:16px;text-align:center;font-size:13px}
+.afd-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;background:#fff;position:sticky;bottom:0}
+.btn-afd-apply{flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:12px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;transition:var(--t);box-shadow:0 4px 14px rgba(228,30,38,.25)}
+.btn-afd-apply:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(228,30,38,.35)}
+.btn-afd-reset{padding:12px 20px;border-radius:var(--r-full);font-size:13px;font-weight:600;border:1.5px solid var(--border2);cursor:pointer;transition:var(--t);background:#fff;color:var(--text2)}
+.btn-afd-reset:hover{border-color:var(--brand);color:var(--brand)}
+.filter-result-bar{padding:10px 0;font-size:13px;color:var(--text2);display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.frb-count{font-weight:700;color:var(--brand)}
+.btn-open-filter{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:1.5px solid var(--border2);border-radius:var(--r-full);font-size:13px;font-weight:600;cursor:pointer;transition:var(--t);background:#fff;color:var(--text2)}
+.btn-open-filter:hover{border-color:var(--brand);color:var(--brand)}
+.filter-active-badge{background:var(--brand);color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+
+/* ── STICKY PRODUCT INFO (Product detail) ── */
+#sticky-product-bar{display:none;position:sticky;bottom:62px;left:0;right:0;z-index:2400;background:var(--dark2);padding:10px 20px;border-top:2px solid var(--brand);box-shadow:0 -4px 16px rgba(0,0,0,.2)}
+.spb-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1280px;margin:0 auto}
+.spb-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.spb-img{width:40px;height:50px;border-radius:var(--r-sm);object-fit:cover;flex-shrink:0}
+.spb-name{font-size:14px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.spb-price{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gold);white-space:nowrap}
+.btn-spb-cart{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:10px 20px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+
+/* ── RECENTLY VIEWED IMPROVEMENT ── */
+.rv-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:var(--brand) var(--bg3)}
+.rv-card{min-width:150px;background:#fff;border-radius:var(--r-lg);overflow:hidden;border:1.5px solid var(--border);transition:var(--t);cursor:pointer;flex-shrink:0}
+.rv-card:hover{border-color:var(--brand);transform:translateY(-3px);box-shadow:var(--shadow)}
+.rv-img{width:100%;height:120px;object-fit:cover;background:var(--bg2)}
+.rv-body{padding:8px 10px}
+.rv-name{font-size:12px;font-weight:600;color:var(--dark);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:4px}
+.rv-price{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--brand)}
+
+/* ── SEARCH LIVE DROPDOWN ── */
+.search-live-drop{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:0 0 var(--r-lg) var(--r-lg);box-shadow:var(--shadow-xl);border:1px solid var(--border);border-top:none;z-index:9999;max-height:340px;overflow-y:auto;display:none}
+.search-live-drop.show{display:block}
+.sld-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:var(--t);border-bottom:1px solid var(--border)}
+.sld-item:last-child{border:none}
+.sld-item:hover{background:var(--bg2)}
+.sld-img{width:44px;height:54px;object-fit:cover;border-radius:var(--r-sm);background:var(--bg2);flex-shrink:0}
+.sld-info{flex:1;min-width:0}
+.sld-name{font-size:13px;font-weight:600;color:var(--dark);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sld-cat{font-size:11px;color:var(--text3);margin-top:1px}
+.sld-price{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--brand);flex-shrink:0}
+.sld-header{padding:8px 14px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;background:var(--bg2)}
+
+/* ── WISHLIST QUICK VIEW PANEL ── */
+#wishlist-panel{position:fixed;top:0;right:-400px;width:400px;height:100%;background:#fff;z-index:3500;transition:right .3s ease;box-shadow:var(--shadow-xl);display:flex;flex-direction:column}
+#wishlist-panel.open{right:0}
+.wlp-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--dark2)}
+.wlp-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
+.wlp-body{flex:1;overflow-y:auto;padding:16px}
+.wlp-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center}
+.wlp-img{width:54px;height:68px;object-fit:cover;border-radius:var(--r-sm);flex-shrink:0;background:var(--bg2)}
+.wlp-info{flex:1;min-width:0}
+.wlp-name{font-size:13px;font-weight:600;color:var(--dark);margin-bottom:3px}
+.wlp-price{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--brand)}
+.wlp-btns{display:flex;gap:6px;margin-top:6px}
+.wlp-btns button{font-size:11px;padding:5px 10px;border-radius:var(--r-full);border:none;cursor:pointer;font-family:inherit;font-weight:600;transition:var(--t)}
+.wlp-add{background:var(--dark2);color:#fff}
+.wlp-add:hover{background:var(--brand)}
+.wlp-remove{background:var(--bg2);color:var(--text2)}
+.wlp-remove:hover{background:var(--brand-light);color:var(--brand)}
+.wlp-empty{text-align:center;padding:40px;color:var(--text3)}
+.wlp-empty i{font-size:40px;display:block;margin-bottom:12px;opacity:.3}
+.wlp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3499;opacity:0;visibility:hidden;transition:var(--t)}
+.wlp-overlay.open{opacity:1;visibility:visible}
+@media(max-width:480px){#wishlist-panel{width:100%}}
+
+/* ── CERTIFICATE / QR ── */
+.pc-cert{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--green);background:var(--green-light);padding:2px 8px;border-radius:4px;margin-top:4px}
+.pc-cert i{font-size:10px}
+
+/* ── RATING BAR BREAKDOWN ── */
+.rating-breakdown{margin-bottom:16px}
+.rb-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
+.rb-label{width:50px;color:var(--text3);flex-shrink:0;text-align:right}
+.rb-bar-wrap{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.rb-bar{height:100%;background:var(--gold);border-radius:3px}
+.rb-count{width:24px;color:var(--text3);font-size:11px}
+
+/* ── PRODUCT TABS (Details, Reviews, Q&A) ── */
+.qv-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:12px}
+.qv-tab{padding:8px 14px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--t)}
+.qv-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.qv-tab-content{display:none}
+.qv-tab-content.active{display:block}
+
+/* ── NOTIFICATION BELL ── */
+.notif-btn{position:relative}
+.notif-dot{position:absolute;top:8px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--brand);border:2px solid #fff;animation:badge-pop .3s ease}
+
+/* ══════════════════════════════════════════════
+   SHOPLIXO v4 — LOYALTY POINTS + REFERRAL +
+   FLASH SALE SCHEDULER + PRO POLISH
+══════════════════════════════════════════════ */
+
+/* ── LOYALTY POINTS ── */
+.loyalty-bar{background:linear-gradient(90deg,#2D1B6E,#0D0D1A,#6B0F1A);padding:10px 0;border-bottom:1px solid rgba(255,184,0,.2);position:relative;overflow:hidden}
+.loyalty-bar::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 100px,rgba(255,184,0,.02) 100px,rgba(255,184,0,.02) 101px)}
+.lb-inner{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap}
+.lb-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:rgba(255,255,255,.8)}
+.lb-item i{color:var(--gold)}
+.lb-pts{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--gold)}
+.lb-progress-wrap{display:flex;align-items:center;gap:8px}
+.lb-tier-badge{padding:2px 9px;border-radius:var(--r-full);font-size:10px;font-weight:800;letter-spacing:.5px}
+.lb-bronze{background:rgba(205,127,50,.2);color:#CD7F32;border:1px solid rgba(205,127,50,.4)}
+.lb-silver{background:rgba(192,192,192,.2);color:#C0C0C0;border:1px solid rgba(192,192,192,.4)}
+.lb-gold{background:rgba(255,184,0,.15);color:var(--gold);border:1px solid rgba(255,184,0,.4)}
+.lb-platinum{background:rgba(229,228,226,.15);color:#E5E4E2;border:1px solid rgba(229,228,226,.4)}
+
+/* Loyalty Modal */
+#loyalty-modal{position:fixed;inset:0;z-index:6500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--t)}
+#loyalty-modal.open{opacity:1;visibility:visible}
+.lm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px)}
+.lm-card{background:#fff;border-radius:var(--r-2xl);max-width:520px;width:100%;position:relative;z-index:1;box-shadow:var(--shadow-xl);max-height:90vh;overflow-y:auto}
+.lm-head{background:linear-gradient(135deg,#2D1B6E,#0D0D1A);padding:24px;border-radius:var(--r-2xl) var(--r-2xl) 0 0;text-align:center}
+.lm-head-crown{font-size:48px;display:block;margin-bottom:8px}
+.lm-head-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.lm-head-sub{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
+.lm-body{padding:22px}
+.lm-points-big{text-align:center;background:linear-gradient(135deg,var(--gold-light),#fffdf5);border-radius:var(--r-xl);padding:20px;margin-bottom:18px;border:2px solid rgba(255,184,0,.3)}
+.lm-pts-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--gold);line-height:1}
+.lm-pts-lbl{font-size:13px;color:var(--text2);font-weight:600;margin-top:4px}
+.lm-tier-section{margin-bottom:18px}
+.lm-tier-title{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.lm-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.lm-tier-card{border-radius:var(--r-lg);padding:12px 8px;text-align:center;border:2px solid var(--border);transition:var(--t)}
+.lm-tier-card.current{border-color:var(--gold);background:var(--gold-light)}
+.ltc-icon{font-size:24px;display:block;margin-bottom:6px}
+.ltc-name{font-size:11px;font-weight:700;color:var(--dark)}
+.ltc-req{font-size:10px;color:var(--text3);margin-top:2px}
+.ltc-benefit{font-size:10px;color:var(--green);margin-top:4px;font-weight:600}
+.lm-earn-section{margin-bottom:18px}
+.lm-earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lm-earn-item{background:var(--bg2);border-radius:var(--r-lg);padding:14px;display:flex;align-items:center;gap:10px;border:1px solid var(--border)}
+.lei-icon{width:36px;height:36px;border-radius:var(--r);background:var(--brand-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.lei-icon i{color:var(--brand)}
+.lei-pts{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gold)}
+.lei-lbl{font-size:11px;color:var(--text3);margin-top:1px}
+.lm-redeem-section{background:var(--green-light);border-radius:var(--r-xl);padding:16px;border:1px solid rgba(0,197,138,.2)}
+.lm-redeem-title{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.lm-redeem-row{display:flex;gap:10px;align-items:center}
+.lm-redeem-inp{flex:1;padding:10px 14px;border:1.5px solid rgba(0,197,138,.3);border-radius:var(--r-sm);font-size:14px;outline:none;background:#fff;transition:var(--t)}
+.lm-redeem-inp:focus{border-color:var(--green)}
+.lm-redeem-btn{background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:var(--t)}
+.lm-redeem-btn:hover{background:#00a576}
+.lm-history{margin-top:16px}
+.lm-hist-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.lm-hist-item:last-child{border:none}
+.lhp{font-weight:700}
+.lhp.earn{color:var(--green)}.lhp.redeem{color:var(--brand)}
+
+/* ── REFERRAL PROGRAM ── */
+#referral-modal{position:fixed;inset:0;z-index:6500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--t)}
+#referral-modal.open{opacity:1;visibility:visible}
+.rm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px)}
+.rm-card{background:#fff;border-radius:var(--r-2xl);max-width:500px;width:100%;position:relative;z-index:1;box-shadow:var(--shadow-xl)}
+.rm-head{background:linear-gradient(135deg,#0C2A6E,var(--dark2));padding:24px;border-radius:var(--r-2xl) var(--r-2xl) 0 0;text-align:center}
+.rm-head-emoji{font-size:52px;display:block;margin-bottom:8px}
+.rm-head-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.rm-head-sub{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
+.rm-body{padding:24px}
+.rm-how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.rm-step{text-align:center;padding:14px 10px;background:var(--bg2);border-radius:var(--r-xl);border:1px solid var(--border)}
+.rm-step-num{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.rm-step i{font-size:22px;display:block;margin-bottom:6px}
+.rm-step-title{font-size:12px;font-weight:700;color:var(--dark)}
+.rm-step-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.rm-link-box{background:var(--dark2);border-radius:var(--r-xl);padding:18px;margin-bottom:18px}
+.rm-link-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.rm-link-row{display:flex;gap:8px;align-items:center}
+.rm-link-inp{flex:1;padding:10px 14px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#fff;font-size:12px;outline:none;font-family:inherit}
+.rm-copy-btn{background:var(--gold);color:var(--dark);padding:10px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:var(--t)}
+.rm-copy-btn:hover{background:#e6a800}
+.rm-share-row{display:flex;gap:8px;justify-content:center}
+.rm-share-btn{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer;transition:var(--t)}
+.rm-wa{background:#25D366;color:#fff}.rm-fb{background:#1877F2;color:#fff}
+.rm-tg{background:#229ED9;color:#fff}.rm-copy-link{background:var(--bg3);color:var(--dark)}
+.rm-share-btn:hover{opacity:.85}
+.rm-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.rm-stat{background:var(--bg2);border-radius:var(--r-lg);padding:14px;text-align:center;border:1px solid var(--border)}
+.rm-stat-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--dark)}
+.rm-stat-lbl{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── LOYALTY SECTION ON HOME PAGE ── */
+.loyalty-section{background:linear-gradient(135deg,#2D1B6E 0%,#0D0D1A 50%,#6B0F1A 100%);padding:52px 0;position:relative;overflow:hidden}
+.loyalty-section::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.loyalty-inner{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.loy-text{color:#fff}
+.loy-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(255,184,0,.15);color:var(--gold);padding:5px 14px;border-radius:var(--r-full);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;border:1px solid rgba(255,184,0,.3)}
+.loy-title{font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,38px);font-weight:800;line-height:1.1;margin-bottom:14px}
+.loy-title .hl{color:var(--gold)}
+.loy-desc{font-size:15px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:24px}
+.loy-benefits{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+.loy-benefit{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.8)}
+.loy-benefit i{color:var(--gold);font-size:16px}
+.loy-cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn-loy-join{background:linear-gradient(135deg,var(--gold),#ff6b35);color:var(--dark);padding:13px 26px;border-radius:var(--r-full);font-size:14px;font-weight:800;border:none;cursor:pointer;transition:var(--t);display:flex;align-items:center;gap:7px}
+.btn-loy-join:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,184,0,.3)}
+.btn-loy-ref{background:rgba(255,255,255,.1);color:#fff;padding:13px 22px;border-radius:var(--r-full);font-size:14px;font-weight:600;border:1.5px solid rgba(255,255,255,.2);cursor:pointer;transition:var(--t);display:flex;align-items:center;gap:7px}
+.btn-loy-ref:hover{background:rgba(255,255,255,.18)}
+.loy-tiers-display{display:flex;flex-direction:column;gap:12px}
+.ltd-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-xl);padding:16px 18px;display:flex;align-items:center;gap:14px;transition:var(--t)}
+.ltd-item:hover{background:rgba(255,255,255,.1)}
+.ltd-icon{font-size:28px;flex-shrink:0}
+.ltd-info{flex:1}
+.ltd-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:2px}
+.ltd-req{font-size:12px;color:rgba(255,255,255,.5)}
+.ltd-arrow{color:rgba(255,255,255,.3);font-size:14px}
+.ltd-item.tier-gold{border-color:rgba(255,184,0,.4);background:rgba(255,184,0,.08)}
+.ltd-item.tier-platinum{border-color:rgba(229,228,226,.4);background:rgba(229,228,226,.05)}
+@media(max-width:768px){.loyalty-inner{grid-template-columns:1fr}.loy-tiers-display{display:none}}
+
+/* ── REFERRAL STRIP ── */
+.ref-strip{background:linear-gradient(90deg,#0C2A6E,#1877F2);padding:14px 0;border-bottom:2px solid rgba(255,255,255,.1)}
+.ref-inner{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
+.ref-text{font-size:13px;font-weight:600;color:#fff}
+.ref-text strong{color:var(--gold)}
+.btn-ref-strip{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);padding:6px 16px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer;border:none;cursor:pointer;transition:var(--t)}
+.btn-ref-strip:hover{background:rgba(255,255,255,.25)}
+
+/* ── FLASH SALE SCHEDULER TIMER ── */
+.fs-scheduled-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,184,0,.15);color:var(--gold);padding:4px 12px;border-radius:var(--r-full);font-size:11px;font-weight:700;margin-left:12px;border:1px solid rgba(255,184,0,.3)}
+
+/* ── CHECKOUT LOYALTY REDEEM ── */
+.ck-loyalty-box{background:linear-gradient(135deg,var(--gold-light),#fffdf5);border:2px solid rgba(255,184,0,.4);border-radius:var(--r-lg);padding:14px;margin-bottom:14px}
+.ck-loy-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.ck-loy-title i{color:var(--gold)}
+.ck-loy-pts{font-size:12px;color:var(--text2);margin-bottom:10px}
+.ck-loy-pts strong{color:var(--gold);font-family:'Syne',sans-serif;font-size:15px}
+.ck-loy-redeem-row{display:flex;gap:8px;align-items:center}
+.ck-loy-redeem-row input{flex:1;padding:9px 12px;border:1.5px solid rgba(255,184,0,.3);border-radius:var(--r-sm);font-size:13px;outline:none;background:#fff;font-family:inherit}
+.ck-loy-redeem-row input:focus{border-color:var(--gold)}
+.ck-loy-apply{background:var(--gold);color:var(--dark);padding:9px 14px;border-radius:var(--r-sm);font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:var(--t)}
+.ck-loy-apply:hover{background:#e6a800}
+.ck-loy-msg{font-size:11px;margin-top:6px;display:none}
+
+/* ── LOYALTY HEADER POINTS CHIP ── */
+.h-pts-chip{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#2D1B6E,#1A1A2E);color:var(--gold);padding:6px 12px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer;transition:var(--t);border:1px solid rgba(255,184,0,.2)}
+.h-pts-chip:hover{background:linear-gradient(135deg,#3D2B8E,#2A2A4E)}
+.h-pts-chip i{font-size:13px}
+
+/* ── LIVE CHAT UPGRADE ── */
+.chat-notif-dot{position:absolute;top:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--brand);border:2px solid #fff;animation:badge-pop .3s ease}
+
+/* ── PRODUCT CARD POINTS ── */
+.pc-earn-pts{font-size:10px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:3px;margin-top:3px}
+.pc-earn-pts i{font-size:10px}
+
+/* ── FLASH SALE COUNTDOWN RING ── */
+.cd-ring-wrap{position:relative;width:54px;height:54px;flex-shrink:0}
+.cd-ring{transform:rotate(-90deg);position:absolute;top:0;left:0}
+.cd-ring-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:3}
+.cd-ring-fill{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.cd-ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cd-ring-num{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--gold);line-height:1}
+.cd-ring-lbl{font-size:7px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.3px}
+
+/* ── NOTIFICATION CENTER ── */
+#notif-panel{position:fixed;top:0;right:-380px;width:380px;height:100%;background:#fff;z-index:3500;transition:right .3s ease;box-shadow:var(--shadow-xl);display:flex;flex-direction:column}
+#notif-panel.open{right:0}
+.np-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--dark2)}
+.np-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px}
+.np-body{flex:1;overflow-y:auto;padding:16px}
+.notif-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--t)}
+.notif-item:hover{background:var(--bg2);border-radius:var(--r-sm);padding-left:8px}
+.ni-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ni-order{background:var(--brand-light);color:var(--brand)}
+.ni-points{background:var(--gold-light);color:#B45309}
+.ni-promo{background:var(--blue-light);color:var(--blue)}
+.ni-text{flex:1}
+.ni-title{font-size:13px;font-weight:600;color:var(--dark);line-height:1.4}
+.ni-time{font-size:11px;color:var(--text3);margin-top:2px}
+.ni-unread{width:8px;height:8px;border-radius:50%;background:var(--brand);flex-shrink:0;margin-top:5px}
+@media(max-width:480px){#notif-panel{width:100%}}
+
 </style>
 
 <!-- 
@@ -944,6 +1389,28 @@ footer{background:var(--dark);padding:60px 0 0}
     <div class="ann-slide">💬 Community Group এ যোগ দিন! <a href="https://t.me/shoplixoshop" target="_blank">t.me/shoplixoshop →</a></div>
   </div>
   <button class="ann-close" onclick="this.closest('#ann-bar').remove()"><i class="fa-solid fa-xmark"></i></button>
+</div>
+
+<!-- LOYALTY BAR (shown when logged in) -->
+<div id="loyalty-bar" style="display:none" class="loyalty-bar">
+  <div class="container">
+    <div class="lb-inner">
+      <div class="lb-item"><i class="fa-solid fa-crown"></i> <span id="lb-tier-badge" class="lb-tier-badge lb-bronze">Bronze</span></div>
+      <div class="lb-item"><i class="fa-solid fa-star"></i> আপনার Points: <span class="lb-pts" id="lb-points">0</span></div>
+      <div class="lb-item" style="cursor:pointer" onclick="openLoyaltyModal()"><i class="fa-solid fa-gift"></i> Rewards দেখুন & Redeem করুন</div>
+      <div class="lb-item" style="cursor:pointer" onclick="openReferralModal()"><i class="fa-solid fa-users"></i> বন্ধুকে Refer করুন — <strong style="color:var(--gold)">৳200 পাবেন!</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- REFERRAL STRIP (always visible) -->
+<div class="ref-strip" id="ref-strip">
+  <div class="container">
+    <div class="ref-inner">
+      <span class="ref-text">🎁 বন্ধুকে Refer করুন — তারা <strong>10% ছাড়</strong> পাবে, আপনি পাবেন <strong>৳200 ক্যাশব্যাক!</strong></span>
+      <button class="btn-ref-strip" onclick="openReferralModal()"><i class="fa-solid fa-share-nodes"></i> Refer করুন</button>
+    </div>
+  </div>
 </div>
 
 <!-- WORDPRESS ADMIN BAR -->
@@ -1028,7 +1495,9 @@ footer{background:var(--dark);padding:60px 0 0}
       <div class="header-actions">
         <button class="hamburger" onclick="openMobileMenu()"><span></span><span></span><span></span></button>
         <button class="h-btn" onclick="openAuth('login')"><i class="fa-regular fa-user" id="hdr-user-ic"></i><span id="hdr-user-lbl">Login</span></button>
-        <button class="h-btn" onclick="openWishlistView()"><i class="fa-regular fa-heart"></i><span>Wishlist</span><span class="badge" id="wish-count" style="display:none">0</span></button>
+        <div class="h-pts-chip" id="hdr-pts-chip" style="display:none" onclick="openLoyaltyModal()"><i class="fa-solid fa-crown"></i><span id="hdr-pts-val">0</span> pts</div>
+        <button class="h-btn" onclick="openWishlistPanel()"><i class="fa-regular fa-heart"></i><span>Wishlist</span><span class="badge" id="wish-count" style="display:none">0</span></button>
+        <button class="h-btn" onclick="openNotifPanel()" style="position:relative"><i class="fa-regular fa-bell"></i><span>Alerts</span><span class="notif-dot" id="notif-dot"></span></button>
         <button class="h-btn" onclick="openCart()"><i class="fa-solid fa-bag-shopping"></i><span>Cart</span><span class="badge" id="cart-count">0</span></button>
       </div>
     </div>
@@ -1203,6 +1672,36 @@ footer{background:var(--dark);padding:60px 0 0}
   </div>
 </section>
 
+
+<!-- ══ LIVE ORDER COUNTER ══ -->
+<div id="live-counter">
+  <div class="container">
+    <div class="lc-inner">
+      <div class="lc-item">
+        <span class="lc-pulse"></span>
+        <i class="fa-solid fa-fire" style="color:var(--brand)"></i>
+        <span>আজকের অর্ডার</span>
+        <span class="lc-num" id="lc-orders">156</span>
+      </div>
+      <div class="lc-item">
+        <i class="fa-solid fa-bangladeshi-taka-sign" style="color:var(--gold)"></i>
+        <span>আজকের বিক্রয়</span>
+        <span class="lc-num" id="lc-revenue">৳0</span>
+      </div>
+      <div class="lc-item">
+        <i class="fa-solid fa-users" style="color:var(--green)"></i>
+        <span>এখন সাইটে</span>
+        <span class="lc-num" id="lc-users">342</span>
+        <span style="color:rgba(255,255,255,.5);font-size:12px">জন</span>
+      </div>
+      <div class="lc-item">
+        <i class="fa-solid fa-shield-halved" style="color:var(--green)"></i>
+        <span style="color:var(--green);font-weight:700">১০০% সন্তুষ্টি গ্যারান্টি</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- TRUST BAR -->
 <div class="trust-bar">
   <div class="container">
@@ -1274,6 +1773,27 @@ footer{background:var(--dark);padding:60px 0 0}
       <button class="f-tab" onclick="filterProducts('shoes',this)">Shoes</button>
       <button class="f-tab" onclick="filterProducts('women',this)">Women's</button>
       <button class="f-tab" onclick="filterProducts('gadgets',this)">Gadgets</button>
+    </div>
+    <!-- Advanced Filter Bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div class="filter-result-bar" style="margin:0;flex:1">
+        <span id="adv-filter-result-txt">সব পণ্য দেখাচ্ছে</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select onchange="applyAdvFilter()" id="quick-sort" style="padding:8px 14px;border:1.5px solid var(--border2);border-radius:var(--r-full);font-size:12px;font-weight:600;outline:none;cursor:pointer;background:#fff;color:var(--text2);font-family:inherit">
+          <option value="default">Sort: Default</option>
+          <option value="price-low">Price: Low → High</option>
+          <option value="price-high">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+          <option value="popular">Most Popular</option>
+          <option value="newest">Newest First</option>
+          <option value="discount">Biggest Discount</option>
+        </select>
+        <button class="btn-open-filter" onclick="openAdvFilter()">
+          <i class="fa-solid fa-sliders"></i> Filter
+          <span class="filter-active-badge" id="filter-active-count" style="display:none">0</span>
+        </button>
+      </div>
     </div>
     <div class="product-grid" id="main-grid"></div>
   </div>
@@ -1387,6 +1907,19 @@ footer{background:var(--dark);padding:60px 0 0}
   </div>
 </section>
 
+<!-- ══ BUNDLE OFFERS ══ -->
+<section id="bundles" style="background:linear-gradient(135deg,var(--gold-light),#fffdf5);padding:52px 0">
+  <div class="container">
+    <div class="section-header fade-up">
+      <div class="section-eyebrow" style="background:var(--gold-light);color:#B45309"><i class="fa-solid fa-layer-group"></i> Bundle Offers</div>
+      <h2 class="section-title">একসাথে কিনুন — <span style="color:var(--gold)">বেশি সাশ্রয়!</span></h2>
+      <p class="section-desc">এই পণ্যগুলো একসাথে কিনলে অতিরিক্ত ১৫-২৫% ছাড়</p>
+    </div>
+    <div class="bundle-grid fade-up" id="bundle-grid"></div>
+  </div>
+</section>
+
+
 <!-- STATS -->
 <div class="stats-bar">
   <div class="container">
@@ -1398,6 +1931,37 @@ footer{background:var(--dark);padding:60px 0 0}
     </div>
   </div>
 </div>
+
+<!-- ══ LOYALTY POINTS PROGRAM ══ -->
+<section class="loyalty-section fade-up">
+  <div class="container">
+    <div class="loyalty-inner">
+      <div class="loy-text">
+        <div class="loy-eyebrow"><i class="fa-solid fa-crown"></i> Loyalty Program</div>
+        <h2 class="loy-title">কেনার সাথে <span class="hl">Points</span> আয় করুন —<br>পরে <span class="hl">Cash Discount</span> পান!</h2>
+        <p class="loy-desc">প্রতিটি কেনাকাটায় Points পাবেন। Points জমা হলে পরবর্তী অর্ডারে ব্যবহার করুন। যত বেশি কিনবেন, তত বেশি সুবিধা পাবেন!</p>
+        <div class="loy-benefits">
+          <div class="loy-benefit"><i class="fa-solid fa-star"></i> প্রতি ৳100 তে 10 Points</div>
+          <div class="loy-benefit"><i class="fa-solid fa-gift"></i> Birthday তে 2× Points</div>
+          <div class="loy-benefit"><i class="fa-solid fa-user-plus"></i> Registration তে 100 Points</div>
+          <div class="loy-benefit"><i class="fa-solid fa-share-nodes"></i> Referral এ 200 Points</div>
+          <div class="loy-benefit"><i class="fa-solid fa-comment"></i> Review দিলে 25 Points</div>
+          <div class="loy-benefit"><i class="fa-solid fa-infinity"></i> Points expire হয় না!</div>
+        </div>
+        <div class="loy-cta">
+          <button class="btn-loy-join" onclick="currentUser?openLoyaltyModal():openAuth('register')"><i class="fa-solid fa-crown"></i> এখনই Join করুন</button>
+          <button class="btn-loy-ref" onclick="openReferralModal()"><i class="fa-solid fa-users"></i> বন্ধুকে Refer করুন</button>
+        </div>
+      </div>
+      <div class="loy-tiers-display fade-up">
+        <div class="ltd-item" id="ltd-bronze"><div class="ltd-icon">🥉</div><div class="ltd-info"><div class="ltd-name">Bronze Member</div><div class="ltd-req">0 - 999 Points</div><div style="font-size:11px;color:var(--gold);margin-top:3px">Free Delivery + 1× Points</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
+        <div class="ltd-item" id="ltd-silver"><div class="ltd-icon">🥈</div><div class="ltd-info"><div class="ltd-name">Silver Member</div><div class="ltd-req">1000 - 4999 Points</div><div style="font-size:11px;color:var(--gold);margin-top:3px">5% Extra Discount + 1.25× Points</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
+        <div class="ltd-item tier-gold" id="ltd-gold"><div class="ltd-icon">🥇</div><div class="ltd-info"><div class="ltd-name">Gold Member</div><div class="ltd-req">5000 - 19999 Points</div><div style="font-size:11px;color:var(--gold);margin-top:3px">10% Extra Discount + 1.5× Points + Priority Support</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
+        <div class="ltd-item tier-platinum" id="ltd-platinum"><div class="ltd-icon">💎</div><div class="ltd-info"><div class="ltd-name">Platinum Member</div><div class="ltd-req">20000+ Points</div><div style="font-size:11px;color:#E5E4E2;margin-top:3px">15% Discount + 2× Points + VIP Support + Early Access</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- NEWSLETTER -->
 <section class="newsletter">
@@ -1435,7 +1999,7 @@ footer{background:var(--dark);padding:60px 0 0}
         <h2 class="section-title">সম্প্রতি <span>দেখেছেন</span></h2>
       </div>
     </div>
-    <div class="product-grid" id="rv-grid"></div>
+    <div class="rv-scroll" id="rv-grid"></div>
   </div>
 </section>
 
@@ -1693,6 +2257,19 @@ footer{background:var(--dark);padding:60px 0 0}
         <div class="coupon-row"><input id="ck-coupon" placeholder="Coupon code লিখুন..."><button onclick="applyCoupon()">Apply</button></div>
         <div id="coupon-msg"></div>
       </div>
+      <!-- Loyalty Points Redeem -->
+      <div class="ck-sec" id="ck-loyalty-section" style="display:none">
+        <div class="ck-sec-title"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> Loyalty Points</div>
+        <div class="ck-loyalty-box">
+          <div class="ck-loy-title"><i class="fa-solid fa-star"></i> আপনার Points ব্যবহার করুন</div>
+          <div class="ck-loy-pts">আপনার কাছে আছে: <strong id="ck-loy-balance">0</strong> Points (= <span id="ck-loy-taka">৳0</span>)</div>
+          <div class="ck-loy-redeem-row">
+            <input type="number" id="ck-loy-inp" placeholder="কতটি Points ব্যবহার করবেন?" min="0">
+            <button class="ck-loy-apply" onclick="applyLoyaltyPoints()">Apply</button>
+          </div>
+          <div class="ck-loy-msg" id="ck-loy-msg"></div>
+        </div>
+      </div>
       <!-- Summary -->
       <div class="ck-sec">
         <div class="ck-sec-title"><i class="fa-solid fa-bag-shopping"></i> Order Summary</div>
@@ -1905,6 +2482,139 @@ footer{background:var(--dark);padding:60px 0 0}
   </div>
 </div>
 
+<!-- ADVANCED FILTER DRAWER -->
+<div id="adv-filter-overlay" onclick="closeAdvFilter()"></div>
+<div id="adv-filter-drawer">
+  <div class="afd-head">
+    <div class="afd-title"><i class="fa-solid fa-sliders" style="color:var(--brand)"></i> Advanced Filter</div>
+    <button class="afd-close" onclick="closeAdvFilter()"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="afd-body">
+    <!-- Sort -->
+    <div class="afd-section">
+      <div class="afd-label">Sort By <span onclick="clearSort()">Reset</span></div>
+      <div class="sort-opts" id="afd-sort">
+        <div class="sort-opt active" data-sort="default" onclick="selectSort(this,'default')"><i class="fa-solid fa-sparkles"></i> Default</div>
+        <div class="sort-opt" data-sort="price-low" onclick="selectSort(this,'price-low')"><i class="fa-solid fa-arrow-down-1-9"></i> Price: Low to High</div>
+        <div class="sort-opt" data-sort="price-high" onclick="selectSort(this,'price-high')"><i class="fa-solid fa-arrow-up-1-9"></i> Price: High to Low</div>
+        <div class="sort-opt" data-sort="rating" onclick="selectSort(this,'rating')"><i class="fa-solid fa-star" style="color:var(--gold)"></i> Top Rated</div>
+        <div class="sort-opt" data-sort="popular" onclick="selectSort(this,'popular')"><i class="fa-solid fa-fire" style="color:var(--brand)"></i> Most Popular</div>
+        <div class="sort-opt" data-sort="discount" onclick="selectSort(this,'discount')"><i class="fa-solid fa-percent" style="color:var(--green)"></i> Biggest Discount</div>
+      </div>
+    </div>
+
+    <!-- Price Range -->
+    <div class="afd-section">
+      <div class="afd-label">Price Range <span onclick="resetPriceFilter()">Reset</span></div>
+      <div class="price-range-wrap">
+        <div class="price-range-inputs">
+          <input type="number" id="price-min" placeholder="Min ৳" value="0" oninput="syncPriceRange()">
+          <span class="price-range-sep">—</span>
+          <input type="number" id="price-max" placeholder="Max ৳" value="12000" oninput="syncPriceRange()">
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-fill" id="range-fill"></div>
+          <input type="range" class="range-input" id="range-min" min="0" max="12000" step="100" value="0" oninput="updateRangeSlider()">
+          <input type="range" class="range-input" id="range-max" min="0" max="12000" step="100" value="12000" oninput="updateRangeSlider()">
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)"><span>৳0</span><span>৳12,000+</span></div>
+      </div>
+    </div>
+
+    <!-- Rating -->
+    <div class="afd-section">
+      <div class="afd-label">Minimum Rating <span onclick="clearRating()">Reset</span></div>
+      <div class="rating-opts" id="afd-ratings">
+        <div class="rating-opt active" data-rating="0" onclick="selectRating(this,0)">
+          <div class="ro-check"></div>
+          <div class="ro-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+          <div class="ro-label">সব পণ্য</div>
+        </div>
+        <div class="rating-opt" data-rating="4.5" onclick="selectRating(this,4.5)">
+          <div class="ro-check"></div>
+          <div class="ro-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></div>
+          <div class="ro-label">4.5+ Stars</div>
+          <div class="ro-count" id="rc-45"></div>
+        </div>
+        <div class="rating-opt" data-rating="4" onclick="selectRating(this,4)">
+          <div class="ro-check"></div>
+          <div class="ro-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div>
+          <div class="ro-label">4+ Stars</div>
+          <div class="ro-count" id="rc-4"></div>
+        </div>
+        <div class="rating-opt" data-rating="3" onclick="selectRating(this,3)">
+          <div class="ro-check"></div>
+          <div class="ro-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i></div>
+          <div class="ro-label">3+ Stars</div>
+          <div class="ro-count" id="rc-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colors -->
+    <div class="afd-section">
+      <div class="afd-label">Color <span onclick="clearColors()">Reset</span></div>
+      <div class="color-opts" id="afd-colors">
+        <div class="color-opt" style="background:#000" data-color="Black" onclick="toggleColor(this,'Black')" title="Black"></div>
+        <div class="color-opt" style="background:#fff;border:1.5px solid #ddd" data-color="White" onclick="toggleColor(this,'White')" title="White"></div>
+        <div class="color-opt" style="background:#E41E26" data-color="Red" onclick="toggleColor(this,'Red')" title="Red"></div>
+        <div class="color-opt" style="background:#0066FF" data-color="Blue" onclick="toggleColor(this,'Blue')" title="Blue"></div>
+        <div class="color-opt" style="background:#1A1A2E" data-color="Navy" onclick="toggleColor(this,'Navy')" title="Navy"></div>
+        <div class="color-opt" style="background:#8B5E3C" data-color="Brown" onclick="toggleColor(this,'Brown')" title="Brown"></div>
+        <div class="color-opt" style="background:#665533" data-color="Khaki" onclick="toggleColor(this,'Khaki')" title="Khaki"></div>
+        <div class="color-opt" style="background:#4a7c59" data-color="Green" onclick="toggleColor(this,'Green')" title="Green"></div>
+        <div class="color-opt" style="background:#E91E8C" data-color="Pink" onclick="toggleColor(this,'Pink')" title="Pink"></div>
+        <div class="color-opt" style="background:#7C3AED" data-color="Purple" onclick="toggleColor(this,'Purple')" title="Purple"></div>
+        <div class="color-opt" style="background:#FFB800" data-color="Yellow" onclick="toggleColor(this,'Yellow')" title="Yellow"></div>
+        <div class="color-opt" style="background:#888" data-color="Grey" onclick="toggleColor(this,'Grey')" title="Grey"></div>
+      </div>
+    </div>
+
+    <!-- Sizes -->
+    <div class="afd-section">
+      <div class="afd-label">Size <span onclick="clearSizes()">Reset</span></div>
+      <div class="size-opts" id="afd-sizes">
+        <button class="size-opt" onclick="toggleSize(this,'XS')">XS</button>
+        <button class="size-opt" onclick="toggleSize(this,'S')">S</button>
+        <button class="size-opt" onclick="toggleSize(this,'M')">M</button>
+        <button class="size-opt" onclick="toggleSize(this,'L')">L</button>
+        <button class="size-opt" onclick="toggleSize(this,'XL')">XL</button>
+        <button class="size-opt" onclick="toggleSize(this,'XXL')">XXL</button>
+        <button class="size-opt" onclick="toggleSize(this,'3XL')">3XL</button>
+        <button class="size-opt" onclick="toggleSize(this,'28')">28</button>
+        <button class="size-opt" onclick="toggleSize(this,'30')">30</button>
+        <button class="size-opt" onclick="toggleSize(this,'32')">32</button>
+        <button class="size-opt" onclick="toggleSize(this,'34')">34</button>
+        <button class="size-opt" onclick="toggleSize(this,'36')">36</button>
+        <button class="size-opt" onclick="toggleSize(this,'40')">40</button>
+        <button class="size-opt" onclick="toggleSize(this,'41')">41</button>
+        <button class="size-opt" onclick="toggleSize(this,'42')">42</button>
+        <button class="size-opt" onclick="toggleSize(this,'43')">43</button>
+      </div>
+    </div>
+
+    <!-- Availability -->
+    <div class="afd-section">
+      <div class="afd-label">Availability</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text2)">
+          <input type="checkbox" id="avail-instock" onchange="applyAdvFilter()" style="accent-color:var(--brand);width:15px;height:15px"> In Stock only
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text2)">
+          <input type="checkbox" id="avail-flash" onchange="applyAdvFilter()" style="accent-color:var(--brand);width:15px;height:15px"> Flash Sale only ⚡
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text2)">
+          <input type="checkbox" id="avail-featured" onchange="applyAdvFilter()" style="accent-color:var(--brand);width:15px;height:15px"> Featured only ⭐
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="afd-footer">
+    <button class="btn-afd-reset" onclick="resetAllFilters()"><i class="fa-solid fa-rotate-left"></i> Reset All</button>
+    <button class="btn-afd-apply" onclick="applyAdvFilter();closeAdvFilter()"><i class="fa-solid fa-check"></i> ফলাফল দেখুন <span id="afd-result-count" style="background:rgba(255,255,255,.25);padding:1px 7px;border-radius:999px;font-size:11px"></span></button>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast-container"></div>
 
@@ -1922,7 +2632,67 @@ footer{background:var(--dark);padding:60px 0 0}
   <button class="chat-btn" onclick="toggleChat()"><div class="chat-ping"></div><i class="fa-solid fa-comments" id="chat-ic"></i></button>
 </div>
 
-<!-- MOBILE BOTTOM NAV -->
+<!-- SOCIAL PROOF NOTIFICATIONS -->
+<div id="social-proof-popup" style="position:fixed;bottom:80px;left:16px;z-index:2400;transition:all .4s cubic-bezier(.4,0,.2,1);transform:translateX(-120%);opacity:0;max-width:310px;width:calc(100% - 32px)">
+  <div style="background:#fff;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);border:1px solid var(--border)">
+    <div id="sp-img-wrap" style="width:48px;height:60px;border-radius:8px;overflow:hidden;background:var(--bg2);flex-shrink:0">
+      <img id="sp-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+    </div>
+    <div style="flex:1;min-width:0">
+      <div id="sp-msg" style="font-size:12px;font-weight:600;color:var(--dark);line-height:1.4;margin-bottom:2px"></div>
+      <div id="sp-time" style="font-size:11px;color:var(--text3)"></div>
+    </div>
+    <button onclick="document.getElementById('social-proof-popup').style.transform='translateX(-120%)'" style="width:20px;height:20px;border-radius:50%;background:var(--bg2);border:none;cursor:pointer;font-size:11px;color:var(--text3);flex-shrink:0;display:flex;align-items:center;justify-content:center">×</button>
+  </div>
+</div>
+
+<script>
+/* ━━━ SOCIAL PROOF NOTIFICATIONS ━━━ */
+const SP_NAMES = ['রাহুল','নাফিজ','সাদিয়া','তামিম','মেহেদী','সুমাইয়া','আরিফ','নাজমুন','শাকিব','পিয়া','ইমরান','ফাতেমা','রাফি','মিম','নাফিস'];
+const SP_CITIES = ['ঢাকা','চট্টগ্রাম','সিলেট','রাজশাহী','খুলনা','ময়মনসিংহ','কুমিল্লা','গাজীপুর'];
+const SP_TIMES = ['মাত্র এখন','২ মিনিট আগে','৫ মিনিট আগে','১০ মিনিট আগে','১৫ মিনিট আগে','৩০ মিনিট আগে'];
+
+function showSocialProof() {
+  if (!PRODUCTS.length) return;
+  const p = PRODUCTS[Math.floor(Math.random()*PRODUCTS.length)];
+  const name = SP_NAMES[Math.floor(Math.random()*SP_NAMES.length)];
+  const city = SP_CITIES[Math.floor(Math.random()*SP_CITIES.length)];
+  const time = SP_TIMES[Math.floor(Math.random()*3)];
+  const popup = document.getElementById('social-proof-popup');
+  const img = document.getElementById('sp-img');
+  const msg = document.getElementById('sp-msg');
+  const timeEl = document.getElementById('sp-time');
+  if (!popup || !img || !msg) return;
+  img.src = p.img;
+  img.onerror = () => { img.src = `https://picsum.photos/seed/${p.id}/48/60`; };
+  msg.innerHTML = `<strong>${name} (${city})</strong> "${p.name.slice(0,28)}${p.name.length>28?'...':''}" অর্ডার করেছেন`;
+  timeEl.textContent = time;
+  popup.style.transform = 'translateX(0)';
+  popup.style.opacity = '1';
+  setTimeout(() => {
+    popup.style.transform = 'translateX(-120%)';
+    popup.style.opacity = '0';
+  }, 5000);
+}
+
+// Show social proof popup periodically
+let spTimer;
+function startSocialProof() {
+  // First popup after 8 seconds
+  spTimer = setTimeout(() => {
+    showSocialProof();
+    // Then every 25-45 seconds
+    const loop = () => {
+      spTimer = setTimeout(() => {
+        showSocialProof();
+        loop();
+      }, Math.random()*20000+25000);
+    };
+    loop();
+  }, 8000);
+}
+document.addEventListener('DOMContentLoaded', startSocialProof);
+</script>
 <nav id="mob-bottom-nav">
   <div class="mbn-inner">
     <button class="mbn-item active" onclick="window.scrollTo({top:0,behavior:'smooth'})">
@@ -3305,6 +4075,1526 @@ function getCommentCount(pid) {
   const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
   return (allComments[pid] || []).filter(c => !c.hidden).length;
 }
+</script>
+
+<!-- ══ COMPARE BAR ══ -->
+<div id="compare-bar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="cmp-label">Compare:</span>
+    <div class="cmp-slots">
+      <div class="cmp-slot" id="cmp-slot-0"><span class="cmp-slot-empty">+</span></div>
+      <div class="cmp-slot" id="cmp-slot-1"><span class="cmp-slot-empty">+</span></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="btn-compare-clear" onclick="clearCompare()"><i class="fa-solid fa-xmark"></i> Clear</button>
+    <button class="btn-compare-now" id="btn-compare-now" onclick="openCompareModal()" disabled><i class="fa-solid fa-code-compare"></i> তুলনা করুন</button>
+  </div>
+</div>
+
+<!-- ══ COMPARE MODAL ══ -->
+<div id="compare-modal">
+  <div class="cmp-modal-backdrop" onclick="closeCompareModal()"></div>
+  <div class="cmp-modal-card">
+    <div class="cmp-modal-head">
+      <h3><i class="fa-solid fa-code-compare" style="color:var(--gold)"></i> পণ্য তুলনা</h3>
+      <button onclick="closeCompareModal()" style="color:rgba(255,255,255,.6);font-size:20px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="cmp-modal-body"></div>
+  </div>
+</div>
+
+<!-- ══ SIZE CHART MODAL ══ -->
+<div id="size-chart-modal">
+  <div class="sc-backdrop" onclick="closeSizeChart()"></div>
+  <div class="sc-card">
+    <div class="sc-head">
+      <div class="sc-head-title"><i class="fa-solid fa-ruler-horizontal"></i> Size Guide — মাপের তালিকা</div>
+      <button onclick="closeSizeChart()" style="color:rgba(255,255,255,.6);font-size:18px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="sc-body">
+      <div class="sc-tabs">
+        <button class="sc-tab active" onclick="this.closest('.sc-tabs').querySelectorAll('.sc-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');openSizeChart('shirts')">👔 Shirts</button>
+        <button class="sc-tab" onclick="this.closest('.sc-tabs').querySelectorAll('.sc-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');openSizeChart('pants')">👖 Pants</button>
+        <button class="sc-tab" onclick="this.closest('.sc-tabs').querySelectorAll('.sc-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active');openSizeChart('shoes')">👟 Shoes</button>
+      </div>
+      <div class="sc-table-wrap">
+        <table class="sc-table" id="sc-table-body"></table>
+      </div>
+      <div class="sc-tip">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span><strong>পরামর্শ:</strong> সঠিক সাইজ পেতে বুকের মাপ নিন। যদি দুই সাইজের মাঝে থাকেন, বড়টি নিন। আমাদের WhatsApp: 01516511889</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WISHLIST PANEL ══ -->
+<div class="wlp-overlay" id="wlp-overlay" onclick="closeWishlistPanel()"></div>
+<div id="wishlist-panel">
+  <div class="wlp-head">
+    <div class="wlp-title"><i class="fa-solid fa-heart" style="color:var(--brand)"></i> আমার Wishlist</div>
+    <button onclick="closeWishlistPanel()" style="color:rgba(255,255,255,.6);font-size:18px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="wlp-body" id="wlp-body"></div>
+  <div style="padding:14px;border-top:1px solid var(--border)">
+    <button onclick="closeWishlistPanel();document.querySelectorAll('#featured').forEach(el=>el.scrollIntoView({behavior:'smooth'}))" style="width:100%;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:12px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer">সব পণ্য দেখুন</button>
+  </div>
+</div>
+
+
+<script>
+/* ══ SHOPLIXO v3 ULTRA PRO — NEW FEATURES ══ */
+/* ======================================================================
+   SHOPLIXO v3 — ULTRA PRO NEW FEATURES JS
+====================================================================== */
+
+/* ━━━ LIVE ORDER COUNTER ━━━ */
+let liveOrders = parseInt(localStorage.getItem('slx_daily_orders') || '0');
+let liveRevenue = parseInt(localStorage.getItem('slx_daily_revenue') || '0');
+let liveUsers = parseInt(localStorage.getItem('slx_daily_users') || '0');
+
+// Initialize with realistic BD numbers
+const today = new Date().toDateString();
+if (localStorage.getItem('slx_counter_date') !== today) {
+  liveOrders = Math.floor(Math.random()*80+100); // 100-180 today
+  liveRevenue = liveOrders * Math.floor(Math.random()*500+800);
+  liveUsers = Math.floor(liveOrders * 2.4);
+  localStorage.setItem('slx_daily_orders', liveOrders);
+  localStorage.setItem('slx_daily_revenue', liveRevenue);
+  localStorage.setItem('slx_daily_users', liveUsers);
+  localStorage.setItem('slx_counter_date', today);
+}
+
+function updateLiveCounters() {
+  const el1 = document.getElementById('lc-orders');
+  const el2 = document.getElementById('lc-revenue');
+  const el3 = document.getElementById('lc-users');
+  if (el1) el1.textContent = liveOrders;
+  if (el2) el2.textContent = '৳' + Number(liveRevenue).toLocaleString('en-IN');
+  if (el3) el3.textContent = liveUsers;
+}
+
+// Increment every 30-90s
+function tickLiveCounter() {
+  const interval = Math.random() * 60000 + 30000;
+  setTimeout(() => {
+    liveOrders++;
+    liveRevenue += Math.floor(Math.random()*1500+500);
+    liveUsers += Math.floor(Math.random()*3+1);
+    localStorage.setItem('slx_daily_orders', liveOrders);
+    localStorage.setItem('slx_daily_revenue', liveRevenue);
+    localStorage.setItem('slx_daily_users', liveUsers);
+    updateLiveCounters();
+    // Animate the number
+    const el = document.getElementById('lc-orders');
+    if (el) { el.style.transform = 'scale(1.2)'; el.style.color = 'var(--gold)'; setTimeout(() => { el.style.transform = ''; el.style.color = ''; }, 300); }
+    tickLiveCounter();
+  }, interval);
+}
+setTimeout(() => { updateLiveCounters(); tickLiveCounter(); }, 1000);
+
+/* ━━━ COMPARE PRODUCTS ━━━ */
+let compareList = [];
+const MAX_COMPARE = 2;
+
+function toggleCompare(pid, btn) {
+  const idx = compareList.indexOf(pid);
+  if (idx > -1) {
+    compareList.splice(idx, 1);
+    if (btn) { btn.classList.remove('added'); btn.innerHTML = '<i class="fa-solid fa-code-compare"></i> Compare'; }
+  } else {
+    if (compareList.length >= MAX_COMPARE) {
+      showToast('সর্বাধিক ২টি পণ্য compare করা যাবে!', 'exclamation');
+      return;
+    }
+    compareList.push(pid);
+    if (btn) { btn.classList.add('added'); btn.innerHTML = '<i class="fa-solid fa-check"></i> Added'; }
+    showToast('Compare list এ যোগ হয়েছে!', 'code-compare');
+  }
+  updateCompareBar();
+}
+
+function updateCompareBar() {
+  const bar = document.getElementById('compare-bar');
+  if (!bar) return;
+  if (compareList.length === 0) { bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  const slots = bar.querySelectorAll('.cmp-slot');
+  slots.forEach((slot, i) => {
+    const pid = compareList[i];
+    if (pid) {
+      const p = PRODUCTS.find(x => x.id === pid);
+      if (p) {
+        slot.innerHTML = `<img src="${p.img}" onerror="this.src='https://picsum.photos/seed/${pid}/56/68'"><button class="cmp-slot-x" onclick="toggleCompare(${pid});updateCompareBar()">×</button>`;
+      }
+    } else {
+      slot.innerHTML = '<span class="cmp-slot-empty">+</span>';
+    }
+  });
+  const btn = document.getElementById('btn-compare-now');
+  if (btn) { btn.disabled = compareList.length < 2; btn.style.opacity = compareList.length < 2 ? '.5' : '1'; }
+}
+
+function openCompareModal() {
+  if (compareList.length < 2) { showToast('তুলনা করতে ২টি পণ্য বেছে নিন!', 'exclamation'); return; }
+  const [p1, p2] = compareList.map(id => PRODUCTS.find(x => x.id === id));
+  if (!p1 || !p2) return;
+
+  const rows = [
+    { label: 'দাম', key: 'price', fn: v => fmt(v), compare: true, lower: true },
+    { label: 'মূল দাম', key: 'orig', fn: v => v ? fmt(v) : 'N/A', compare: true, lower: true },
+    { label: 'রেটিং', key: 'rating', fn: v => '⭐ ' + v, compare: true, lower: false },
+    { label: 'রিভিউ', key: 'reviews', fn: v => v + ' জন', compare: true, lower: false },
+    { label: 'স্টক', key: 'stock', fn: v => v + ' পিস', compare: false },
+    { label: 'ক্যাটাগরি', key: 'cat', fn: v => v.replace(/-/g,' '), compare: false },
+    { label: 'Material', key: 'material', fn: v => v || '—', compare: false },
+    { label: 'Warranty', key: 'warranty', fn: v => v || '—', compare: false },
+    { label: 'Sizes', key: 'sizes', fn: v => (v||[]).join(', ') || '—', compare: false },
+  ];
+
+  const rowsHTML = rows.map(r => {
+    let c1 = '', c2 = '';
+    if (r.compare) {
+      if (r.lower ? p1[r.key] < p2[r.key] : p1[r.key] > p2[r.key]) { c1 = 'cmp-win'; c2 = 'cmp-lose'; }
+      else if (r.lower ? p2[r.key] < p1[r.key] : p2[r.key] > p1[r.key]) { c2 = 'cmp-win'; c1 = 'cmp-lose'; }
+    }
+    return `<tr>
+      <td class="row-label">${r.label}</td>
+      <td class="${c1}">${r.fn(p1[r.key])}</td>
+      <td class="${c2}">${r.fn(p2[r.key])}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('cmp-modal-body').innerHTML = `
+    <div class="cmp-table-wrap">
+      <table class="cmp-table">
+        <thead><tr>
+          <th style="width:100px">বৈশিষ্ট্য</th>
+          <th><img class="cmp-prod-img" src="${p1.img}" onerror="this.src='https://picsum.photos/seed/${p1.id}/120/150'"><br><strong>${p1.name}</strong><br><span style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:800">${fmt(p1.price)}</span></th>
+          <th><img class="cmp-prod-img" src="${p2.img}" onerror="this.src='https://picsum.photos/seed/${p2.id}/120/150'"><br><strong>${p2.name}</strong><br><span style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:800">${fmt(p2.price)}</span></th>
+        </tr></thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+    </div>
+    <div style="padding:16px;display:flex;gap:10px;border-top:1px solid var(--border)">
+      <button onclick="addToCart(${p1.id});closeCompareModal()" style="flex:1;background:var(--dark2);color:#fff;padding:12px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="fa-solid fa-cart-plus"></i> ${p1.name.slice(0,18)}... কিনুন</button>
+      <button onclick="addToCart(${p2.id});closeCompareModal()" style="flex:1;background:var(--brand);color:#fff;padding:12px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="fa-solid fa-cart-plus"></i> ${p2.name.slice(0,18)}... কিনুন</button>
+    </div>`;
+
+  document.getElementById('compare-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCompareModal() {
+  document.getElementById('compare-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function clearCompare() {
+  compareList = [];
+  document.querySelectorAll('.pc-compare-btn.added').forEach(b => {
+    b.classList.remove('added');
+    b.innerHTML = '<i class="fa-solid fa-code-compare"></i> Compare';
+  });
+  updateCompareBar();
+}
+
+/* ━━━ SIZE CHART ━━━ */
+function openSizeChart(cat) {
+  const charts = {
+    shirts: [
+      ['S', '36-38', '32-34', '26-28'],
+      ['M', '38-40', '34-36', '28-30'],
+      ['L', '40-42', '36-38', '30-32'],
+      ['XL', '42-44', '38-40', '32-34'],
+      ['XXL', '44-46', '40-42', '34-36'],
+    ],
+    pants: [
+      ['28', '28"', '30"', '—'],
+      ['30', '30"', '32"', '—'],
+      ['32', '32"', '34"', '—'],
+      ['34', '34"', '36"', '—'],
+      ['36', '36"', '38"', '—'],
+    ],
+    shoes: [
+      ['40', '25 cm', '7 UK', '7.5 US'],
+      ['41', '25.7 cm', '7.5 UK', '8 US'],
+      ['42', '26.5 cm', '8 UK', '8.5 US'],
+      ['43', '27.2 cm', '9 UK', '9.5 US'],
+      ['44', '27.9 cm', '10 UK', '10.5 US'],
+      ['45', '28.6 cm', '10.5 UK', '11 US'],
+    ]
+  };
+
+  const modal = document.getElementById('size-chart-modal');
+  const activeChart = charts[cat] || charts.shirts;
+  const headers = cat === 'pants' ? ['সাইজ', 'কোমর', 'দৈর্ঘ্য', 'নোট'] :
+                  cat === 'shoes' ? ['সাইজ (EU)', 'ফুটের দৈর্ঘ্য', 'UK সাইজ', 'US সাইজ'] :
+                  ['সাইজ', 'বুক (ইঞ্চি)', 'কোমর (ইঞ্চি)', 'কাঁধ (ইঞ্চি)'];
+
+  document.getElementById('sc-table-body').innerHTML = `
+    <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${activeChart.map(r => `<tr>${r.map((c,i) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSizeChart() {
+  document.getElementById('size-chart-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ━━━ IMAGE ZOOM ━━━ */
+function initZoom(card) {
+  const wrap = card.querySelector('.pc-img-wrap');
+  const img = wrap ? wrap.querySelector('img') : null;
+  if (!wrap || !img || window.innerWidth <= 992) return;
+
+  let resultDiv = wrap.querySelector('.zoom-result');
+  if (!resultDiv) {
+    resultDiv = document.createElement('div');
+    resultDiv.className = 'zoom-result';
+    resultDiv.innerHTML = `<img src="${img.src}">`;
+    wrap.appendChild(resultDiv);
+  }
+
+  let lens = wrap.querySelector('.zoom-lens');
+  if (!lens) {
+    lens = document.createElement('div');
+    lens.className = 'zoom-lens';
+    wrap.appendChild(lens);
+  }
+
+  const resultImg = resultDiv.querySelector('img');
+  const ratio = 2.5;
+
+  wrap.addEventListener('mouseenter', () => {
+    if (window.innerWidth <= 992) return;
+    resultImg.src = img.src;
+    resultImg.style.width = wrap.offsetWidth * ratio + 'px';
+    resultImg.style.height = wrap.offsetHeight * ratio + 'px';
+    lens.style.display = 'block';
+    resultDiv.style.display = 'block';
+  });
+
+  wrap.addEventListener('mouseleave', () => {
+    lens.style.display = 'none';
+    resultDiv.style.display = 'none';
+  });
+
+  wrap.addEventListener('mousemove', (e) => {
+    if (window.innerWidth <= 992) return;
+    const rect = wrap.getBoundingClientRect();
+    let x = e.clientX - rect.left - lens.offsetWidth / 2;
+    let y = e.clientY - rect.top - lens.offsetHeight / 2;
+    x = Math.max(0, Math.min(x, wrap.offsetWidth - lens.offsetWidth));
+    y = Math.max(0, Math.min(y, wrap.offsetHeight - lens.offsetHeight));
+    lens.style.left = x + 'px';
+    lens.style.top = y + 'px';
+    resultImg.style.left = -(x * ratio) + 'px';
+    resultImg.style.top = -(y * ratio) + 'px';
+  });
+}
+
+// Initialize zoom on all product cards after render
+function initAllZoom() {
+  document.querySelectorAll('.product-card').forEach(initZoom);
+}
+
+/* ━━━ LIVE SEARCH DROPDOWN ━━━ */
+let searchTimeout;
+const searchInput = document.getElementById('search-input');
+if (searchInput) {
+  const wrap = searchInput.closest('.search-wrap') || searchInput.parentElement;
+
+  // Create dropdown
+  const drop = document.createElement('div');
+  drop.className = 'search-live-drop';
+  drop.id = 'search-live-drop';
+  wrap.style.position = 'relative';
+  wrap.appendChild(drop);
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    const q = searchInput.value.trim().toLowerCase();
+    if (q.length < 2) { drop.classList.remove('show'); return; }
+    searchTimeout = setTimeout(() => {
+      const results = PRODUCTS.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.tags && p.tags.some(t => t.toLowerCase().includes(q))) ||
+        (p.desc && p.desc.toLowerCase().includes(q))
+      ).slice(0, 6);
+
+      if (!results.length) { drop.innerHTML = '<div class="sld-item" style="color:var(--text3);justify-content:center">কোনো পণ্য পাওয়া যায়নি</div>'; }
+      else {
+        drop.innerHTML = `<div class="sld-header"><i class="fa-solid fa-magnifying-glass"></i> "${q}" — ${results.length} টি পণ্য</div>` +
+          results.map(p => `<div class="sld-item" onclick="document.getElementById('search-live-drop').classList.remove('show');openQV(${p.id})">
+            <img class="sld-img" src="${p.img}" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
+            <div class="sld-info">
+              <div class="sld-name">${p.name}</div>
+              <div class="sld-cat">${p.cat.replace(/-/g,' ')}</div>
+            </div>
+            <div class="sld-price">${fmt(p.price)}</div>
+          </div>`).join('');
+      }
+      drop.classList.add('show');
+    }, 200);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target)) drop.classList.remove('show');
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') drop.classList.remove('show');
+  });
+}
+
+/* ━━━ WISHLIST PANEL ━━━ */
+function openWishlistPanel() {
+  const panel = document.getElementById('wishlist-panel');
+  const overlay = document.getElementById('wlp-overlay');
+  if (!panel) return;
+  renderWishlistPanel();
+  panel.classList.add('open');
+  if (overlay) overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWishlistPanel() {
+  const panel = document.getElementById('wishlist-panel');
+  const overlay = document.getElementById('wlp-overlay');
+  if (panel) panel.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderWishlistPanel() {
+  const body = document.getElementById('wlp-body');
+  if (!body) return;
+  if (!wishlist.length) {
+    body.innerHTML = '<div class="wlp-empty"><i class="fa-regular fa-heart"></i><p>Wishlist খালি আছে</p><p style="font-size:12px;margin-top:6px">পছন্দের পণ্যে ❤️ চাপুন</p></div>';
+    return;
+  }
+  body.innerHTML = wishlist.map(pid => {
+    const p = PRODUCTS.find(x => x.id === pid);
+    if (!p) return '';
+    return `<div class="wlp-item">
+      <img class="wlp-img" src="${p.img}" onerror="this.src='https://picsum.photos/seed/${pid}/54/68'">
+      <div class="wlp-info">
+        <div class="wlp-name">${p.name}</div>
+        <div class="wlp-price">${fmt(p.price)}</div>
+        <div class="wlp-btns">
+          <button class="wlp-add" onclick="addToCart(${pid});closeWishlistPanel()"><i class="fa-solid fa-cart-plus"></i> Cart এ Add</button>
+          <button class="wlp-remove" onclick="removeFromWishlist(${pid})"><i class="fa-regular fa-trash-can"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function removeFromWishlist(pid) {
+  const i = wishlist.indexOf(pid);
+  if (i > -1) { wishlist.splice(i, 1); localStorage.setItem('slx_wish', JSON.stringify(wishlist)); }
+  const wc = document.getElementById('wish-count');
+  if (wc) { wc.textContent = wishlist.length; wc.style.display = wishlist.length > 0 ? 'flex' : 'none'; }
+  renderWishlistPanel();
+  // Also update compare buttons
+  document.querySelectorAll('.pc-wish.wished').forEach(btn => {
+    const card = btn.closest('.product-card');
+    if (card) {
+      const pid2 = parseInt(card.dataset.id);
+      if (!wishlist.includes(pid2)) { btn.classList.remove('wished'); btn.querySelector('i').className = 'fa-regular fa-heart'; }
+    }
+  });
+}
+
+/* ━━━ ADVANCED FILTER in SEARCH ━━━ */
+function filterSearchResults(results, sort) {
+  if (sort === 'price-low') return [...results].sort((a, b) => a.price - b.price);
+  if (sort === 'price-high') return [...results].sort((a, b) => b.price - a.price);
+  if (sort === 'rating') return [...results].sort((a, b) => b.rating - a.rating);
+  if (sort === 'newest') return [...results].sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+  return results;
+}
+
+/* ━━━ COMMENTS — MongoDB API ━━━ */
+async function loadCommentsFromAPI(pid) {
+  try {
+    const r = await apiGet(`comments?productId=${pid}`);
+    if (r.ok && r.comments) return r.comments;
+  } catch (e) { console.warn('Comments API offline, using localStorage'); }
+  // Fallback to localStorage
+  const all = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  return (all[pid] || []).filter(c => !c.hidden);
+}
+
+async function submitCommentToAPI(pid, data) {
+  try {
+    const token = localStorage.getItem('slx_token') || '';
+    const r = await apiPost(`comments?productId=${pid}`, { ...data, token });
+    if (r.ok) return { ok: true, comment: r.comment };
+  } catch (e) { console.warn('Comments API offline'); }
+  // Fallback: save locally
+  const all = JSON.parse(localStorage.getItem('slx_comments') || '{}');
+  if (!all[pid]) all[pid] = [];
+  const comment = {
+    customerName: data.customerName || currentUser?.name || 'User',
+    rating: data.rating, body: data.body,
+    isVerifiedPurchase: data.isVerifiedPurchase || false,
+    createdAt: new Date().toISOString(), likes: 0, hidden: false,
+    _id: Date.now().toString()
+  };
+  all[pid].unshift(comment);
+  localStorage.setItem('slx_comments', JSON.stringify(all));
+  return { ok: true, comment };
+}
+
+async function loadComments(pid) {
+  const list = document.getElementById('cm-list');
+  if (!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...</div>';
+
+  const comments = await loadCommentsFromAPI(pid);
+
+  if (!comments.length) {
+    list.innerHTML = '<div class="cm-empty"><i class="fa-regular fa-comment"></i><p>এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!</p></div>';
+    return;
+  }
+
+  // Rating breakdown
+  const avg = comments.reduce((s, c) => s + (c.rating || c.rating || 5), 0) / comments.length;
+  const breakdown = [5, 4, 3, 2, 1].map(n => ({
+    n, count: comments.filter(c => Math.round(c.rating) === n).length
+  }));
+
+  const breakdownHTML = `
+    <div class="rating-breakdown">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:var(--gold)">${avg.toFixed(1)}</div>
+        <div>
+          <div class="stars">${starsHTML(avg)}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px">${comments.length} টি রিভিউ</div>
+        </div>
+      </div>
+      ${breakdown.map(b => `<div class="rb-row">
+        <div class="rb-label">${b.n} ⭐</div>
+        <div class="rb-bar-wrap"><div class="rb-bar" style="width:${comments.length ? (b.count/comments.length*100) : 0}%"></div></div>
+        <div class="rb-count">${b.count}</div>
+      </div>`).join('')}
+    </div>`;
+
+  list.innerHTML = breakdownHTML +
+    `<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:10px;letter-spacing:.5px">সকল রিভিউ (${comments.length})</div>` +
+    comments.map((c, i) => {
+      const name = c.customerName || c.name || 'Anonymous';
+      const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}) : (c.date || '');
+      const body = c.body || c.text || '';
+      const rating = c.rating || 5;
+      const verified = c.isVerifiedPurchase;
+      const imgsHTML = (c.images||[]).length ? `<div class="ci-images">${c.images.slice(0,4).map(img => `<img class="ci-img-thumb" src="${img}" onclick="window.open('${img}','_blank')">`).join('')}</div>` : '';
+      return `<div class="comment-item" id="cm-item-${pid}-${i}">
+        <div class="ci-head">
+          <div class="ci-avatar">${name[0].toUpperCase()}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:4px">
+              <div class="ci-name">${name}</div>
+              ${verified ? `<span class="ci-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</span>` : ''}
+            </div>
+            <div class="ci-date">${date}</div>
+          </div>
+          <div class="ci-stars">${'<i class="fa-solid fa-star"></i>'.repeat(Math.round(rating))}</div>
+        </div>
+        <div class="ci-text">${body}</div>
+        ${imgsHTML}
+        <div class="ci-actions">
+          <button class="ci-action-btn" onclick="likeComment('${pid}',${i},this)"><i class="fa-regular fa-thumbs-up"></i> <span>${c.helpfulCount||c.likes||0}</span> Helpful</button>
+          ${currentUser?.isAdmin ? `<button class="ci-action-btn" style="color:var(--brand)" onclick="adminDeleteComment('${pid}',${i})"><i class="fa-solid fa-trash"></i> Remove</button>` : ''}
+        </div>
+        ${c.reply?.text ? `<div style="background:var(--bg2);border-left:3px solid var(--brand);margin-top:10px;padding:8px 12px;border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:12px"><strong style="color:var(--brand)">Shoplixo:</strong> ${c.reply.text}</div>` : ''}
+      </div>`;
+    }).join('');
+}
+
+async function submitComment() {
+  if (!currentUser) { showToast('আগে Login করুন!', 'exclamation'); return; }
+  const text = document.getElementById('cm-text').value.trim();
+  if (!text || text.length < 5) { showToast('কমপক্ষে ৫ অক্ষরের রিভিউ লিখুন!', 'exclamation'); return; }
+
+  // Check if verified purchase
+  const orders = JSON.parse(localStorage.getItem('slx_orders') || '[]');
+  const isVerified = orders.some(o => o.items && o.items.some(i => i.id === currentCommentPid));
+
+  const btn = document.querySelector('.cm-submit');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> পাঠানো হচ্ছে...'; }
+
+  const result = await submitCommentToAPI(currentCommentPid, {
+    customerName: currentUser.name || 'User',
+    rating: selectedCommentStar,
+    body: text,
+    isVerifiedPurchase: isVerified,
+    orderId: orders.find(o => o.items && o.items.some(i => i.id === currentCommentPid))?.id || ''
+  });
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> রিভিউ পাঠান'; }
+
+  if (result.ok) {
+    document.getElementById('cm-text').value = '';
+    selectedCommentStar = 5;
+    updateStarUI(5);
+    await loadComments(currentCommentPid);
+    showToast(isVerified ? '✅ Verified Review পাঠানো হয়েছে! ধন্যবাদ 🎉' : 'রিভিউ পাঠানো হয়েছে! ধন্যবাদ 🎉', 'star');
+  } else {
+    showToast('রিভিউ পাঠাতে সমস্যা হয়েছে!', 'exclamation');
+  }
+}
+
+/* ━━━ BUNDLE PRODUCT ADD ━━━ */
+function addBundleToCart(productIds) {
+  let added = 0;
+  productIds.forEach(pid => {
+    const p = PRODUCTS.find(x => x.id === pid);
+    if (p) {
+      const ex = cart.find(c => c.id === pid);
+      if (ex) ex.qty++;
+      else cart.push({ id: pid, qty: 1, size: 'M', color: '', name: p.name, price: p.price, img: p.img });
+      added++;
+    }
+  });
+  if (added) {
+    saveCart();
+    showToast(`Bundle এ ${added}টি পণ্য cart এ যোগ হয়েছে! 🎁`, 'gift');
+    openCart();
+  }
+}
+
+/* ━━━ STICKY WISHLIST BUTTON UPDATE ━━━ */
+function updateWishUI() {
+  const wc = document.getElementById('wish-count');
+  if (wc) { wc.textContent = wishlist.length; wc.style.display = wishlist.length > 0 ? 'flex' : 'none'; }
+  const mbn = document.getElementById('mbn-wish-count');
+  if (mbn) { mbn.textContent = wishlist.length; mbn.style.display = wishlist.length > 0 ? 'flex' : 'none'; }
+}
+
+/* ━━━ MOBILE TOGGLE SEARCH ━━━ */
+function toggleMobSearch() {
+  const bar = document.getElementById('mob-search-bar');
+  if (bar) { bar.style.display = bar.style.display === 'none' ? 'block' : 'none'; }
+}
+
+/* ━━━ INIT ALL NEW FEATURES ━━━ */
+document.addEventListener('DOMContentLoaded', () => {
+  updateLiveCounters();
+  updateCompareBar();
+  setTimeout(initAllZoom, 500);
+});
+
+// Re-init zoom after renders
+const _origRender = window.renderAll;
+if (_origRender) {
+  window.renderAll = function() {
+    _origRender();
+    setTimeout(initAllZoom, 150);
+  };
+}
+
+
+/* ── BUNDLE RENDERER ── */
+const BUNDLES = [
+  {
+    id:'b1', title:'Ultimate Shirt + Pant Combo',
+    desc:'Premium Oxford Shirt + Slim Fit Chino — Perfect Office Look!',
+    productIds:[1,13], discount:20,
+    badge:'20% ছাড়'
+  },
+  {
+    id:'b2', title:'Ladies Fashion Bundle',
+    desc:'Embroidery Kurti + Designer Handbag — Exclusive Combo!',
+    productIds:[25,38], discount:18,
+    badge:'18% ছাড়'
+  },
+  {
+    id:'b3', title:'Tech Power Bundle',
+    desc:'Smart Watch Pro + TWS Earbuds — Complete Tech Setup!',
+    productIds:[48,49], discount:22,
+    badge:'22% ছাড়'
+  },
+];
+
+function renderBundles() {
+  const el = document.getElementById('bundle-grid');
+  if (!el) return;
+  el.innerHTML = BUNDLES.map(b => {
+    const prods = b.productIds.map(id => PRODUCTS.find(x => x.id === id)).filter(Boolean);
+    if (prods.length < 1) return '';
+    const origTotal = prods.reduce((s, p) => s + (p.orig || p.price), 0);
+    const saleTotal = Math.round(prods.reduce((s, p) => s + p.price, 0) * (1 - b.discount/100));
+    const saved = origTotal - saleTotal;
+    return `<div class="bundle-card fade-up">
+      <div class="bc-badge">${b.badge}</div>
+      <div class="bc-imgs">
+        ${prods.slice(0,2).map(p => `<img src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/200/160'">`).join('')}
+      </div>
+      <div class="bc-body">
+        <div class="bc-title">${b.title}</div>
+        <div class="bc-desc">${b.desc}</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px">${prods.map(p=>p.name.slice(0,22)+'...').join(' + ')}</div>
+        <div class="bc-price-row">
+          <div class="bc-price">৳${saleTotal.toLocaleString('en-IN')}</div>
+          <div class="bc-orig">৳${origTotal.toLocaleString('en-IN')}</div>
+          <div class="bc-save">৳${saved.toLocaleString('en-IN')} সাশ্রয়!</div>
+        </div>
+        <button class="btn-bundle" onclick="addBundleToCart([${b.productIds.join(',')}])"><i class="fa-solid fa-layer-group"></i> Bundle Cart এ Add করুন</button>
+      </div>
+    </div>`;
+  }).join('');
+  animFadeIn();
+}
+
+/* ── ENHANCED PRODUCT CARD WITH COMPARE & SIZE CHART ── */
+const _origPCard = window.pCard;
+window.pCard = function(p) {
+  let html = _origPCard ? _origPCard(p) : '';
+  if (!html) return '';
+  
+  // Inject stock bar after urgency
+  const stockPct = Math.min(100, Math.max(5, Math.round(p.stock / (p.stock + Math.floor(Math.random()*40+20)) * 100)));
+  const stockBarHTML = `<div class="stock-bar-wrap"><div class="stock-bar" style="width:${stockPct}%"></div></div>`;
+  html = html.replace('<div class="pc-watchers">', stockBarHTML + '<div class="pc-watchers">');
+  
+  // Inject compare and size chart buttons before closing pc-body
+  const cat = p.cat;
+  const scCat = cat.includes('shirt') ? 'shirts' : cat.includes('pant') ? 'pants' : cat.includes('shoe') ? 'shoes' : 'shirts';
+  const extraBtns = `
+    <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+      <button class="pc-compare-btn" onclick="event.stopPropagation();toggleCompare(${p.id},this)"><i class="fa-solid fa-code-compare"></i> Compare</button>
+      ${(p.sizes && p.sizes.length) ? `<button class="btn-size-chart" onclick="event.stopPropagation();openSizeChart('${scCat}')"><i class="fa-solid fa-ruler-horizontal"></i> Size Guide</button>` : ''}
+    </div>
+    <div class="pc-cert"><i class="fa-solid fa-qrcode"></i> Authenticity Certified</div>`;
+  html = html.replace('</div>
+  </div>', extraBtns + '
+  </div>
+  </div>');
+  return html;
+};
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Override wishlist open to use panel
+  const wishBtn = document.querySelector('.h-btn:nth-child(3)');
+  if (wishBtn) wishBtn.onclick = openWishlistPanel;
+  
+  // Override renderAll to also render bundles
+  const origRA = window.renderAll;
+  window.renderAll = function() {
+    if (origRA) origRA();
+    renderBundles();
+    setTimeout(initAllZoom, 200);
+  };
+  
+  // Init size chart on first open
+  setTimeout(() => openSizeChart('shirts'), 100);
+  
+  // Update compare bar if needed
+  updateCompareBar();
+  
+  // Render recently viewed improvements
+  renderRecentlyViewedV2();
+});
+
+function renderRecentlyViewedV2() {
+  const rv = JSON.parse(localStorage.getItem('slx_rv') || '[]');
+  const sec = document.getElementById('recently-viewed');
+  const grid = document.getElementById('rv-grid');
+  if (!sec || !rv.length) return;
+  sec.classList.add('show');
+  if (grid) {
+    grid.innerHTML = rv.slice(0,8).map(pid => {
+      const p = PRODUCTS.find(x => x.id === pid);
+      if (!p) return '';
+      return `<div class="rv-card" onclick="openQV(${p.id})">
+        <img class="rv-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/150/120'">
+        <div class="rv-body">
+          <div class="rv-name">${p.name}</div>
+          <div class="rv-price">৳${p.price.toLocaleString('en-IN')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+</script>
+
+<!-- ══ LOYALTY MODAL ══ -->
+<div id="loyalty-modal">
+  <div class="lm-backdrop" onclick="closeLoyaltyModal()"></div>
+  <div class="lm-card">
+    <div class="lm-head">
+      <span class="lm-head-crown">👑</span>
+      <div class="lm-head-title">আপনার Loyalty Rewards</div>
+      <div class="lm-head-sub" id="lm-tier-text">Bronze Member</div>
+    </div>
+    <div class="lm-body">
+      <div class="lm-points-big">
+        <div class="lm-pts-num" id="lm-pts-num">0</div>
+        <div class="lm-pts-lbl">Total Points (= <span id="lm-pts-taka">৳0</span> সমতুল্য)</div>
+        <div style="margin-top:10px">
+          <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+            <div id="lm-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),#ff6b35);border-radius:4px;width:0%;transition:width .8s ease"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:5px;text-align:center" id="lm-next-tier-text">পরবর্তী tier এর জন্য আরো 1000 Points দরকার</div>
+        </div>
+      </div>
+      <div class="lm-tier-section">
+        <div class="lm-tier-title">Tier Benefits</div>
+        <div class="lm-tiers">
+          <div class="lm-tier-card" id="lm-t-bronze"><div class="ltc-icon">🥉</div><div class="ltc-name">Bronze</div><div class="ltc-req">0+ pts</div><div class="ltc-benefit">1× Points</div></div>
+          <div class="lm-tier-card" id="lm-t-silver"><div class="ltc-icon">🥈</div><div class="ltc-name">Silver</div><div class="ltc-req">1000 pts</div><div class="ltc-benefit">+5% Disc</div></div>
+          <div class="lm-tier-card" id="lm-t-gold"><div class="ltc-icon">🥇</div><div class="ltc-name">Gold</div><div class="ltc-req">5000 pts</div><div class="ltc-benefit">+10% Disc</div></div>
+          <div class="lm-tier-card" id="lm-t-platinum"><div class="ltc-icon">💎</div><div class="ltc-name">Platinum</div><div class="ltc-req">20000 pts</div><div class="ltc-benefit">+15% Disc</div></div>
+        </div>
+      </div>
+      <div class="lm-earn-section">
+        <div class="lm-tier-title">Points কিভাবে আয় করবেন</div>
+        <div class="lm-earn-grid">
+          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-bag-shopping"></i></div><div><div class="lei-pts">10 pts</div><div class="lei-lbl">প্রতি ৳100 কেনাকাটায়</div></div></div>
+          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-user-plus"></i></div><div><div class="lei-pts">100 pts</div><div class="lei-lbl">Registration বোনাস</div></div></div>
+          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-comment"></i></div><div><div class="lei-pts">25 pts</div><div class="lei-lbl">প্রতিটি Review এ</div></div></div>
+          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-share-nodes"></i></div><div><div class="lei-pts">200 pts</div><div class="lei-lbl">বন্ধুকে Refer করুন</div></div></div>
+        </div>
+      </div>
+      <div class="lm-redeem-section">
+        <div class="lm-redeem-title"><i class="fa-solid fa-coins" style="color:var(--gold)"></i> Points Redeem করুন</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">100 Points = ৳10 ছাড় (Checkout এ apply করুন)</div>
+        <div class="lm-redeem-row">
+          <input type="number" class="lm-redeem-inp" id="lm-redeem-inp" placeholder="Points পরিমাণ লিখুন..." min="100">
+          <button class="lm-redeem-btn" onclick="redeemPoints()"><i class="fa-solid fa-check"></i> Apply</button>
+        </div>
+        <div id="lm-redeem-msg" style="font-size:11px;margin-top:6px;display:none"></div>
+      </div>
+      <div class="lm-history" id="lm-history">
+        <div class="lm-tier-title" style="margin-top:16px">Points History</div>
+        <div id="lm-hist-list"></div>
+      </div>
+    </div>
+    <div style="padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px">
+      <button onclick="openReferralModal()" style="flex:1;background:linear-gradient(135deg,#0C2A6E,#1877F2);color:#fff;padding:11px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px"><i class="fa-solid fa-users"></i> Refer করুন</button>
+      <button onclick="closeLoyaltyModal()" style="background:var(--bg2);color:var(--text2);padding:11px 20px;border-radius:var(--r-full);font-size:13px;font-weight:600;border:none;cursor:pointer">বন্ধ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REFERRAL MODAL ══ -->
+<div id="referral-modal">
+  <div class="rm-backdrop" onclick="closeReferralModal()"></div>
+  <div class="rm-card">
+    <div class="rm-head">
+      <span class="rm-head-emoji">🎁</span>
+      <div class="rm-head-title">বন্ধুকে Refer করুন</div>
+      <div class="rm-head-sub">আপনি ৳200 পাবেন, বন্ধু পাবে 10% ছাড়!</div>
+    </div>
+    <button onclick="closeReferralModal()" style="position:absolute;top:14px;right:14px;color:rgba(255,255,255,.6);font-size:20px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    <div class="rm-body">
+      <div class="rm-how">
+        <div class="rm-step"><div class="rm-step-num">1</div><i class="fa-solid fa-link"></i><div class="rm-step-title">Link শেয়ার করুন</div><div class="rm-step-sub">নিচের unique link টি বন্ধুকে পাঠান</div></div>
+        <div class="rm-step"><div class="rm-step-num">2</div><i class="fa-solid fa-bag-shopping"></i><div class="rm-step-title">বন্ধু কিনুক</div><div class="rm-step-sub">বন্ধু প্রথম অর্ডার করুক (৳500+)</div></div>
+        <div class="rm-step"><div class="rm-step-num">3</div><i class="fa-solid fa-money-bill-wave"></i><div class="rm-step-title">আপনি পাবেন ৳200!</div><div class="rm-step-sub">Loyalty Points হিসেবে automatically</div></div>
+      </div>
+      <div class="rm-link-box">
+        <div class="rm-link-label">আপনার Unique Referral Link</div>
+        <div class="rm-link-row">
+          <input type="text" class="rm-link-inp" id="rm-link-inp" readonly>
+          <button class="rm-copy-btn" onclick="copyReferralLink()"><i class="fa-regular fa-copy"></i> Copy</button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">👆 এই লিংকটি বন্ধুকে পাঠান</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:10px;text-align:center">Share করুন:</div>
+      <div class="rm-share-row">
+        <button class="rm-share-btn rm-wa" onclick="shareRef('whatsapp')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+        <button class="rm-share-btn rm-fb" onclick="shareRef('facebook')"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
+        <button class="rm-share-btn rm-tg" onclick="shareRef('telegram')"><i class="fa-brands fa-telegram"></i> Telegram</button>
+      </div>
+      <div class="rm-stats-row">
+        <div class="rm-stat"><div class="rm-stat-num" id="rm-total-ref">0</div><div class="rm-stat-lbl">মোট Referral</div></div>
+        <div class="rm-stat"><div class="rm-stat-num" id="rm-success-ref">0</div><div class="rm-stat-lbl">সফল Referral</div></div>
+        <div class="rm-stat"><div class="rm-stat-num" id="rm-earned-ref">৳0</div><div class="rm-stat-lbl">মোট আয়</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NOTIFICATION PANEL ══ -->
+<div id="notif-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3499;opacity:0;visibility:hidden;transition:var(--t)" onclick="closeNotifPanel()"></div>
+<div id="notif-panel">
+  <div class="np-head">
+    <div class="np-title"><i class="fa-regular fa-bell"></i> Notifications</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:11px;color:rgba(255,255,255,.4);cursor:pointer" onclick="markAllRead()">সব পড়া হয়েছে</span>
+      <button onclick="closeNotifPanel()" style="color:rgba(255,255,255,.6);font-size:18px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+  <div class="np-body" id="np-body">
+    <div style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-regular fa-bell" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>কোনো notification নেই</p></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   SHOPLIXO v4 — LOYALTY POINTS + REFERRAL + NOTIFICATIONS
+══════════════════════════════════════════════════════ */
+
+/* ── LOYALTY POINTS SYSTEM ── */
+const POINTS_PER_TAKA = 0.1; // 10 points per ৳100
+const TAKA_PER_POINT = 0.1;  // 100 points = ৳10
+const TIER_THRESHOLDS = { bronze:0, silver:1000, gold:5000, platinum:20000 };
+const TIER_DISCOUNTS  = { bronze:0, silver:5, gold:10, platinum:15 };
+const TIER_MULTIPLIERS= { bronze:1, silver:1.25, gold:1.5, platinum:2 };
+
+function getLoyaltyData() {
+  return JSON.parse(localStorage.getItem('slx_loyalty') || JSON.stringify({
+    points: 0, totalEarned: 0, tier: 'bronze', history: [], redeemedDiscount: 0
+  }));
+}
+function saveLoyaltyData(d){ localStorage.setItem('slx_loyalty', JSON.stringify(d)); }
+
+function getUserTier(pts){
+  if(pts >= TIER_THRESHOLDS.platinum) return 'platinum';
+  if(pts >= TIER_THRESHOLDS.gold) return 'gold';
+  if(pts >= TIER_THRESHOLDS.silver) return 'silver';
+  return 'bronze';
+}
+
+function earnPoints(amount, reason='Purchase') {
+  if(!currentUser) return;
+  const d = getLoyaltyData();
+  const tier = getUserTier(d.points);
+  const multiplier = TIER_MULTIPLIERS[tier] || 1;
+  const pts = Math.floor(amount * POINTS_PER_TAKA * multiplier);
+  if(pts <= 0) return;
+  d.points += pts;
+  d.totalEarned += pts;
+  d.tier = getUserTier(d.points);
+  d.history.unshift({ type:'earn', pts, reason, date: new Date().toISOString(), balance: d.points });
+  d.history = d.history.slice(0, 50);
+  saveLoyaltyData(d);
+  updateLoyaltyUI();
+  addNotification('points', `🌟 +${pts} Points অর্জন!`, `${reason} — মোট: ${d.points} Points`);
+  // Tier upgrade notification
+  const newTier = getUserTier(d.points);
+  if(newTier !== tier){
+    const tierNames = {bronze:'Bronze 🥉', silver:'Silver 🥈', gold:'Gold 🥇', platinum:'Platinum 💎'};
+    showToast(`🎉 Congratulations! আপনি ${tierNames[newTier]} Member হয়েছেন!`, 'crown');
+    addNotification('promo', `🎉 Tier Upgrade!`, `আপনি ${tierNames[newTier]} Member হয়েছেন! নতুন সুবিধা পাচ্ছেন।`);
+  }
+  return pts;
+}
+
+function redeemPoints() {
+  if(!currentUser){ showToast('Login করুন!', 'exclamation'); return; }
+  const inp = document.getElementById('lm-redeem-inp');
+  const msg = document.getElementById('lm-redeem-msg');
+  const pts = parseInt(inp?.value || 0);
+  const d = getLoyaltyData();
+  if(!pts || pts < 100){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">কমপক্ষে 100 Points redeem করুন!</span>'; return; }
+  if(pts > d.points){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">পর্যাপ্ত Points নেই!</span>'; return; }
+  // Apply discount
+  const taka = Math.floor(pts * TAKA_PER_POINT);
+  d.redeemedDiscount = (d.redeemedDiscount || 0) + taka;
+  d.points -= pts;
+  d.history.unshift({ type:'redeem', pts:-pts, reason:'Checkout Discount', date: new Date().toISOString(), balance: d.points });
+  saveLoyaltyData(d);
+  updateLoyaltyUI();
+  closeLoyaltyModal();
+  showToast(`${pts} Points redeem! ৳${taka} ছাড় আপনার পরবর্তী checkout এ!`, 'coins');
+  inp.value = '';
+  msg.style.display = 'none';
+}
+
+function applyLoyaltyPoints() {
+  if(!currentUser) return;
+  const inp = document.getElementById('ck-loy-inp');
+  const msg = document.getElementById('ck-loy-msg');
+  const pts = parseInt(inp?.value || 0);
+  const d = getLoyaltyData();
+  if(!pts || pts < 100){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">কমপক্ষে 100 Points দিন!</span>'; return; }
+  if(pts > d.points){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">পর্যাপ্ত Points নেই!</span>'; return; }
+  const taka = Math.floor(pts * TAKA_PER_POINT);
+  window._loyaltyPtsUsed = pts;
+  window._loyaltyDiscount = taka;
+  msg.style.display='block';
+  msg.innerHTML=`<span style="color:var(--green)">✅ ${pts} Points apply হয়েছে! ৳${taka} ছাড় পাবেন</span>`;
+  ckRefresh();
+}
+
+function updateLoyaltyUI() {
+  if(!currentUser) return;
+  const d = getLoyaltyData();
+  const tier = getUserTier(d.points);
+  const tierNames = {bronze:'Bronze 🥉',silver:'Silver 🥈',gold:'Gold 🥇',platinum:'Platinum 💎'};
+  // Header chip
+  const chip = document.getElementById('hdr-pts-chip');
+  const chipVal = document.getElementById('hdr-pts-val');
+  if(chip){ chip.style.display='flex'; }
+  if(chipVal) chipVal.textContent = d.points.toLocaleString('en-IN');
+  // Loyalty bar
+  const bar = document.getElementById('loyalty-bar');
+  if(bar) bar.style.display = 'block';
+  const lbPts = document.getElementById('lb-points');
+  if(lbPts) lbPts.textContent = d.points.toLocaleString('en-IN');
+  const lbBadge = document.getElementById('lb-tier-badge');
+  if(lbBadge){
+    lbBadge.textContent = tierNames[tier].split(' ')[0];
+    lbBadge.className = 'lb-tier-badge lb-' + tier;
+  }
+  // Modal
+  const lmNum = document.getElementById('lm-pts-num');
+  if(lmNum) lmNum.textContent = d.points.toLocaleString('en-IN');
+  const lmTaka = document.getElementById('lm-pts-taka');
+  if(lmTaka) lmTaka.textContent = '৳' + Math.floor(d.points * TAKA_PER_POINT).toLocaleString('en-IN');
+  const lmTierText = document.getElementById('lm-tier-text');
+  if(lmTierText) lmTierText.textContent = tierNames[tier] + ' Member';
+  // Progress bar
+  const tiers = ['bronze','silver','gold','platinum'];
+  const idx = tiers.indexOf(tier);
+  const nextTier = tiers[idx+1];
+  if(nextTier){
+    const nextReq = TIER_THRESHOLDS[nextTier];
+    const currReq = TIER_THRESHOLDS[tier];
+    const pct = Math.min(100, ((d.points - currReq) / (nextReq - currReq)) * 100);
+    const pb = document.getElementById('lm-progress-bar');
+    if(pb) pb.style.width = pct + '%';
+    const nt = document.getElementById('lm-next-tier-text');
+    if(nt) nt.textContent = `${nextTier.charAt(0).toUpperCase()+nextTier.slice(1)} হতে আর ${(nextReq-d.points).toLocaleString('en-IN')} Points দরকার`;
+  }
+  // Tier cards
+  ['bronze','silver','gold','platinum'].forEach(t => {
+    const el = document.getElementById('lm-t-'+t);
+    if(el) el.classList.toggle('current', t===tier);
+  });
+  // History
+  const histList = document.getElementById('lm-hist-list');
+  if(histList){
+    histList.innerHTML = d.history.slice(0,8).map(h=>`
+      <div class="lm-hist-item">
+        <div><i class="fa-solid fa-${h.type==='earn'?'plus':'minus'}" style="color:${h.type==='earn'?'var(--green)':'var(--brand)'}"></i> <span style="color:var(--text2)">${h.reason}</span></div>
+        <span class="lhp ${h.type}">${h.type==='earn'?'+':''}${h.pts} pts</span>
+      </div>`).join('') || '<div style="color:var(--text3);font-size:12px;text-align:center;padding:10px">কোনো history নেই</div>';
+  }
+  // Checkout loyalty section
+  const ckSec = document.getElementById('ck-loyalty-section');
+  if(ckSec && d.points >= 100){ ckSec.style.display='block'; }
+  const ckBal = document.getElementById('ck-loy-balance');
+  if(ckBal) ckBal.textContent = d.points.toLocaleString('en-IN');
+  const ckTaka = document.getElementById('ck-loy-taka');
+  if(ckTaka) ckTaka.textContent = '৳' + Math.floor(d.points * TAKA_PER_POINT).toLocaleString('en-IN');
+}
+
+function openLoyaltyModal(){
+  if(!currentUser){ showToast('Loyalty Program এ Join করতে Login করুন!','crown'); openAuth('login'); return; }
+  updateLoyaltyUI();
+  document.getElementById('loyalty-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLoyaltyModal(){ document.getElementById('loyalty-modal').classList.remove('open'); document.body.style.overflow=''; }
+
+/* Grant 100 points on register */
+const _origUpdateUserUI = window.updateUserUI;
+window.updateUserUI = function(){
+  if(_origUpdateUserUI) _origUpdateUserUI();
+  if(currentUser){
+    updateLoyaltyUI();
+    const d = getLoyaltyData();
+    if(d.history.length === 0){
+      earnPoints(0,'Registration Bonus');
+      // Force 100 pts for registration
+      const d2 = getLoyaltyData();
+      d2.points = 100; d2.totalEarned = 100;
+      d2.history = [{type:'earn',pts:100,reason:'Registration Bonus',date:new Date().toISOString(),balance:100}];
+      saveLoyaltyData(d2);
+      updateLoyaltyUI();
+    }
+    // Show referral strip based on login
+    const refStrip = document.getElementById('ref-strip');
+    if(refStrip && currentUser) refStrip.style.display='block';
+  }
+};
+
+/* ── REFERRAL PROGRAM ── */
+function getReferralCode(){
+  if(!currentUser) return '';
+  const name = (currentUser.name||'user').toLowerCase().replace(/\s+/g,'').slice(0,8);
+  const phone = (currentUser.phone||'').slice(-4);
+  return 'REF-' + name + phone;
+}
+
+function getReferralData(){
+  return JSON.parse(localStorage.getItem('slx_referral') || JSON.stringify({ totalRefs:0, successRefs:0, earned:0 }));
+}
+
+function openReferralModal(){
+  if(!currentUser){ showToast('Referral link পেতে Login করুন!','share-nodes'); openAuth('login'); return; }
+  const code = getReferralCode();
+  const link = `${window.location.origin}?ref=${code}`;
+  const inp = document.getElementById('rm-link-inp');
+  if(inp) inp.value = link;
+  // Stats
+  const rd = getReferralData();
+  const rt = document.getElementById('rm-total-ref'); if(rt) rt.textContent = rd.totalRefs;
+  const rs = document.getElementById('rm-success-ref'); if(rs) rs.textContent = rd.successRefs;
+  const re = document.getElementById('rm-earned-ref'); if(re) re.textContent = '৳' + rd.earned;
+  document.getElementById('referral-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeReferralModal(){ document.getElementById('referral-modal').classList.remove('open'); document.body.style.overflow=''; }
+
+function copyReferralLink(){
+  const code = getReferralCode();
+  const link = `${window.location.origin}?ref=${code}`;
+  navigator.clipboard?.writeText(link).then(()=>showToast('Referral link copied! 🔗','copy')).catch(()=>showToast('Link: '+link,'copy'));
+}
+
+function shareRef(platform){
+  const code = getReferralCode();
+  const link = `${window.location.origin}?ref=${code}`;
+  const msg = `🛍️ Shoplixo তে অর্ডার করুন — Bangladesh এর সেরা online shop!\n🎁 আমার referral link ব্যবহার করলে আপনি 10% ছাড় পাবেন!\n\n${link}`;
+  const urls = {
+    whatsapp: `https://wa.me/?text=${encodeURIComponent(msg)}`,
+    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`,
+    telegram: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`
+  };
+  if(urls[platform]) window.open(urls[platform],'_blank');
+}
+
+// Check referral code on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const ref = urlParams.get('ref');
+  if(ref && ref.startsWith('REF-')){
+    localStorage.setItem('slx_ref_code', ref);
+    showToast('Referral code applied! পরবর্তী অর্ডারে 10% ছাড় পাবেন! 🎁', 'gift');
+    // Add coupon for referral
+    setTimeout(()=>{ COUPONS['REFERRAL10'] = 10; }, 500);
+  }
+});
+
+/* ── NOTIFICATIONS ── */
+let notifications = JSON.parse(localStorage.getItem('slx_notifs') || '[]');
+
+function addNotification(type, title, text){
+  notifications.unshift({ type, title, text, time: new Date().toISOString(), read: false, id: Date.now() });
+  notifications = notifications.slice(0, 20);
+  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+  updateNotifDot();
+  renderNotifications();
+}
+
+function updateNotifDot(){
+  const dot = document.getElementById('notif-dot');
+  const unread = notifications.filter(n=>!n.read).length;
+  if(dot) dot.style.display = unread > 0 ? 'block' : 'none';
+}
+
+function renderNotifications(){
+  const body = document.getElementById('np-body');
+  if(!body) return;
+  if(!notifications.length){
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-regular fa-bell" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>কোনো notification নেই</p></div>';
+    return;
+  }
+  const typeIcons = { order:'ni-order', points:'ni-points', promo:'ni-promo' };
+  const icons = { order:'fa-receipt', points:'fa-star', promo:'fa-tag' };
+  body.innerHTML = notifications.map(n => `
+    <div class="notif-item" onclick="markRead(${n.id})">
+      <div class="ni-icon ${typeIcons[n.type]||'ni-promo'}"><i class="fa-solid ${icons[n.type]||'fa-bell'}"></i></div>
+      <div class="ni-text">
+        <div class="ni-title">${n.title}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4">${n.text}</div>
+        <div class="ni-time">${new Date(n.time).toLocaleString('bn-BD',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      ${!n.read ? '<div class="ni-unread"></div>' : ''}
+    </div>`).join('');
+}
+
+function markRead(id){
+  const n = notifications.find(n=>n.id===id);
+  if(n) n.read = true;
+  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+  updateNotifDot();
+  renderNotifications();
+}
+
+function markAllRead(){
+  notifications.forEach(n=>n.read=true);
+  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+  updateNotifDot();
+  renderNotifications();
+}
+
+function openNotifPanel(){
+  renderNotifications();
+  document.getElementById('notif-panel').classList.add('open');
+  document.getElementById('notif-overlay').style.opacity='1';
+  document.getElementById('notif-overlay').style.visibility='visible';
+  document.body.style.overflow='hidden';
+  markAllRead();
+}
+function closeNotifPanel(){
+  document.getElementById('notif-panel').classList.remove('open');
+  document.getElementById('notif-overlay').style.opacity='0';
+  document.getElementById('notif-overlay').style.visibility='hidden';
+  document.body.style.overflow='';
+}
+
+/* ── OVERRIDE placeOrder to earn points ── */
+const _origPlaceOrder = window.placeOrder;
+window.placeOrder = async function(){
+  await _origPlaceOrder();
+  // Earn points after successful order (check if order success shown)
+  setTimeout(()=>{
+    if(document.getElementById('order-success').classList.contains('open') && currentUser){
+      const orderTotal = total();
+      const ptsEarned = earnPoints(orderTotal, 'Order Placed');
+      // Add points notification
+      addNotification('order', '📦 Order সফল!', `আপনার order confirm হয়েছে। +${ptsEarned||0} Points অর্জন করেছেন!`);
+      updateLoyaltyUI();
+    }
+  }, 500);
+};
+
+/* ── OVERRIDE ckRefresh to include loyalty discount ── */
+const _origCkRefresh = window.ckRefresh;
+window.ckRefresh = function(){
+  const t=total(), thresh=CFG.freeShippingMin||999;
+  const ship=t>=thresh?0:60;
+  const discAmt=Math.round(t*discount/100);
+  const loyDisc = window._loyaltyDiscount || 0;
+  const fin=Math.max(0, t+ship-discAmt-loyDisc);
+  if(_origCkRefresh) _origCkRefresh();
+  // Update total with loyalty discount
+  if(loyDisc > 0){
+    const ckTotal = document.getElementById('ck-total');
+    if(ckTotal) ckTotal.textContent='৳'+fin.toLocaleString('en-IN');
+  }
+};
+
+/* ━━━ ADVANCED FILTER SYSTEM ━━━ */
+let advFilter = {
+  sort: 'default',
+  minPrice: 0,
+  maxPrice: 12000,
+  rating: 0,
+  colors: [],
+  sizes: [],
+  inStock: false,
+  flashOnly: false,
+  featuredOnly: false,
+};
+let currentFilterCat = 'all';
+
+function openAdvFilter(){
+  // Update counts
+  const rc45 = document.getElementById('rc-45');
+  const rc4 = document.getElementById('rc-4');
+  const rc3 = document.getElementById('rc-3');
+  if(rc45) rc45.textContent = PRODUCTS.filter(p=>p.rating>=4.5).length + ' টি';
+  if(rc4) rc4.textContent = PRODUCTS.filter(p=>p.rating>=4).length + ' টি';
+  if(rc3) rc3.textContent = PRODUCTS.filter(p=>p.rating>=3).length + ' টি';
+  updateAfdResultCount();
+  document.getElementById('adv-filter-drawer').classList.add('open');
+  document.getElementById('adv-filter-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeAdvFilter(){
+  document.getElementById('adv-filter-drawer').classList.remove('open');
+  document.getElementById('adv-filter-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function selectSort(el,val){
+  document.querySelectorAll('.sort-opt').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  advFilter.sort = val;
+  document.getElementById('quick-sort').value = val;
+  updateAfdResultCount();
+}
+function clearSort(){ selectSort(document.querySelector('.sort-opt[data-sort="default"]'),'default'); }
+function selectRating(el,val){
+  document.querySelectorAll('.rating-opt').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  advFilter.rating = val;
+  updateAfdResultCount();
+}
+function clearRating(){ selectRating(document.querySelector('.rating-opt[data-rating="0"]'),0); }
+function toggleColor(el,color){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')){ if(!advFilter.colors.includes(color)) advFilter.colors.push(color); }
+  else { advFilter.colors = advFilter.colors.filter(c=>c!==color); }
+  updateAfdResultCount();
+}
+function clearColors(){
+  document.querySelectorAll('.color-opt').forEach(c=>c.classList.remove('active'));
+  advFilter.colors=[];
+  updateAfdResultCount();
+}
+function toggleSize(el,size){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')){ if(!advFilter.sizes.includes(size)) advFilter.sizes.push(size); }
+  else { advFilter.sizes = advFilter.sizes.filter(s=>s!==size); }
+  updateAfdResultCount();
+}
+function clearSizes(){
+  document.querySelectorAll('.size-opt').forEach(s=>s.classList.remove('active'));
+  advFilter.sizes=[];
+  updateAfdResultCount();
+}
+function updateRangeSlider(){
+  const minEl = document.getElementById('range-min');
+  const maxEl = document.getElementById('range-max');
+  let minVal = parseInt(minEl.value);
+  let maxVal = parseInt(maxEl.value);
+  if(minVal > maxVal){ const tmp=minVal; minVal=maxVal; maxVal=tmp; }
+  advFilter.minPrice = minVal;
+  advFilter.maxPrice = maxVal;
+  document.getElementById('price-min').value = minVal;
+  document.getElementById('price-max').value = maxVal;
+  const fill = document.getElementById('range-fill');
+  if(fill){
+    const pct1 = (minVal/12000)*100;
+    const pct2 = (maxVal/12000)*100;
+    fill.style.left = pct1+'%';
+    fill.style.width = (pct2-pct1)+'%';
+  }
+  updateAfdResultCount();
+}
+function syncPriceRange(){
+  const minVal = parseInt(document.getElementById('price-min').value)||0;
+  const maxVal = parseInt(document.getElementById('price-max').value)||12000;
+  document.getElementById('range-min').value = minVal;
+  document.getElementById('range-max').value = maxVal;
+  advFilter.minPrice = minVal;
+  advFilter.maxPrice = maxVal;
+  updateRangeSlider();
+}
+function resetPriceFilter(){
+  advFilter.minPrice=0; advFilter.maxPrice=12000;
+  document.getElementById('price-min').value=0;
+  document.getElementById('price-max').value=12000;
+  document.getElementById('range-min').value=0;
+  document.getElementById('range-max').value=12000;
+  updateRangeSlider();
+}
+function getFilteredProducts(){
+  let base = currentFilterCat==='all' ? PRODUCTS.filter(p=>p.isFeatured) : PRODUCTS.filter(p=>p.cat===currentFilterCat);
+  // Price filter
+  if(advFilter.minPrice>0 || advFilter.maxPrice<12000)
+    base = base.filter(p=>p.price>=advFilter.minPrice && p.price<=advFilter.maxPrice);
+  // Rating filter
+  if(advFilter.rating>0) base = base.filter(p=>p.rating>=advFilter.rating);
+  // Color filter
+  if(advFilter.colors.length)
+    base = base.filter(p=>p.colors && advFilter.colors.some(c=>p.colors.some(pc=>pc.toLowerCase().includes(c.toLowerCase()))));
+  // Size filter
+  if(advFilter.sizes.length)
+    base = base.filter(p=>p.sizes && advFilter.sizes.some(s=>p.sizes.includes(s)));
+  // Availability
+  if(document.getElementById('avail-instock') && document.getElementById('avail-instock').checked)
+    base = base.filter(p=>p.stock>0);
+  if(document.getElementById('avail-flash') && document.getElementById('avail-flash').checked)
+    base = base.filter(p=>p.isFlash);
+  if(document.getElementById('avail-featured') && document.getElementById('avail-featured').checked)
+    base = base.filter(p=>p.isFeatured);
+  // Sort
+  const sort = document.getElementById('quick-sort')?.value || advFilter.sort;
+  if(sort==='price-low') base.sort((a,b)=>a.price-b.price);
+  else if(sort==='price-high') base.sort((a,b)=>b.price-a.price);
+  else if(sort==='rating') base.sort((a,b)=>b.rating-a.rating);
+  else if(sort==='popular') base.sort((a,b)=>b.reviews-a.reviews);
+  else if(sort==='newest') base = base.filter(p=>p.isNew).concat(base.filter(p=>!p.isNew));
+  else if(sort==='discount') base.sort((a,b)=>{
+    const da=(a.orig&&a.price)?(a.orig-a.price)/a.orig:0;
+    const db=(b.orig&&b.price)?(b.orig-b.price)/b.orig:0;
+    return db-da;
+  });
+  return base;
+}
+function updateAfdResultCount(){
+  const cnt = getFilteredProducts().length;
+  const el = document.getElementById('afd-result-count');
+  if(el) el.textContent = cnt + ' পণ্য';
+}
+function applyAdvFilter(){
+  const results = getFilteredProducts();
+  // Count active filters
+  let activeCount=0;
+  if(advFilter.minPrice>0||advFilter.maxPrice<12000) activeCount++;
+  if(advFilter.rating>0) activeCount++;
+  if(advFilter.colors.length) activeCount+=advFilter.colors.length;
+  if(advFilter.sizes.length) activeCount++;
+  const badge = document.getElementById('filter-active-count');
+  if(badge){ badge.textContent=activeCount||''; badge.style.display=activeCount?'inline-flex':'none'; }
+  const txt = document.getElementById('adv-filter-result-txt');
+  if(txt) txt.innerHTML = results.length > 0
+    ? `<span class="frb-count">${results.length}টি পণ্য</span> পাওয়া গেছে`
+    : '<span style="color:var(--brand)">কোনো পণ্য পাওয়া যায়নি</span>';
+  renderGrid('main-grid', results, 20);
+}
+function resetAllFilters(){
+  advFilter = { sort:'default',minPrice:0,maxPrice:12000,rating:0,colors:[],sizes:[],inStock:false,flashOnly:false,featuredOnly:false };
+  document.querySelectorAll('.sort-opt').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.sort-opt[data-sort="default"]')?.classList.add('active');
+  document.querySelectorAll('.rating-opt').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.rating-opt[data-rating="0"]')?.classList.add('active');
+  document.querySelectorAll('.color-opt,.size-opt').forEach(s=>s.classList.remove('active'));
+  resetPriceFilter();
+  const chks=['avail-instock','avail-flash','avail-featured'];
+  chks.forEach(id=>{ const el=document.getElementById(id); if(el) el.checked=false; });
+  const qs = document.getElementById('quick-sort');
+  if(qs) qs.value='default';
+  const badge = document.getElementById('filter-active-count');
+  if(badge) badge.style.display='none';
+  const txt = document.getElementById('adv-filter-result-txt');
+  if(txt) txt.textContent='সব পণ্য দেখাচ্ছে';
+  renderGrid('main-grid', PRODUCTS.filter(p=>p.isFeatured));
+  showToast('Filter reset করা হয়েছে', 'rotate-left');
+}
+// Hook quick-sort into filter
+document.getElementById('quick-sort')?.addEventListener('change', function(){
+  advFilter.sort = this.value;
+  applyAdvFilter();
+});
+
+/* ━━━ VIDEO REVIEW SUPPORT ━━━ */
+(function patchCommentForm(){
+  const writeForm = document.getElementById('cm-write-form');
+  if(!writeForm) return;
+  const ta = writeForm.querySelector('#cm-text');
+  if(!ta) return;
+  // Insert video URL field after textarea
+  const videoField = document.createElement('div');
+  videoField.style.cssText = 'margin-top:10px';
+  videoField.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px">আপনার Size</div>
+        <select id="cm-size" style="width:100%;padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;background:#fff;transition:var(--t)">
+          <option value="">Size select করুন</option>
+          <option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option>
+          <option>28</option><option>30</option><option>32</option><option>34</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px">Color</div>
+        <input id="cm-color" type="text" placeholder="যেমন: Black, Red..." style="width:100%;padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)">
+      </div>
+    </div>
+    <div style="margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px"><i class="fa-brands fa-youtube" style="color:#FF0000"></i> Video Review URL (Optional)</div>
+      <input id="cm-video-url" type="url" placeholder="YouTube বা Facebook video link দিন..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)">
+      <div style="font-size:11px;color:var(--text3);margin-top:4px"><i class="fa-solid fa-circle-info"></i> Video review দিলে +50 bonus Loyalty Points পাবেন!</div>
+    </div>
+  `;
+  ta.insertAdjacentElement('afterend', videoField);
+})();
+
+// Patch submitComment to include video
+const _origSC = window.submitComment;
+window.submitComment = async function(){
+  // Capture extra fields before original submit
+  const videoUrl = document.getElementById('cm-video-url')?.value?.trim()||'';
+  const sizeVal = document.getElementById('cm-size')?.value?.trim()||'';
+  const colorVal = document.getElementById('cm-color')?.value?.trim()||'';
+  const result = await _origSC();
+  // Patch last comment with video
+  if(videoUrl && currentCommentPid){
+    const allComments = JSON.parse(localStorage.getItem('slx_comments')||'{}');
+    const comments = allComments[currentCommentPid]||[];
+    if(comments.length>0){
+      comments[comments.length-1].videoUrl = videoUrl;
+      if(sizeVal) comments[comments.length-1].size = sizeVal;
+      if(colorVal) comments[comments.length-1].color = colorVal;
+      allComments[currentCommentPid]=comments;
+      localStorage.setItem('slx_comments',JSON.stringify(allComments));
+      if(currentUser){ earnPoints(1250,'Video Review Submitted'); showToast('+50 Bonus Points Video Review এর জন্য! 🎬','video'); }
+    }
+  }
+  // Clear extra fields
+  if(document.getElementById('cm-video-url')) document.getElementById('cm-video-url').value='';
+  if(document.getElementById('cm-size')) document.getElementById('cm-size').value='';
+  if(document.getElementById('cm-color')) document.getElementById('cm-color').value='';
+  return result;
+};
+
+/* ━━━ REFERRAL CODE IN CHECKOUT ━━━ */
+(function addReferralToCheckout(){
+  const couponSec = document.querySelector('#checkout-modal .ck-sec');
+  if(!couponSec) return;
+  const refDiv = document.createElement('div');
+  refDiv.className='ck-sec';
+  refDiv.id='ck-ref-section';
+  refDiv.innerHTML=`
+    <div class="ck-sec-title"><i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Referral Code</div>
+    <div class="coupon-row">
+      <input id="ck-ref-inp" placeholder="বন্ধুর Referral Code দিন..." style="text-transform:uppercase">
+      <button onclick="applyReferralCode()" style="background:var(--green);color:#fff;padding:11px 18px;border-radius:var(--r-sm);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap">Apply</button>
+    </div>
+    <div id="ref-msg" style="font-size:12px;margin-top:7px;display:none"></div>
+  `;
+  couponSec.insertAdjacentElement('afterend', refDiv);
+  // Pre-fill if referral code from URL stored
+  const storedRef = localStorage.getItem('slx_ref_code');
+  if(storedRef){
+    const inp = document.getElementById('ck-ref-inp');
+    if(inp){ inp.value=storedRef; setTimeout(applyReferralCode,500); }
+  }
+})();
+
+function applyReferralCode(){
+  const inp = document.getElementById('ck-ref-inp');
+  const msg = document.getElementById('ref-msg');
+  if(!inp||!msg) return;
+  const code = inp.value.trim().toUpperCase();
+  if(!code){ msg.textContent='Referral code দিন!'; msg.style.color='var(--brand)'; msg.style.display='block'; return; }
+  if(!code.startsWith('REF-')){ msg.textContent='Invalid referral code format (REF-XXXXX হওয়া উচিত)'; msg.style.color='var(--brand)'; msg.style.display='block'; return; }
+  if(!COUPONS['REFERRAL10']) COUPONS['REFERRAL10']=10;
+  discount=10;
+  msg.innerHTML='✅ Referral code applied! আপনি <strong>10% ছাড়</strong> পাবেন!';
+  msg.style.color='var(--green)'; msg.style.display='block';
+  if(typeof ckRefresh==='function') ckRefresh();
+  showToast('Referral code applied! 10% ছাড় পাচ্ছেন! 🎉','gift');
+  localStorage.setItem('slx_ref_code', code);
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', ()=>{
+  updateNotifDot();
+  renderNotifications();
+  // Init price range slider fill
+  updateRangeSlider();
+  if(currentUser) {
+    updateLoyaltyUI();
+    // Add default notifications for new users
+    if(notifications.length === 0){
+      addNotification('promo', '🎉 স্বাগতম Shoplixo তে!', 'প্রথম অর্ডারে LIXA20 কোড ব্যবহার করুন — 20% ছাড়!');
+      addNotification('points', '⭐ 100 Bonus Points!', 'Registration এর জন্য আপনি 100 Bonus Points পেয়েছেন!');
+    }
+  }
+});
+
+/* Loyalty pts chip in header after login */
+const _origUpdateUI2 = window.updateUserUI;
+
+/* Intercept successful review submission to award points */
+const _origSubmitComment = window.submitComment;
+window.submitComment = async function(){
+  const before = document.querySelectorAll('.comment-item').length;
+  await _origSubmitComment();
+  const after = document.querySelectorAll('.comment-item').length;
+  if(after > before && currentUser){
+    earnPoints(250, 'Review Submitted'); // 250 purchase value = 25 pts
+    showToast('+25 Loyalty Points অর্জন রিভিউ দেওয়ার জন্য! ⭐', 'star');
+  }
+};
+
 </script>
 </body>
 </html>

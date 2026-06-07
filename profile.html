@@ -192,6 +192,15 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
           <div class="pf-nav-item" onclick="showSection('wishlist')">
             <i class="fa-solid fa-heart"></i> Wishlist
           </div>
+          <div class="pf-nav-item" onclick="showSection('addresses')">
+            <i class="fa-solid fa-location-dot"></i> Addresses
+          </div>
+          <div class="pf-nav-item" onclick="showSection('loyalty')">
+            <i class="fa-solid fa-star"></i> Points
+          </div>
+          <div class="pf-nav-item" onclick="showSection('referral')">
+            <i class="fa-solid fa-share-nodes"></i> Refer & Earn
+          </div>
         </nav>
         <div class="pf-logout">
           <button class="btn-logout" onclick="doLogout()">
@@ -272,6 +281,189 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
               <div class="empty-state">
                 <i class="fa-regular fa-heart"></i>
                 <p>আপনার Wishlist খালি। হোম পেজ থেকে পণ্য wishlist এ add করুন।</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADDRESSES SECTION -->
+        <div id="sec-addresses" class="pf-section">
+          <div class="section-card">
+            <div class="sc-head">
+              <div class="sc-title"><i class="fa-solid fa-location-dot"></i> Delivery Addresses</div>
+              <button class="btn-save" style="padding:8px 16px;font-size:13px" onclick="showAddressForm()"><i class="fa-solid fa-plus"></i> নতুন Address</button>
+            </div>
+            <div class="sc-body" id="addresses-body">
+              <div class="empty-state"><i class="fa-solid fa-map-location-dot"></i><p>কোনো address সেভ নেই।</p></div>
+            </div>
+            <div id="addr-form" style="display:none;padding:20px;border-top:1px solid var(--border)">
+              <div style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--dark)">নতুন Address যোগ করুন</div>
+              <div class="form-grid">
+                <div class="form-g"><label>Label (Home/Office)</label><input id="addr-label" placeholder="যেমন: Home, Office"></div>
+                <div class="form-g"><label>Phone</label><input id="addr-phone" type="tel" placeholder="01XXXXXXXXX"></div>
+                <div class="form-g full"><label>পূর্ণ ঠিকানা</label><input id="addr-address" placeholder="বাড়ি নং, রাস্তা, এলাকা"></div>
+                <div class="form-g"><label>জেলা</label>
+                  <select id="addr-district" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-family:inherit;outline:none;transition:var(--t);background:#fff">
+                    <option value="">জেলা বেছে নিন</option>
+                    ${['Dhaka','Chittagong','Sylhet','Rajshahi','Khulna','Barisal','Rangpur','Mymensingh','Gazipur','Narayanganj','Cumilla','Cox\'s Bazar','Jessore','Bogura'].map(d=>`<option value="${d}">${d}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:16px">
+                <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="addr-default"> Default address হিসেবে সেট করুন
+                </label>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:14px">
+                <button class="btn-save" onclick="saveAddress()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                <button onclick="document.getElementById('addr-form').style.display='none'" style="padding:12px 20px;border-radius:var(--r-full);font-size:14px;font-weight:600;background:var(--bg);color:var(--text2);border:1.5px solid var(--border);cursor:pointer">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOYALTY POINTS SECTION -->
+        <div id="sec-loyalty" class="pf-section">
+          <div class="section-card" style="margin-bottom:16px">
+            <div class="sc-head"><div class="sc-title"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> Loyalty Points & Tier</div></div>
+            <div class="sc-body">
+              <!-- Tier Hero Card -->
+              <div id="loyalty-tier-card" style="background:linear-gradient(135deg,var(--dark2),#2D1B6E);border-radius:var(--r-xl);padding:28px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden">
+                <div style="position:absolute;top:-20px;right:-20px;font-size:120px;opacity:.05">👑</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+                  <div>
+                    <div id="tier-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,184,0,.2);color:var(--gold);padding:6px 14px;border-radius:var(--r-full);font-size:12px;font-weight:800;letter-spacing:.5px;border:1px solid rgba(255,184,0,.3);margin-bottom:10px">
+                      <i class="fa-solid fa-crown"></i> BRONZE MEMBER
+                    </div>
+                    <div style="font-family:'Syne',sans-serif;font-size:46px;font-weight:800;color:var(--gold);line-height:1" id="lp-balance">0</div>
+                    <div style="font-size:13px;opacity:.6;margin-top:3px">Available Points = <span id="lp-taka">৳0</span></div>
+                  </div>
+                  <div id="tier-icon" style="font-size:60px;opacity:.85">🥉</div>
+                </div>
+                <!-- Tier Progress -->
+                <div style="background:rgba(255,255,255,.08);border-radius:var(--r-full);height:8px;overflow:hidden;margin-bottom:8px">
+                  <div id="tier-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),#ff6b35);border-radius:var(--r-full);width:20%;transition:width .8s ease"></div>
+                </div>
+                <div id="tier-progress-text" style="font-size:12px;opacity:.6">Silver এর জন্য আরো 800 Points প্রয়োজন</div>
+              </div>
+              <!-- Tier Levels -->
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px">
+                <div class="tier-level" id="tier-bronze" style="background:rgba(205,127,50,.1);border:2px solid rgba(205,127,50,.4);border-radius:var(--r-lg);padding:12px;text-align:center">
+                  <div style="font-size:22px;margin-bottom:4px">🥉</div>
+                  <div style="font-size:11px;font-weight:800;color:#CD7F32">Bronze</div>
+                  <div style="font-size:10px;color:var(--text3);margin-top:2px">0-999</div>
+                </div>
+                <div class="tier-level" id="tier-silver" style="background:rgba(192,192,192,.1);border:2px solid rgba(192,192,192,.3);border-radius:var(--r-lg);padding:12px;text-align:center">
+                  <div style="font-size:22px;margin-bottom:4px">🥈</div>
+                  <div style="font-size:11px;font-weight:800;color:#808080">Silver</div>
+                  <div style="font-size:10px;color:var(--text3);margin-top:2px">1000-4999</div>
+                </div>
+                <div class="tier-level" id="tier-gold" style="background:rgba(255,184,0,.08);border:2px solid rgba(255,184,0,.2);border-radius:var(--r-lg);padding:12px;text-align:center">
+                  <div style="font-size:22px;margin-bottom:4px">🥇</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--gold)">Gold</div>
+                  <div style="font-size:10px;color:var(--text3);margin-top:2px">5000-9999</div>
+                </div>
+                <div class="tier-level" id="tier-platinum" style="background:rgba(0,197,138,.08);border:2px solid rgba(0,197,138,.2);border-radius:var(--r-lg);padding:12px;text-align:center">
+                  <div style="font-size:22px;margin-bottom:4px">💎</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--green)">Platinum</div>
+                  <div style="font-size:10px;color:var(--text3);margin-top:2px">10000+</div>
+                </div>
+              </div>
+              <!-- Stats -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+                <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;text-align:center">
+                  <div style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:var(--green)" id="lp-earned">0</div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:3px">Total Earned</div>
+                </div>
+                <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;text-align:center">
+                  <div style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:var(--brand)" id="lp-used">0</div>
+                  <div style="font-size:12px;color:var(--text3);margin-top:3px">Total Used</div>
+                </div>
+              </div>
+              <!-- Achievements -->
+              <div style="background:var(--bg);border-radius:var(--r-lg);padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-trophy" style="color:var(--gold)"></i> Achievements</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px" id="achievements-list">
+                  <div style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-full);padding:5px 12px;font-size:11px;font-weight:600;color:var(--text2)">🛍️ First Order</div>
+                  <div style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-full);padding:5px 12px;font-size:11px;font-weight:600;color:var(--text2);opacity:.4">⭐ 5 Reviews <small style="display:block;font-size:9px">(Locked)</small></div>
+                  <div style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-full);padding:5px 12px;font-size:11px;font-weight:600;color:var(--text2);opacity:.4">🔥 10 Orders <small style="display:block;font-size:9px">(Locked)</small></div>
+                  <div style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid var(--border);border-radius:var(--r-full);padding:5px 12px;font-size:11px;font-weight:600;color:var(--text2);opacity:.4">👥 5 Referrals <small style="display:block;font-size:9px">(Locked)</small></div>
+                </div>
+              </div>
+              <!-- History -->
+              <div style="background:var(--bg);border-radius:var(--r-lg);padding:16px">
+                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-list" style="color:var(--brand)"></i> Points History</div>
+                <div id="loyalty-history">
+                  <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+                </div>
+              </div>
+              <!-- How to Earn -->
+              <div style="background:var(--gold-light,#fff8e6);border-radius:var(--r-lg);padding:14px;margin-top:14px;border:1px solid rgba(255,184,0,.2)">
+                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:8px"><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Points কীভাবে Earn করবেন?</div>
+                <div style="font-size:12px;color:var(--text2);line-height:2">
+                  ✅ প্রতি ৳100 কেনাকাটায় <strong>10 points</strong><br>
+                  ✅ প্রথম অর্ডারে <strong>50 bonus points</strong><br>
+                  ✅ Review দিলে <strong>25 points</strong><br>
+                  ✅ Video Review দিলে <strong>50 points</strong><br>
+                  ✅ বন্ধুকে Refer করলে <strong>100 points</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REFERRAL SECTION -->
+        <div id="sec-referral" class="pf-section">
+          <div class="section-card">
+            <div class="sc-head"><div class="sc-title"><i class="fa-solid fa-share-nodes"></i> Refer & Earn</div></div>
+            <div class="sc-body">
+              <div style="background:linear-gradient(135deg,var(--brand),#ff6b35);border-radius:var(--r-xl);padding:28px;color:#fff;text-align:center;margin-bottom:20px;position:relative;overflow:hidden">
+                <div style="position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"80\" cy=\"20\" r=\"30\" fill=\"rgba(255,255,255,0.05)\"/><circle cx=\"20\" cy=\"80\" r=\"20\" fill=\"rgba(255,255,255,0.05)\"/></svg>')"></div>
+                <div style="position:relative;z-index:1">
+                  <div style="font-size:36px;margin-bottom:10px">🎁</div>
+                  <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px">বন্ধুকে Refer করুন</div>
+                  <div style="opacity:.9;font-size:14px;line-height:1.7">প্রতিটি সফল referral এ আপনি পাবেন <strong>100 Loyalty Points</strong><br>আর আপনার বন্ধু পাবেন <strong>প্রথম অর্ডারে ৫০ Points!</strong></div>
+                </div>
+              </div>
+              <!-- Referral Code Box -->
+              <div style="background:var(--bg);border-radius:var(--r-xl);padding:20px;margin-bottom:16px;text-align:center">
+                <div style="font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">আপনার Referral Code</div>
+                <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--dark);background:var(--brand-l,#fff0f0);border:2px dashed var(--brand);border-radius:var(--r-lg);padding:14px 24px;letter-spacing:4px;margin-bottom:12px;cursor:pointer" id="ref-code" onclick="copyRefCode()">—</div>
+                <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Click করে copy করুন</div>
+                <!-- Share Options -->
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                  <button onclick="copyRefCode()" style="background:var(--brand);color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-copy"></i> Copy Code</button>
+                  <button onclick="shareRefLink('whatsapp')" style="background:#25D366;color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                  <button onclick="shareRefLink('facebook')" style="background:#1877F2;color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
+                  <button onclick="shareRefLink('telegram')" style="background:#229ED9;color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fa-brands fa-telegram"></i> Telegram</button>
+                </div>
+              </div>
+              <!-- Referral Link Copy -->
+              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;margin-bottom:16px">
+                <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">আপনার Referral Link</div>
+                <div style="display:flex;gap:8px">
+                  <input id="ref-link-input" readonly style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:#fff;outline:none;color:var(--text2)" placeholder="Login করলে link দেখাবে">
+                  <button onclick="copyRefLink()" style="background:var(--dark2);color:#fff;padding:9px 16px;border-radius:var(--r-sm);font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap"><i class="fa-solid fa-copy"></i></button>
+                </div>
+              </div>
+              <!-- Stats -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+                <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;text-align:center">
+                  <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif;color:var(--dark)" id="ref-total">0</div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:3px">মোট Referral</div>
+                </div>
+                <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;text-align:center">
+                  <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif;color:var(--green)" id="ref-completed">0</div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:3px">Completed</div>
+                </div>
+                <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;text-align:center">
+                  <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif;color:var(--gold)" id="ref-points">0</div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:3px">Points Earned</div>
+                </div>
+              </div>
+              <div style="background:var(--bg);border-radius:var(--r-lg);padding:16px">
+                <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-people-arrows" style="color:var(--brand)"></i> Referral History</div>
+                <div id="referral-history"><div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">কোনো referral নেই। বন্ধুদের share করুন!</div></div>
               </div>
             </div>
           </div>
@@ -516,7 +708,177 @@ function showSection(name) {
   document.querySelectorAll('.pf-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`sec-${name}`)?.classList.add('active');
   event.currentTarget.classList.add('active');
+  if (name === 'loyalty') loadLoyaltyHistory();
+  if (name === 'referral') loadReferralData();
+  if (name === 'addresses') renderAddresses();
 }
+
+/* ── ADDRESSES ───────────────────────────────────────────── */
+function getAddresses() { return JSON.parse(localStorage.getItem('slx_addresses')||'[]'); }
+function saveAddresses(arr) { localStorage.setItem('slx_addresses', JSON.stringify(arr)); }
+
+function renderAddresses() {
+  const body = document.getElementById('addresses-body');
+  const addrs = getAddresses();
+  if (!addrs.length) {
+    body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-map-location-dot"></i><p>কোনো address নেই। "নতুন Address" বাটন চাপুন।</p></div>`;
+    return;
+  }
+  body.innerHTML = addrs.map((a,i) => `
+    <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+      <div style="width:40px;height:40px;border-radius:50%;background:${a.isDefault?'var(--brand)':'var(--bg3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i class="fa-solid fa-location-dot" style="color:${a.isDefault?'#fff':'var(--text3)'}"></i>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+          <span style="font-weight:700;font-size:14px">${esc(a.label||'Address')}</span>
+          ${a.isDefault?'<span style="background:var(--brand-l);color:var(--brand);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">Default</span>':''}
+        </div>
+        <div style="font-size:13px;color:var(--text2)">${esc(a.address)}, ${esc(a.district)}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px">${esc(a.phone||'')}</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          ${!a.isDefault?`<button onclick="setDefaultAddr(${i})" style="padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--bg);border:1.5px solid var(--border);cursor:pointer;color:var(--text2)">Default করুন</button>`:''}
+          <button onclick="deleteAddr(${i})" style="padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--brand-l);border:none;cursor:pointer;color:var(--brand)"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function showAddressForm() {
+  document.getElementById('addr-form').style.display = 'block';
+  document.getElementById('addr-form').scrollIntoView({behavior:'smooth'});
+}
+
+function saveAddress() {
+  const label = document.getElementById('addr-label')?.value?.trim();
+  const phone = document.getElementById('addr-phone')?.value?.trim();
+  const address = document.getElementById('addr-address')?.value?.trim();
+  const district = document.getElementById('addr-district')?.value;
+  const isDefault = document.getElementById('addr-default')?.checked;
+  if (!address || !district) { alert('Address এবং District দিন!'); return; }
+  let addrs = getAddresses();
+  if (isDefault) addrs = addrs.map(a => ({...a, isDefault: false}));
+  addrs.push({ label: label||'Address', phone, address, district, isDefault });
+  saveAddresses(addrs);
+  document.getElementById('addr-form').style.display = 'none';
+  ['addr-label','addr-phone','addr-address'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  renderAddresses();
+}
+
+function setDefaultAddr(idx) {
+  let addrs = getAddresses();
+  addrs = addrs.map((a,i) => ({...a, isDefault: i===idx}));
+  saveAddresses(addrs);
+  renderAddresses();
+}
+
+function deleteAddr(idx) {
+  if (!confirm('এই address মুছবেন?')) return;
+  let addrs = getAddresses();
+  addrs.splice(idx, 1);
+  saveAddresses(addrs);
+  renderAddresses();
+}
+
+/* ── LOYALTY HISTORY ─────────────────────────────────────── */
+async function loadLoyaltyHistory() {
+  const el = document.getElementById('loyalty-history');
+  if (!el) return;
+  const u = currentUser;
+  if (!u) return;
+  document.getElementById('lp-balance').textContent = u.loyaltyPoints || 0;
+
+  // Fetch from API
+  try {
+    const res = await fetch(`${API_BASE}/api/loyalty?action=history`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (data.ok && data.transactions?.length) {
+      document.getElementById('lp-earned').textContent = data.transactions.filter(t=>t.points>0).reduce((s,t)=>s+t.points,0);
+      document.getElementById('lp-used').textContent = Math.abs(data.transactions.filter(t=>t.points<0).reduce((s,t)=>s+t.points,0));
+      el.innerHTML = data.transactions.slice(0,20).map(t => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <div>
+            <div style="font-weight:600;color:var(--dark)">${esc(t.note||typeLabel(t.type))}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.createdAt?new Date(t.createdAt).toLocaleDateString('bn-BD'):''}</div>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;color:${t.points>=0?'var(--green)':'var(--brand)'}">
+            ${t.points>=0?'+':''}${t.points} pts
+          </div>
+        </div>`).join('');
+    } else {
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">কোনো transaction নেই। কেনাকাটা করুন points earn করুন!</div>`;
+    }
+  } catch {
+    // Show sample data
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">কোনো transaction নেই। প্রতি ৳100 কেনাকাটায় 10 points!</div>`;
+  }
+}
+
+function typeLabel(t) {
+  return {earn:'কেনাকাটা',redeem:'ব্যবহার',bonus:'Bonus',referral:'Referral',admin:'Admin'}[t]||t;
+}
+
+/* ── REFERRAL ──────────────────────────────────────────────── */
+async function loadReferralData() {
+  const u = currentUser;
+  if (!u) return;
+  const code = u.referralCode || generateRefCode(u.phone);
+  document.getElementById('ref-code').textContent = code;
+  document.getElementById('ref-total').textContent = u.totalReferrals || 0;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/referral?action=my`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('ref-completed').textContent = data.completed || 0;
+      document.getElementById('ref-points').textContent = data.totalPoints || 0;
+      if (data.referrals?.length) {
+        document.getElementById('referral-history').innerHTML = data.referrals.map(r => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+            <div>
+              <div style="font-weight:600">${esc(r.referredPhone||'—')}</div>
+              <div style="font-size:11px;color:var(--text3)">${r.createdAt?new Date(r.createdAt).toLocaleDateString():''}</div>
+            </div>
+            <span style="padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:${r.status==='completed'?'#e6faf4':r.status==='paid'?'#e6f0ff':'#fff8e6'};color:${r.status==='completed'?'var(--green)':r.status==='paid'?'var(--blue)':'var(--gold)'}">
+              ${r.status==='completed'?'✅ Complete':r.status==='paid'?'💰 Paid':'⏳ Pending'}
+            </span>
+          </div>`).join('');
+      }
+    }
+  } catch {}
+}
+
+function generateRefCode(phone) {
+  return 'SLX' + String(phone||'').slice(-4).toUpperCase() + Math.floor(Math.random()*100);
+}
+
+function copyRefCode() {
+  const code = document.getElementById('ref-code')?.textContent;
+  if (!code || code==='—') return;
+  navigator.clipboard.writeText(code).then(() => {
+    showMsg(document.getElementById('ref-code'), '✅ Copied!', true);
+    setTimeout(() => { document.getElementById('ref-code').textContent = code; }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = code; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('Copied: ' + code);
+  });
+}
+
+function shareRefLink() {
+  const code = document.getElementById('ref-code')?.textContent;
+  if (!code || code==='—') return;
+  const url = `https://shoplixo.shop/?ref=${code}`;
+  const msg = `🎁 Shoplixo থেকে কিনুন — সেরা দাম! আমার referral code: *${code}* ব্যবহার করুন এবং প্রথম অর্ডারে special discount পান!\n\n${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function esc(s) { return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
 /* ── HELPERS ─────────────────────────────────────────────── */
 function showMsg(el, text, ok) {
