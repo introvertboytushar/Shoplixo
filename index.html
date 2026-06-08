@@ -3262,12 +3262,16 @@ document.addEventListener('DOMContentLoaded', startSocialProof);
    SHOPLIXO — MAIN SCRIPT
    =========================== */
 
-// Load products
-const PRODUCTS = (window.SHOPLIXA_PRODUCTS && window.SHOPLIXA_PRODUCTS.length)
-  ? window.SHOPLIXA_PRODUCTS : [];
+// Load products — FIXED: use let so renderAll() always sees updated list
+window.SHOPLIXA_PRODUCTS = window.SHOPLIXA_PRODUCTS || [];
+let PRODUCTS = window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
 const CFG = window.SHOPLIXA_CONFIG || {
   bkash:'01516511889',nagad:'01516511889',rocket:'01516511889',upay:'01516511889',freeShippingMin:999
 };
+// Sync helper — call whenever PRODUCTS changes
+function syncProductsVar() {
+  PRODUCTS = window.PRODUCTS = window.PRODUCTS || window.SHOPLIXA_PRODUCTS.slice();
+}
 
 // State
 let cart = JSON.parse(localStorage.getItem('slx_cart')||'[]');
@@ -3376,25 +3380,29 @@ function _renderGridInner(id,items,lim){
 
 
 function renderAll() {
-  renderGrid('main-grid', PRODUCTS.filter(p=>p.isFeatured));
-  renderGrid('new-grid', PRODUCTS.filter(p=>p.isNew));
-  renderGrid('women-grid', PRODUCTS.filter(p=>['women','women-bags','women-shoes'].includes(p.cat)));
-  renderGrid('gadget-grid', PRODUCTS.filter(p=>p.cat==='gadgets'));
+  // Always use the latest merged product list
+  const P = window.PRODUCTS || PRODUCTS;
+  renderGrid('main-grid', P.filter(p=>p.isFeatured));
+  renderGrid('new-grid', P.filter(p=>p.isNew));
+  renderGrid('women-grid', P.filter(p=>['women','women-bags','women-shoes'].includes(p.cat)));
+  renderGrid('gadget-grid', P.filter(p=>p.cat==='gadgets'));
   renderFlash();
   updateCatCounts();
 }
 
 function updateCatCounts() {
+  const P = window.PRODUCTS || PRODUCTS;
   const m = {'mens-shirts':'cnt-shirts','mens-pants':'cnt-pants','shoes':'cnt-shoes',
     'women':'cnt-women','gadgets':'cnt-gadgets','kids':'cnt-kids',
     'accessories':'cnt-acc','women-bags':'cnt-bags'};
   for(const [cat,id] of Object.entries(m)){
-    const el=$(id); if(el) el.textContent=PRODUCTS.filter(p=>p.cat===cat).length+' items';
+    const el=$(id); if(el) el.textContent=P.filter(p=>p.cat===cat).length+' items';
   }
 }
 
 function renderFlash() {
-  const fps = PRODUCTS.filter(p=>p.isFlash).slice(0,4);
+  const P = window.PRODUCTS || PRODUCTS;
+  const fps = P.filter(p=>p.isFlash).slice(0,4);
   const el=$('flash-grid'); if(!el) return;
   if(!fps.length){el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:28px;color:rgba(255,255,255,.4)">Flash Sale শীঘ্রই আসছে!</div>`;return;}
   el.innerHTML = fps.map(p=>{
@@ -3420,7 +3428,8 @@ function renderFlash() {
 function filterProducts(cat, btn) {
   document.querySelectorAll('.f-tab').forEach(t=>t.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  const items = cat==='all' ? PRODUCTS.filter(p=>p.isFeatured) : PRODUCTS.filter(p=>p.cat===cat);
+  const P = window.PRODUCTS || PRODUCTS;
+  const items = cat==='all' ? P.filter(p=>p.isFeatured) : P.filter(p=>p.cat===cat);
   renderGrid('main-grid', items, 12);
 }
 function filterCat(cat) {
@@ -3440,7 +3449,8 @@ const total=()=>cart.reduce((s,c)=>s+c.price*c.qty,0);
 const count=()=>cart.reduce((s,c)=>s+c.qty,0);
 
 function addToCart(pid,qty=1,size='M',color=''){
-  const p=PRODUCTS.find(x=>x.id===pid); if(!p) return;
+  const P = window.PRODUCTS || PRODUCTS;
+  const p=P.find(x=>x.id===pid); if(!p) return;
   const ex=cart.find(c=>c.id===pid&&c.size===size);
   if(ex){ex.qty+=qty;}else{cart.push({id:pid,qty,size,color,name:p.name,price:p.price,img:p.img});}
   saveCart();
@@ -3761,7 +3771,8 @@ function doSearch(){
   const q=$('search-input').value.trim().toLowerCase();
   const cat=$('search-cat').value;
   if(!q) return;
-  let res=PRODUCTS.filter(p=>p.name.toLowerCase().includes(q)||(p.desc&&p.desc.toLowerCase().includes(q)));
+  const P = window.PRODUCTS || PRODUCTS;
+  let res=P.filter(p=>p.name.toLowerCase().includes(q)||(p.desc&&p.desc.toLowerCase().includes(q)));
   if(cat) res=res.filter(p=>p.cat===cat);
   $('search-title').textContent=`"${q}" — ${res.length} টি পণ্য`;
   $('search-list').innerHTML=res.length
@@ -3972,12 +3983,15 @@ function closeWpDashboard(){
 function openOrders(){openWpDashboard();}
 function openProductManager(){openWpDashboard();}
 function updateAdminPanel(){
+  const P = window.PRODUCTS || PRODUCTS;
   const orders=JSON.parse(localStorage.getItem('slx_orders')||'[]');
-  const revenue=orders.reduce((s,o)=>s+o.total,0);
-  if($('adm-prod-count')) $('adm-prod-count').textContent=PRODUCTS.length;
+  const revenue=orders.reduce((s,o)=>s+(o.total||0),0);
+  if($('adm-prod-count')) $('adm-prod-count').textContent=P.length;
   if($('adm-order-count')) $('adm-order-count').textContent=orders.length;
   if($('adm-revenue')) $('adm-revenue').textContent=fmt(revenue);
-  if($('adm-p-total')) $('adm-p-total').textContent=`(${PRODUCTS.length} products)`;
+  if($('adm-p-total')) $('adm-p-total').textContent=`(${P.length} products)`;
+  if($('wp-prod-count')) $('wp-prod-count').textContent=P.length;
+  if($('wp-order-count')) $('wp-order-count').textContent=orders.length;
   if($('adm-orders-list')){
     $('adm-orders-list').innerHTML=orders.length
       ?orders.slice(-10).reverse().map(o=>`<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;font-size:13px">
@@ -3986,13 +4000,13 @@ function updateAdminPanel(){
           <span style="background:var(--green-light);color:var(--green);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600">${o.status||'pending'}</span>
         </div>
         <div style="color:var(--text2)"><strong>${o.name}</strong> · ${o.phone}</div>
-        <div style="color:var(--text3);font-size:12px;margin-top:2px">${o.district} · ${o.payment.toUpperCase()} · <strong style="color:var(--brand)">${fmt(o.total)}</strong></div>
-        <div style="color:var(--text3);font-size:11px;margin-top:2px">${new Date(o.date).toLocaleString('bn-BD')}</div>
+        <div style="color:var(--text3);font-size:12px;margin-top:2px">${o.district||''} · ${(o.payment||'').toUpperCase()} · <strong style="color:var(--brand)">${fmt(o.total||0)}</strong></div>
+        <div style="color:var(--text3);font-size:11px;margin-top:2px">${new Date(o.date||Date.now()).toLocaleString('bn-BD')}</div>
       </div>`).join('')
       :`<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No orders yet.</div>`;
   }
   if($('adm-products-list')){
-    $('adm-products-list').innerHTML=PRODUCTS.map(p=>`<div style="display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);padding:8px 0;font-size:13px">
+    $('adm-products-list').innerHTML=P.map(p=>`<div style="display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);padding:8px 0;font-size:13px">
       <img src="${p.img}" style="width:40px;height:48px;object-fit:cover;border-radius:6px;background:var(--bg2)" onerror="this.src='https://picsum.photos/seed/${p.id}/40/48'">
       <div style="flex:1;min-width:0"><div style="font-weight:600;color:var(--dark);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.name}</div><div style="font-size:11px;color:var(--text3)">${p.cat} · Stock: ${p.stock}</div></div>
       <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--brand);white-space:nowrap">${fmt(p.price)}</div>
