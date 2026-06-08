@@ -708,8 +708,9 @@ footer{background:var(--dark);padding:60px 0 0}
 @media(max-width:992px){
   #wp-admin-bar{display:none}
   #main-header{top:0!important}
-  .header-main-row{grid-template-columns:auto auto auto}
-  .header-search{display:none}#main-nav{display:none}
+  .header-main-row{grid-template-columns:auto 1fr auto;gap:10px;padding:10px 0}
+  .header-search{display:none}
+  #main-nav{display:none}
   .hamburger{display:flex}.h-btn span{display:none}
   .hero-slide{min-height:360px}.hero-content{max-width:85%;padding:36px 28px}
   .hero-sub-row{grid-template-columns:1fr 1fr}.hero-sub-row>:last-child{display:none}
@@ -727,29 +728,54 @@ footer{background:var(--dark);padding:60px 0 0}
   .hiw-grid::before{display:none}
   .footer-grid{grid-template-columns:1fr 1fr}
   .form-r{grid-template-columns:1fr}
+  /* Mobile search bar below header */
+  #mob-search-bar{display:block}
 }
 @media(max-width:768px){
-  .hero-slide{min-height:280px}.hero-content{max-width:100%;padding:24px 18px}
-  .hero-title{font-size:22px}.hero-sub{display:none}
+  .hero-slide{min-height:260px}.hero-content{max-width:100%;padding:20px 16px}
+  .hero-title{font-size:20px;letter-spacing:-.3px}.hero-sub{display:none}
   .hero-actions .btn-ghost{display:none}.hero-badges{display:none}
   .ha-btn{display:none}
   .cat-grid{grid-template-columns:repeat(4,1fr);gap:10px}.cat-icon{width:44px;height:44px;font-size:20px}
-  .product-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .product-grid{grid-template-columns:repeat(2,1fr);gap:10px}
   .flash-grid{grid-template-columns:repeat(2,1fr);gap:10px}
   .testi-grid{grid-template-columns:1fr}
   .promo-3col{grid-template-columns:1fr}
-  #cart-sidebar{width:100%}
+  #cart-sidebar{width:100%!important;border-radius:0}
   .header-top-row{display:none}
   .trust-grid{grid-template-columns:repeat(2,1fr)}
   .pay-grid{grid-template-columns:repeat(2,1fr)}
   .hiw-grid{grid-template-columns:1fr}
   .section-row{flex-direction:column;align-items:flex-start}
   .hero-sub-row{grid-template-columns:1fr}
+  /* Product card mobile fix */
+  .product-card{font-size:13px}
+  .pc-name{font-size:13px}
+  .section-title{font-size:22px}
+  /* Logo mobile */
+  .logo-tagline{display:none}
+  .logo-name{font-size:20px}
+  /* Actions */
+  .h-btn{padding:6px 8px}
+  .h-btn i{font-size:20px}
+  /* Sections padding */
+  .section{padding-left:0;padding-right:0}
+  .container{padding:0 14px}
 }
 @media(max-width:480px){
-  .cat-grid{grid-template-columns:repeat(4,1fr);gap:8px}.cat-card{padding:12px 6px}.cat-name{font-size:10px}
+  .cat-grid{grid-template-columns:repeat(4,1fr);gap:6px}.cat-card{padding:10px 4px}.cat-name{font-size:10px}
   .flash-grid{grid-template-columns:1fr 1fr}
   .pay-grid{grid-template-columns:repeat(2,1fr)}
+  .product-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .pc-img{height:160px}
+  .pc-body{padding:8px 10px}
+  .pc-price{font-size:16px}
+  .ann-slide{font-size:12px;padding:0 28px}
+  /* Hero on very small screens */
+  .hero-slide{min-height:220px}
+  .hero-content{padding:16px 14px}
+  .hero-title{font-size:17px}
+  .btn-primary{padding:11px 20px;font-size:13px}
 }
 
 /* ===== MOBILE BOTTOM NAV ===== */
@@ -4050,14 +4076,15 @@ function initCountUp(){
 ════════════════════════════════════════════════════ */
 async function syncProductsFromAPI() {
   try {
-    // Fetch all active products from backend
-    // Uses stored admin key if available (for admin-protected endpoint)
-    const adminKey = localStorage.getItem('slx_admin_key') || '';
-    const fetchHeaders = adminKey ? { 'x-admin-key': adminKey } : {};
-    const res = await fetch('/api/admin?action=products&limit=200&sort=newest', { headers: fetchHeaders });
+    // Fetch all active products from public endpoint (no auth needed)
+    const res = await fetch('/api/products?limit=200&sort=newest', { cache: 'no-store' });
     if (!res.ok) return;
     const data = await res.json();
-    if (!data.ok || !Array.isArray(data.products) || data.products.length === 0) return;
+    // /api/products returns { ok, data: items, total, ... }
+    const productList = data.data || data.products || [];
+    if (!data.ok || !Array.isArray(productList) || productList.length === 0) return;
+    // Reassign for rest of function
+    data.products = productList;
 
     // Map API product fields to frontend format
     const apiProds = data.products.map(p => ({
@@ -7320,10 +7347,11 @@ let apiProducts = [];
 // Fetch products from server API (so admin.html additions show here)
 async function fetchAPIProducts() {
   try {
-    const res = await fetch('/api/products', { cache: 'no-store' });
+    const res = await fetch('/api/products?limit=200&sort=newest', { cache: 'no-store' });
     if (!res.ok) throw new Error('API ' + res.status);
     const data = await res.json();
-    const prods = data.products || data;
+    // /api/products returns { ok, data: items, total, ... }
+    const prods = data.data || data.products || [];
     if (Array.isArray(prods) && prods.length > 0) {
       // Normalize: ensure each product has numeric id
       apiProducts = prods.map(p => ({
