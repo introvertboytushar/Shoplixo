@@ -4188,17 +4188,58 @@ async function syncProductsFromAPI() {
 
 /* ---------- INIT ---------- */
 document.addEventListener('DOMContentLoaded',()=>{
+  // ── Step 1: Merge localStorage dynamic products FIRST (instant, no network needed)
+  mergeLocalDynamicProducts();
+  // ── Step 2: Render with local data immediately
   renderAll();updateCartUI();animFadeIn();initCountUp();startCD();updateUserUI();
   const wc=$('wish-count'); if(wishlist.length>0){wc.textContent=wishlist.length;wc.style.display='flex';}
   // WP bar counts
   const orders=JSON.parse(localStorage.getItem('slx_orders')||'[]');
-  $('wp-order-count').textContent=orders.length;
-  $('wp-prod-count').textContent=PRODUCTS.length;
+  if($('wp-order-count')) $('wp-order-count').textContent=orders.length;
+  if($('wp-prod-count')) $('wp-prod-count').textContent=PRODUCTS.length;
   if($('adm-prod-count')) $('adm-prod-count').textContent=PRODUCTS.length;
 
-  // 🔄 Sync products from API (admin panel থেকে add করা দেখাবে)
+  // ── Step 3: Sync products from API in background (admin.html/server additions)
   syncProductsFromAPI();
 });
+
+/* ── Merge ALL localStorage dynamic products into SHOPLIXA_PRODUCTS ── */
+function mergeLocalDynamicProducts() {
+  try {
+    // Sources: slx_dynamic_products (inline admin), slx_admin_products, slx_pending_products
+    const dynProds = JSON.parse(localStorage.getItem('slx_dynamic_products') || '[]');
+    const adminProds = JSON.parse(localStorage.getItem('slx_admin_products') || '[]');
+    const pendingProds = JSON.parse(localStorage.getItem('slx_pending_products') || '[]');
+    const allLocal = [...adminProds, ...pendingProds, ...dynProds];
+    if (!allLocal.length) return;
+
+    const base = window.SHOPLIXA_PRODUCTS;
+    let maxId = Math.max(...base.map(p => typeof p.id === 'number' ? p.id : 0), 200);
+
+    allLocal.forEach(ap => {
+      if (ap._deleted) {
+        // Remove deleted products
+        const delIdx = base.findIndex(p => p.id === ap.id || String(p.id) === String(ap.id));
+        if (delIdx !== -1) base.splice(delIdx, 1);
+        return;
+      }
+      const existIdx = base.findIndex(p => p.id === ap.id || String(p.id) === String(ap.id));
+      if (existIdx !== -1) {
+        Object.assign(base[existIdx], ap);
+      } else {
+        if (!ap.id || typeof ap.id !== 'number') ap.id = ++maxId;
+        ap.viewers = ap.viewers || Math.floor(Math.random() * 20 + 5);
+        ap.rating = ap.rating || 4.5;
+        ap.reviews = ap.reviews || 0;
+        base.push(ap);
+      }
+    });
+
+    window.PRODUCTS = base.slice();
+    PRODUCTS = window.PRODUCTS;
+    console.log('%c✅ Local products merged: ' + allLocal.filter(p=>!p._deleted).length + ' products', 'color:#00C58A;font-weight:bold');
+  } catch(e) { console.warn('mergeLocalDynamicProducts failed:', e); }
+}
 
 /* ===== GOOGLE SIGN-IN ===== */
 function handleGoogleSignIn(response){
@@ -7423,11 +7464,17 @@ function getAllProducts() {
   return merged;
 }
 
-// Override PRODUCTS global with merged
+// Override PRODUCTS global with merged — also syncs SHOPLIXA_PRODUCTS base
 function refreshProductsGlobal() {
-  window.PRODUCTS = getAllProducts();
+  const merged = getAllProducts();
+  window.PRODUCTS = merged;
+  window.SHOPLIXA_PRODUCTS = merged;
+  PRODUCTS = merged;
   renderAll();
   updateCartUI();
+  // Update admin counts
+  if(document.getElementById('wp-prod-count')) document.getElementById('wp-prod-count').textContent = merged.length;
+  if(document.getElementById('adm-prod-count')) document.getElementById('adm-prod-count').textContent = merged.length;
 }
 
 // Admin tab switch
@@ -7560,9 +7607,10 @@ function saveInlineProduct() {
   if (!name) { showToast('Product name দিন!', 'exclamation'); return; }
   if (!price || price < 1) { showToast('সঠিক মূল্য দিন!', 'exclamation'); return; }
   if (!img) { showToast('Image URL দিন!', 'exclamation'); return; }
+  if (!cat) { showToast('Category বেছে নিন!', 'exclamation'); return; }
 
   if (editId) {
-    // Update existing
+    // Update existing in dynamicProducts
     const existDynIdx = dynamicProducts.findIndex(p => p.id === editId);
     const updates = { id: editId, name, price, orig, stock, img, cat, desc, sizes, colors, badge, isFeatured, isNew, isFlash, rating: 4.5, reviews: 0, viewers: 12, _updatedAt: Date.now() };
     if (existDynIdx !== -1) {
@@ -7570,11 +7618,19 @@ function saveInlineProduct() {
     } else {
       dynamicProducts.push(updates);
     }
+    // Also update SHOPLIXA_PRODUCTS immediately for instant rendering
+    const spIdx = window.SHOPLIXA_PRODUCTS.findIndex(p => p.id === editId);
+    if (spIdx !== -1) Object.assign(window.SHOPLIXA_PRODUCTS[spIdx], updates);
     showToast(`"${name}" updated! ✅`, 'pen');
   } else {
-    // New product
-    const newId = Math.max(...getAllProducts().map(p => p.id), 200) + 1;
-    dynamicProducts.push({ id: newId, name, price, orig, stock, img, cat, desc, sizes, colors, badge, isFeatured, isNew, isFlash, rating: 4.5, reviews: 0, viewers: 12, _addedAt: Date.now() });
+    // New product — assign a fresh id
+    const allCurrent = getAllProducts();
+    const numericIds = allCurrent.map(p => typeof p.id === 'number' ? p.id : 0);
+    const newId = Math.max(...numericIds, 200) + 1;
+    const newProd = { id: newId, name, price, orig, stock, img, cat, desc, sizes, colors, badge, isFeatured, isNew, isFlash, rating: 4.5, reviews: 0, viewers: 12, _addedAt: Date.now() };
+    dynamicProducts.push(newProd);
+    // ALSO push to SHOPLIXA_PRODUCTS so it renders immediately
+    window.SHOPLIXA_PRODUCTS.push({ ...newProd });
     showToast(`"${name}" যোগ হয়েছে! 🎉`, 'check');
   }
 
