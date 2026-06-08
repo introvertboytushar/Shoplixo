@@ -217,6 +217,7 @@ tr:hover td{background:var(--bg)}
   .charts-row{grid-template-columns:1fr}
   .om-row{grid-template-columns:1fr}
   .su-form{grid-template-columns:1fr 1fr}
+  #mob-menu-btn{display:flex!important}
 }
 
 /* ─── IMAGE UPLOAD SYSTEM ─── */
@@ -360,6 +361,24 @@ tr:hover td{background:var(--bg)}
       <div class="sb-item" onclick="showSection('referral')">
         <i class="fa-solid fa-users"></i> Referral Program
       </div>
+      <div class="sb-section">Operations</div>
+      <div class="sb-item" onclick="showSection('returns')">
+        <i class="fa-solid fa-rotate-left"></i> Returns
+        <span class="sb-badge" id="returns-badge" style="display:none">0</span>
+      </div>
+      <div class="sb-item" onclick="showSection('abandoned')">
+        <i class="fa-solid fa-cart-shopping"></i> Abandoned Carts
+      </div>
+      <div class="sb-item" onclick="showSection('suppliers')">
+        <i class="fa-solid fa-truck"></i> Suppliers
+      </div>
+      <div class="sb-item" onclick="showSection('inventory')">
+        <i class="fa-solid fa-warehouse"></i> Inventory Log
+      </div>
+      <div class="sb-item" onclick="showSection('notifications')">
+        <i class="fa-solid fa-bell"></i> Notifications
+      </div>
+      <div class="sb-section">System</div>
       <div class="sb-item" onclick="window.open('/', '_blank')">
         <i class="fa-solid fa-store"></i> View Store
         <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;margin-left:auto;opacity:.5"></i>
@@ -383,7 +402,10 @@ tr:hover td{background:var(--bg)}
   <!-- MAIN -->
   <div id="main">
     <div class="top-bar">
-      <div class="tb-title" id="tb-title">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="tb-refresh" id="mob-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('mob-open')" title="Menu" style="display:none"><i class="fa-solid fa-bars"></i></button>
+        <div class="tb-title" id="tb-title">Dashboard</div>
+      </div>
       <div class="tb-right">
         <span class="tb-time" id="tb-time"></span>
         <button class="tb-refresh" onclick="loadCurrentSection()" title="Refresh"><i class="fa-solid fa-arrows-rotate"></i></button>
@@ -842,6 +864,247 @@ tr:hover td{background:var(--bg)}
         </div>
       </div>
 
+      <!-- ── RETURNS ── -->
+      <div class="section" id="sec-returns">
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+          <div class="stat-card"><div class="sc-label">Total Returns</div><div class="sc-val" id="ret-total" style="color:var(--brand)">—</div><div class="sc-sub"><i class="fa-solid fa-rotate-left"></i> সব সময়</div><div class="sc-icon si-orders"><i class="fa-solid fa-box-open"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Pending</div><div class="sc-val" id="ret-pending" style="color:var(--gold)">—</div><div class="sc-sub"><i class="fa-solid fa-clock"></i></div><div class="sc-icon si-pending"><i class="fa-solid fa-hourglass-half"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Approved</div><div class="sc-val" id="ret-approved" style="color:var(--green)">—</div><div class="sc-sub up"><i class="fa-solid fa-check"></i></div><div class="sc-icon si-revenue"><i class="fa-solid fa-check-circle"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Total Refund</div><div class="sc-val" id="ret-refund">—</div><div class="sc-sub"><i class="fa-solid fa-bangladeshi-taka-sign"></i></div><div class="sc-icon si-users"><i class="fa-solid fa-coins"></i></div></div>
+        </div>
+        <div class="table-card">
+          <div class="tc-head">
+            <div class="tc-title"><i class="fa-solid fa-rotate-left" style="color:var(--brand)"></i> Return Requests</div>
+            <div class="tc-actions">
+              <select class="tc-select" id="ret-status-filter" onchange="loadReturns()">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="refunded">Refunded</option>
+                <option value="completed">Completed</option>
+              </select>
+              <button class="tc-btn tc-btn-brand" onclick="loadReturns()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Return ID</th><th>Order</th><th>Customer</th><th>Reason</th><th>Refund Amt</th><th>Method</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+              <tbody id="returns-body"><tr><td colspan="9" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Return Update Modal -->
+      <div id="return-modal" style="position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:var(--t)">
+        <div onclick="document.getElementById('return-modal').style.opacity='0';document.getElementById('return-modal').style.visibility='hidden'" style="position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)"></div>
+        <div style="background:#fff;border-radius:var(--r-xl);width:100%;max-width:520px;position:relative;z-index:1;box-shadow:var(--sh-lg)">
+          <div style="background:var(--dark2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff"><i class="fa-solid fa-rotate-left"></i> Return আপডেট</div>
+            <button onclick="document.getElementById('return-modal').style.opacity='0';document.getElementById('return-modal').style.visibility='hidden'" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:17px"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div style="padding:22px;display:grid;gap:14px">
+            <input type="hidden" id="ret-modal-id">
+            <div class="pm-field"><label>Status</label>
+              <select id="ret-modal-status" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="refunded">Refunded</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div class="pm-field"><label>Refund Amount (৳)</label><input id="ret-modal-amount" type="number" min="0" placeholder="0" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+            <div class="pm-field"><label>Refund Method</label>
+              <select id="ret-modal-method" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
+                <option value="bkash">bKash</option>
+                <option value="nagad">Nagad</option>
+                <option value="bank">Bank Transfer</option>
+                <option value="cash">Cash</option>
+              </select>
+            </div>
+            <div class="pm-field"><label>Refund Reference</label><input id="ret-modal-ref" placeholder="Transaction ID" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+            <div class="pm-field"><label>Admin Note</label><textarea id="ret-modal-note" rows="2" placeholder="Internal note..." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;resize:vertical;font-family:inherit"></textarea></div>
+            <button onclick="submitReturnUpdate()" style="background:var(--green);color:#fff;padding:12px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-check"></i> Return আপডেট করুন</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ABANDONED CARTS ── -->
+      <div class="section" id="sec-abandoned">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+          <div class="stat-card"><div class="sc-label">Abandoned Carts</div><div class="sc-val" id="ab-total" style="color:var(--brand)">—</div><div class="sc-sub"><i class="fa-solid fa-cart-shopping"></i></div><div class="sc-icon si-orders"><i class="fa-solid fa-cart-arrow-down"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Lost Revenue</div><div class="sc-val" id="ab-revenue">—</div><div class="sc-sub dn"><i class="fa-solid fa-bangladeshi-taka-sign"></i></div><div class="sc-icon si-pending"><i class="fa-solid fa-coins"></i></div></div>
+          <div class="stat-card"><div class="sc-label">Avg Cart Value</div><div class="sc-val" id="ab-avg">—</div><div class="sc-sub"><i class="fa-solid fa-chart-line"></i></div><div class="sc-icon si-revenue"><i class="fa-solid fa-chart-bar"></i></div></div>
+        </div>
+        <div class="table-card">
+          <div class="tc-head">
+            <div class="tc-title"><i class="fa-solid fa-cart-shopping" style="color:var(--brand)"></i> Abandoned Carts (Last 7 Days)</div>
+            <button class="tc-btn tc-btn-brand" onclick="loadAbandoned()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Phone</th><th>Items</th><th>Cart Total</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody id="abandoned-body"><tr><td colspan="5" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SUPPLIERS ── -->
+      <div class="section" id="sec-suppliers">
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start">
+          <div class="table-card">
+            <div class="tc-head">
+              <div class="tc-title"><i class="fa-solid fa-truck" style="color:var(--blue)"></i> Suppliers</div>
+              <div class="tc-actions">
+                <input class="tc-search" id="sup-search" placeholder="Name, phone..." oninput="loadSuppliers()" style="width:160px">
+                <button class="tc-btn tc-btn-brand" onclick="loadSuppliers()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+              </div>
+            </div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>ID</th><th>Supplier</th><th>Type</th><th>Phone</th><th>Email</th><th>Min Order</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="suppliers-body"><tr><td colspan="8" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="table-card" style="padding:20px">
+            <div id="sup-form-title" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-plus" style="color:var(--blue)"></i> New Supplier</div>
+            <input type="hidden" id="sup-edit-id">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Name *</label><input id="sup-name" placeholder="Rahman Garments" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Company</label><input id="sup-company" placeholder="Rahman Garments Ltd." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Phone *</label><input id="sup-phone" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Email</label><input id="sup-email" type="email" placeholder="supplier@example.com" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Type</label>
+                <select id="sup-type" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
+                  <option value="local">Local (Bangladesh)</option>
+                  <option value="china">China</option>
+                  <option value="india">India</option>
+                  <option value="other">Other</option>
+                </select></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Address</label><input id="sup-address" placeholder="Narsingdi, Dhaka" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Min Order (৳)</label><input id="sup-min" type="number" placeholder="5000" min="0" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Delivery Time</label><input id="sup-delivery" placeholder="3-7 days" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">bKash</label><input id="sup-bkash" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+                <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Nagad</label><input id="sup-nagad" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button onclick="saveSupplier()" id="sup-save-btn" style="flex:1;background:var(--blue);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-floppy-disk"></i> Save Supplier</button>
+                <button onclick="resetSupplierForm()" style="background:var(--bg);border:1.5px solid var(--border);color:var(--text2);padding:11px 16px;border-radius:var(--r-full);font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── INVENTORY LOG ── -->
+      <div class="section" id="sec-inventory">
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">
+          <div class="table-card">
+            <div class="tc-head">
+              <div class="tc-title"><i class="fa-solid fa-warehouse" style="color:var(--purple)"></i> Inventory Log</div>
+              <div class="tc-actions">
+                <select class="tc-select" id="inv-type-filter" onchange="loadInventory()">
+                  <option value="">All Types</option>
+                  <option value="in">Stock In</option>
+                  <option value="out">Stock Out</option>
+                  <option value="return">Return</option>
+                  <option value="damage">Damage</option>
+                  <option value="adjust">Adjustment</option>
+                </select>
+                <button class="tc-btn tc-btn-brand" onclick="loadInventory()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+              </div>
+            </div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Product</th><th>Type</th><th>Qty</th><th>Before</th><th>After</th><th>Note</th><th>Date</th></tr></thead>
+                <tbody id="inventory-body"><tr><td colspan="7" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <div class="pg-info" id="inv-pg-info">Loading...</div>
+              <div class="pg-btns" id="inv-pg-btns"></div>
+            </div>
+          </div>
+          <div class="table-card" style="padding:20px">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-plus" style="color:var(--purple)"></i> Add Stock Entry</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Product ID *</label><input id="inv-pid" placeholder="SL-0001" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Type *</label>
+                <select id="inv-type" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
+                  <option value="in">📦 Stock In (Purchase)</option>
+                  <option value="out">📤 Stock Out</option>
+                  <option value="return">🔄 Return from Customer</option>
+                  <option value="damage">💔 Damaged / Loss</option>
+                  <option value="adjust">⚖️ Manual Adjustment</option>
+                </select></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Quantity *</label><input id="inv-qty" type="number" placeholder="50" min="1" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Cost Price per Unit (৳)</label><input id="inv-cost" type="number" placeholder="500" min="0" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Reference (Invoice #)</label><input id="inv-ref" placeholder="INV-2024-001" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Note</label><textarea id="inv-note" rows="2" placeholder="Additional notes..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;resize:vertical;font-family:inherit"></textarea></div>
+              <button onclick="addInventoryEntry()" style="background:var(--purple);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-plus"></i> Entry যোগ করুন</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── NOTIFICATIONS ── -->
+      <div class="section" id="sec-notifications">
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:start">
+          <div class="table-card" style="padding:24px">
+            <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px"><i class="fa-solid fa-broadcast-tower" style="color:var(--blue)"></i> Broadcast Notification</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="pm-field"><label>Notification Type</label>
+                <select id="notif-type" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
+                  <option value="promo">🎉 Promotion</option>
+                  <option value="order">📦 Order Update</option>
+                  <option value="alert">🔔 Alert</option>
+                  <option value="news">📰 News</option>
+                </select></div>
+              <div class="pm-field"><label>Icon (emoji)</label><input id="notif-icon" placeholder="🔥" value="🔔" maxlength="4" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:20px;outline:none"></div>
+              <div class="pm-field"><label>Title *</label><input id="notif-title" placeholder="Weekend Flash Sale — 50% Off!" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div class="pm-field"><label>Message *</label><textarea id="notif-message" rows="3" placeholder="আমাদের বিশেষ অফার মিস করবেন না..." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;resize:vertical;font-family:inherit"></textarea></div>
+              <div class="pm-field"><label>Link (optional)</label><input id="notif-link" placeholder="https://shoplixo.shop/sale" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
+              <div class="pm-field"><label>Channel</label>
+                <select id="notif-channel" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
+                  <option value="app">App Notification Only</option>
+                  <option value="sms">SMS Only</option>
+                  <option value="all">App + SMS</option>
+                </select></div>
+              <div class="pm-field"><label>Target Segment</label>
+                <select id="notif-segment" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
+                  <option value="">All Users</option>
+                  <option value="loyal">Loyal (1000+ Points)</option>
+                  <option value="gold">Gold Tier (5000+ Points)</option>
+                </select></div>
+              <button onclick="sendBroadcast()" style="background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;padding:13px;border-radius:var(--r-full);font-size:15px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fa-solid fa-paper-plane"></i> Notification পাঠান</button>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="table-card" style="padding:20px">
+              <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-info-circle" style="color:var(--gold)"></i> Broadcast Tips</div>
+              <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--text2)">
+                <div style="background:var(--bg);border-radius:var(--r);padding:12px;border-left:3px solid var(--blue)"><strong>App Notification:</strong> সব active user দের app-এ push notification যাবে। Real-time।</div>
+                <div style="background:var(--bg);border-radius:var(--r);padding:12px;border-left:3px solid var(--green)"><strong>SMS:</strong> যাদের SMS notification চালু আছে তাদের কাছে SMS পাঠানো হবে। প্রতিবার ১০০ জন।</div>
+                <div style="background:var(--bg);border-radius:var(--r);padding:12px;border-left:3px solid var(--gold)"><strong>Target:</strong> Loyal/Gold segment filter করে specific user দের কাছে পাঠান।</div>
+              </div>
+            </div>
+            <div class="table-card" style="padding:20px">
+              <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-clock-rotate-left" style="color:var(--text3)"></i> Quick Templates</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <button onclick="fillNotifTemplate('sale')" style="background:var(--brand-l);color:var(--brand);border:1px solid var(--brand);padding:9px 14px;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;text-align:left">🔥 Flash Sale Template</button>
+                <button onclick="fillNotifTemplate('arrival')" style="background:#e6faf4;color:var(--green);border:1px solid var(--green);padding:9px 14px;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;text-align:left">✨ New Arrival Template</button>
+                <button onclick="fillNotifTemplate('loyalty')" style="background:#fff8e6;color:var(--gold);border:1px solid var(--gold);padding:9px 14px;border-radius:var(--r);font-size:12px;font-weight:700;cursor:pointer;text-align:left">🏆 Loyalty Reward Template</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /app -->
@@ -1040,6 +1303,8 @@ const sectionTitles = {
   newsletter: 'Newsletter', settings: 'Settings', products: 'Products',
   reviews: 'Reviews & Comments', coupons: 'Coupons', flashsale: 'Flash Sales',
   bundles: 'Bundle Offers', loyalty: 'Loyalty Points', referral: 'Referral Program',
+  returns: 'Return Requests', abandoned: 'Abandoned Carts', suppliers: 'Suppliers',
+  inventory: 'Inventory Log', notifications: 'Notifications',
 };
 
 function showSection(id) {
@@ -1051,22 +1316,28 @@ function showSection(id) {
     if (i.getAttribute('onclick') && i.getAttribute('onclick').includes(`'${id}'`)) i.classList.add('active');
   });
   $('tb-title').textContent = sectionTitles[id] || id;
+  // Close mobile sidebar
+  document.getElementById('sidebar')?.classList.remove('mob-open');
   loadCurrentSection(id);
 }
 
 function loadCurrentSection(id) {
   const active = id || document.querySelector('.section.active')?.id?.replace('sec-', '');
-  if (active === 'dashboard')  loadDashboard();
-  else if (active === 'orders')     loadOrders(currentPage);
-  else if (active === 'customers')  loadCustomers();
-  else if (active === 'newsletter') loadNewsletter();
-  else if (active === 'products')   loadAdminProducts();
-  else if (active === 'reviews')    loadReviews();
-  else if (active === 'coupons')    loadCoupons();
-  else if (active === 'flashsale')  loadFlashSales();
-  else if (active === 'bundles')    loadBundles();
-  else if (active === 'loyalty')    loadLoyaltyData();
-  else if (active === 'referral')   loadReferralData();
+  if (active === 'dashboard')     loadDashboard();
+  else if (active === 'orders')        loadOrders(currentPage);
+  else if (active === 'customers')     loadCustomers();
+  else if (active === 'newsletter')    loadNewsletter();
+  else if (active === 'products')      loadAdminProducts();
+  else if (active === 'reviews')       loadReviews();
+  else if (active === 'coupons')       loadCoupons();
+  else if (active === 'flashsale')     loadFlashSales();
+  else if (active === 'bundles')       loadBundles();
+  else if (active === 'loyalty')       loadLoyaltyData();
+  else if (active === 'referral')      loadReferralData();
+  else if (active === 'returns')       loadReturns();
+  else if (active === 'abandoned')     loadAbandoned();
+  else if (active === 'suppliers')     loadSuppliers();
+  else if (active === 'inventory')     loadInventory();
 }
 
 /* ─── CLOCK ─── */
@@ -1916,7 +2187,13 @@ async function loadLoyaltyData() {
     const users = data.users || [];
     const withPoints = users.filter(u => (u.loyaltyPoints || 0) > 0);
     if ($('loy-members')) $('loy-members').textContent = withPoints.length;
-    if ($('loy-issued')) $('loy-issued').textContent = withPoints.reduce((s, u) => s + (u.loyaltyPoints || 0), 0).toLocaleString();
+    const totalIssued = withPoints.reduce((s, u) => s + (u.loyaltyPoints || 0), 0);
+    if ($('loy-issued')) $('loy-issued').textContent = totalIssued.toLocaleString();
+    // Estimate redeemed (total spent × 0.1 - current points)
+    const totalSpent = withPoints.reduce((s, u) => s + (u.totalSpent || 0), 0);
+    const estimatedEarned = Math.floor(totalSpent / 10);
+    const redeemed = Math.max(0, estimatedEarned - totalIssued);
+    if ($('loy-redeemed')) $('loy-redeemed').textContent = redeemed.toLocaleString();
     if ($('loy-gold-count')) {
       const gold = withPoints.filter(u => (u.loyaltyPoints || 0) >= 5000).length;
       $('loy-gold-count').textContent = gold + ' Gold';
@@ -1928,17 +2205,39 @@ async function loadLoyaltyData() {
         const tier = pts >= 20000 ? '💎 Platinum' : pts >= 5000 ? '🥇 Gold' : pts >= 1000 ? '🥈 Silver' : '🥉 Bronze';
         return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border)">
           <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--dark2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">${(u.name || '?')[0].toUpperCase()}</div>
-          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(u.name)}</div><div style="font-size:11px;color:var(--text3)">${tier}</div></div>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(u.name)}</div><div style="font-size:11px;color:var(--text3)">${tier} · Orders: ${u.totalOrders || 0}</div></div>
           <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--gold)">${pts.toLocaleString()} pts</div>
         </div>`;
       }).join('') : '<div style="text-align:center;padding:30px;color:var(--text3)">কোনো loyalty member নেই</div>';
     }
-  } catch (e) { console.error(e); }
+  } catch (e) { console.error(e); toast('Loyalty data লোড হয়নি', 'warning'); }
 }
 
 async function loadReferralData() {
   const el = $('referral-list');
-  if (el) el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3)">Referral data: API integration needed</div>';
+  if (el) el.innerHTML = '<div style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  try {
+    const data = await adminFetch('action=referrals&limit=20');
+    if (!data.ok) throw new Error(data.error);
+    const { referrals, summary } = data;
+    if ($('ref-total')) $('ref-total').textContent = (summary?.total || 0).toLocaleString();
+    if ($('ref-success')) $('ref-success').textContent = (summary?.completed || 0).toLocaleString();
+    if ($('ref-conv')) $('ref-conv').textContent = (summary?.conversionRate || 0) + '%';
+    if ($('ref-rev')) $('ref-rev').textContent = fmt(summary?.revenueFromRefs || 0);
+    if (el) {
+      el.innerHTML = (referrals || []).length ? (referrals || []).map(r => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${esc(r.referrerUserId?.name || 'User')} <i class="fa-solid fa-arrow-right" style="font-size:10px;color:var(--text3)"></i> ${esc(r.referredUserId?.name || 'New User')}</div>
+            <div style="font-size:11px;color:var(--text3)">Points: ${r.pointsAwarded || 0} · ${fmtDate(r.createdAt)}</div>
+          </div>
+          <span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;background:${r.status === 'completed' ? '#e6faf4' : '#fff8e6'};color:${r.status === 'completed' ? 'var(--green)' : 'var(--gold)'}">${r.status}</span>
+        </div>`).join('')
+      : '<div style="text-align:center;padding:30px;color:var(--text3)">কোনো referral নেই</div>';
+    }
+  } catch (e) {
+    if (el) el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text3)">Referral API: ${e.message}</div>`;
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -2064,21 +2363,33 @@ async function saveProduct() {
   const isFlash = !!$('pm-flash')?.checked;
   let img = $('pm-img')?.value?.trim() || '';
 
-  if (!name) { toast('Product নাম দিন!', 'warning'); return; }
+  if (!name) { toast('Product নাম দিন!', 'warning'); $('pm-name').focus(); return; }
   if (!cat) { toast('Category দিন!', 'warning'); return; }
-  if (!price || isNaN(price) || price <= 0) { toast('সঠিক Price দিন!', 'warning'); return; }
+  if (!price || isNaN(price) || price <= 0) { toast('সঠিক Price দিন!', 'warning'); $('pm-price').focus(); return; }
 
-  if (uploadedImages.length > 0 && (img === 'uploaded' || !img)) img = uploadedImages[0];
-  if (!img) img = `https://source.unsplash.com/400x500/?${encodeURIComponent(cat.replace(/-/g, ','))}`;
+  // FIX: Don't send base64 to API (server sanitize() truncates to 500 chars)
+  // Use only HTTP/HTTPS URLs for image storage
+  if (img === 'uploaded' || img.startsWith('data:')) {
+    toast('⚠️ Image URL দিন (Unsplash/Imgur link)। Base64 upload সরাসরি সমর্থিত নয়।', 'warning');
+    $('pm-img').focus();
+    return;
+  }
+  if (!img) {
+    img = `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=500&fit=crop&q=80`;
+  }
+
+  // Only send URL-based images, filter out any base64
+  const urlImages = uploadedImages.filter(u => u.startsWith('http') || u.startsWith('//'));
+  const allImages = urlImages.length > 0 ? urlImages : [img];
 
   const productData = {
     name, cat, price, orig, stock, rating, reviews, badge,
     sizes, colors, material, viewers, desc, warranty, sku, videoUrl,
-    img, images: uploadedImages.length > 0 ? uploadedImages : [img],
+    img, images: allImages,
     isFeatured, isNew, isFlash, isActive: true,
   };
 
-  // FIX: product-add for new, product-edit for existing (both use POST)
+  // product-add for new, product-edit for existing (both use POST)
   const action = editingProductId ? 'product-edit' : 'product-add';
   if (editingProductId) productData.productId = editingProductId;
 
@@ -2102,7 +2413,7 @@ async function saveProduct() {
     const localProds = JSON.parse(localStorage.getItem('slx_pending_products') || '[]');
     localProds.push({ ...productData, _pending: true, _time: Date.now() });
     localStorage.setItem('slx_pending_products', JSON.stringify(localProds));
-    toast('Server offline — locally saved. Sync করুন।', 'warning');
+    toast('Server offline — locally saved. Settings > Sync করুন।', 'warning');
     closeProductModal();
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Product Save করুন'; }
@@ -2226,6 +2537,311 @@ function quickScheduleFlash() {
   renderScheduledFlashSales();
 }
 
+/* ═══════════════════════════════════════════
+   RETURNS MANAGEMENT
+═══════════════════════════════════════════ */
+let invPage = 1;
+
+async function loadReturns() {
+  const status = $('ret-status-filter')?.value || '';
+  $('returns-body').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const data = await adminFetch(`action=returns${status ? '&status=' + status : ''}`);
+    if (!data.ok) throw new Error(data.error);
+    const { returns, stats } = data;
+
+    // Update stat cards
+    const total = Object.values(stats || {}).reduce((s, x) => s + (x.count || 0), 0);
+    const pending = stats?.pending?.count || 0;
+    const approved = (stats?.approved?.count || 0) + (stats?.refunded?.count || 0);
+    const totalRefund = Object.values(stats || {}).reduce((s, x) => s + (x.totalRefund || 0), 0);
+    if ($('ret-total')) $('ret-total').textContent = total;
+    if ($('ret-pending')) $('ret-pending').textContent = pending;
+    if ($('ret-approved')) $('ret-approved').textContent = approved;
+    if ($('ret-refund')) $('ret-refund').textContent = fmt(totalRefund);
+    if ($('returns-badge')) {
+      $('returns-badge').textContent = pending;
+      $('returns-badge').style.display = pending > 0 ? 'flex' : 'none';
+    }
+
+    const statusColors = { pending: 'sb-pending', approved: 'sb-confirmed', rejected: 'sb-cancelled', refunded: 'sb-delivered', completed: 'sb-delivered' };
+    $('returns-body').innerHTML = (returns || []).length
+      ? (returns || []).map(r => `<tr>
+          <td><code style="font-size:11px;font-weight:700;background:var(--bg);padding:2px 6px;border-radius:4px">${esc(r.returnId || r._id?.slice(-8) || '—')}</code></td>
+          <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--brand)">${esc(r.orderId || '—')}</span></td>
+          <td><div style="font-weight:600">${esc(r.customerName || '—')}</div><div style="font-size:11px;color:var(--text3)">${esc(r.customerPhone || '')}</div></td>
+          <td style="max-width:150px;font-size:12px">${esc(r.reason || '—')}</td>
+          <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--green)">${r.refundAmount > 0 ? fmt(r.refundAmount) : '—'}</span></td>
+          <td style="font-size:12px">${r.refundMethod ? r.refundMethod.toUpperCase() : '—'}</td>
+          <td><span class="status-badge ${statusColors[r.status] || 'sb-pending'}">${r.status}</span></td>
+          <td style="font-size:11px;color:var(--text3)">${fmtDate(r.createdAt)}</td>
+          <td><button class="ab-btn ab-edit" onclick="openReturnModal('${r.returnId || r._id}')" title="Update"><i class="fa-solid fa-pen"></i></button></td>
+        </tr>`).join('')
+      : `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-rotate-left" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>কোনো return নেই</td></tr>`;
+  } catch (e) {
+    $('returns-body').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--brand);padding:30px">Returns API error: ${e.message}</td></tr>`;
+  }
+}
+
+function openReturnModal(returnId) {
+  $('ret-modal-id').value = returnId;
+  $('ret-modal-amount').value = '';
+  $('ret-modal-ref').value = '';
+  $('ret-modal-note').value = '';
+  const modal = $('return-modal');
+  modal.style.opacity = '1'; modal.style.visibility = 'visible';
+}
+
+async function submitReturnUpdate() {
+  const returnId = $('ret-modal-id').value;
+  const status = $('ret-modal-status')?.value;
+  const refundAmount = $('ret-modal-amount')?.value;
+  const refundMethod = $('ret-modal-method')?.value;
+  const refundRef = $('ret-modal-ref')?.value?.trim();
+  const adminNote = $('ret-modal-note')?.value?.trim();
+  if (!returnId || !status) { toast('Return ID এবং status দিন', 'warning'); return; }
+  try {
+    const data = await fetch('/api/admin?action=return-update', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ returnId, status, refundAmount: parseFloat(refundAmount) || 0, refundMethod, refundRef, adminNote }),
+    }).then(r => r.json());
+    if (data.ok) {
+      toast('✅ Return আপডেট হয়েছে!', 'success');
+      $('return-modal').style.opacity = '0'; $('return-modal').style.visibility = 'hidden';
+      loadReturns();
+    } else toast(data.error || 'Update হয়নি', 'warning');
+  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+}
+
+/* ═══════════════════════════════════════════
+   ABANDONED CARTS
+═══════════════════════════════════════════ */
+async function loadAbandoned() {
+  $('abandoned-body').innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const data = await adminFetch('action=abandoned');
+    if (!data.ok) throw new Error(data.error);
+    const { carts, total, totalValue } = data;
+    if ($('ab-total')) $('ab-total').textContent = total || 0;
+    if ($('ab-revenue')) $('ab-revenue').textContent = fmt(totalValue || 0);
+    if ($('ab-avg')) $('ab-avg').textContent = total > 0 ? fmt(Math.round((totalValue || 0) / total)) : '—';
+    $('abandoned-body').innerHTML = (carts || []).length
+      ? (carts || []).map(c => `<tr>
+          <td><div style="font-weight:600">${esc(c.phone || c.userId || 'Guest')}</div></td>
+          <td style="font-size:12px">${(c.items || []).map(i => esc(i.name || i.productId)).join(', ').substring(0, 60)}${(c.items || []).length > 2 ? '...' : ''}</td>
+          <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--brand)">${fmt(c.total || 0)}</span></td>
+          <td style="font-size:11px;color:var(--text3)">${fmtDate(c.createdAt)}</td>
+          <td><span style="padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;background:${c.isConverted ? '#e6faf4' : '#fff8e6'};color:${c.isConverted ? 'var(--green)' : 'var(--gold)'}">${c.isConverted ? 'Converted' : 'Abandoned'}</span></td>
+        </tr>`).join('')
+      : `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-cart-shopping" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>কোনো abandoned cart নেই</td></tr>`;
+  } catch (e) {
+    $('abandoned-body').innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--brand);padding:30px">Abandoned Carts API error: ${e.message}</td></tr>`;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SUPPLIERS
+═══════════════════════════════════════════ */
+let editingSupplierId = null;
+
+async function loadSuppliers() {
+  const search = $('sup-search')?.value || '';
+  $('suppliers-body').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const data = await adminFetch(`action=suppliers${search ? '&search=' + encodeURIComponent(search) : ''}`);
+    if (!data.ok) throw new Error(data.error);
+    const { suppliers } = data;
+    const typeColors = { local: 'var(--green)', china: 'var(--brand)', india: 'var(--blue)', other: 'var(--text3)' };
+    $('suppliers-body').innerHTML = (suppliers || []).length
+      ? (suppliers || []).map(s => `<tr>
+          <td><code style="font-size:11px;font-weight:700;background:var(--bg);padding:2px 6px;border-radius:4px">${esc(s.supplierId)}</code></td>
+          <td><div style="font-weight:600">${esc(s.name)}</div><div style="font-size:11px;color:var(--text3)">${esc(s.company || '')}</div></td>
+          <td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--bg);color:${typeColors[s.type] || 'var(--text3)'}">${(s.type || 'local').toUpperCase()}</span></td>
+          <td style="font-size:12px">${esc(s.phone || '—')}</td>
+          <td style="font-size:12px;color:var(--blue)">${esc(s.email || '—')}</td>
+          <td>${s.minOrder > 0 ? fmt(s.minOrder) : '—'}</td>
+          <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:${s.isActive ? '#e6faf4' : '#f5f5f5'};color:${s.isActive ? 'var(--green)' : 'var(--text3)'}">${s.isActive ? 'Active' : 'Inactive'}</span></td>
+          <td><div class="action-btns">
+            <button class="ab-btn ab-edit" onclick="editSupplier(${JSON.stringify(s).replace(/"/g, '&quot;')})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+            <button class="ab-btn ab-del" onclick="deleteSupplier('${s.supplierId}','${esc(s.name)}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          </div></td>
+        </tr>`).join('')
+      : `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-truck" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>কোনো supplier নেই</td></tr>`;
+  } catch (e) {
+    $('suppliers-body').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--brand);padding:30px">Suppliers API error: ${e.message}</td></tr>`;
+  }
+}
+
+function editSupplier(s) {
+  if (typeof s === 'string') try { s = JSON.parse(s.replace(/&quot;/g, '"')); } catch {}
+  editingSupplierId = s.supplierId || s._id;
+  $('sup-edit-id').value = editingSupplierId;
+  $('sup-name').value = s.name || '';
+  $('sup-company').value = s.company || '';
+  $('sup-phone').value = s.phone || '';
+  $('sup-email').value = s.email || '';
+  if ($('sup-type')) $('sup-type').value = s.type || 'local';
+  $('sup-address').value = s.address || '';
+  $('sup-min').value = s.minOrder || '';
+  $('sup-delivery').value = s.deliveryTime || '';
+  $('sup-bkash').value = s.bankInfo?.bkash || '';
+  $('sup-nagad').value = s.bankInfo?.nagad || '';
+  $('sup-form-title').innerHTML = '<i class="fa-solid fa-pen" style="color:var(--blue)"></i> Supplier Edit করুন';
+  $('sup-name').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetSupplierForm() {
+  editingSupplierId = null;
+  $('sup-edit-id').value = '';
+  ['sup-name','sup-company','sup-phone','sup-email','sup-address','sup-min','sup-delivery','sup-bkash','sup-nagad'].forEach(id => { if ($(id)) $(id).value = ''; });
+  if ($('sup-type')) $('sup-type').value = 'local';
+  $('sup-form-title').innerHTML = '<i class="fa-solid fa-plus" style="color:var(--blue)"></i> New Supplier';
+}
+
+async function saveSupplier() {
+  const name = $('sup-name')?.value?.trim();
+  const phone = $('sup-phone')?.value?.trim();
+  if (!name || !phone) { toast('Name এবং Phone দিন!', 'warning'); return; }
+  const payload = {
+    name, phone,
+    company: $('sup-company')?.value?.trim(),
+    email: $('sup-email')?.value?.trim(),
+    type: $('sup-type')?.value || 'local',
+    address: $('sup-address')?.value?.trim(),
+    minOrder: parseFloat($('sup-min')?.value) || 0,
+    deliveryTime: $('sup-delivery')?.value?.trim() || '3-7 days',
+    bankInfo: { bkash: $('sup-bkash')?.value?.trim(), nagad: $('sup-nagad')?.value?.trim() },
+  };
+  const action = editingSupplierId ? 'supplier-edit' : 'supplier-add';
+  if (editingSupplierId) payload.supplierId = editingSupplierId;
+  const btn = $('sup-save-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+  try {
+    const data = await fetch('/api/admin?action=' + action, {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then(r => r.json());
+    if (data.ok) { toast('✅ Supplier saved!', 'success'); resetSupplierForm(); loadSuppliers(); }
+    else toast(data.error || 'Error', 'warning');
+  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Supplier'; } }
+}
+
+async function deleteSupplier(id, name) {
+  if (!confirm(`"${name}" delete করবেন?`)) return;
+  try {
+    const data = await fetch('/api/admin?action=supplier-delete', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supplierId: id }),
+    }).then(r => r.json());
+    if (data.ok) { toast('✅ Deleted!', 'success'); loadSuppliers(); }
+    else toast(data.error || 'Error', 'warning');
+  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+}
+
+/* ═══════════════════════════════════════════
+   INVENTORY LOG
+═══════════════════════════════════════════ */
+async function loadInventory(page = 1) {
+  invPage = page;
+  const type = $('inv-type-filter')?.value || '';
+  $('inventory-body').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const data = await adminFetch(`action=inventory&page=${page}&limit=20${type ? '&type=' + type : ''}`);
+    if (!data.ok) throw new Error(data.error);
+    const { logs, total, pagination } = data;
+    const typeIcons = { in: '📦', out: '📤', return: '🔄', damage: '💔', adjust: '⚖️' };
+    const typeBg = { in: '#e6faf4', out: '#fff8e6', return: '#e6f0ff', damage: '#fdf0f0', adjust: '#f5f5f5' };
+    const typeColor = { in: 'var(--green)', out: 'var(--gold)', return: 'var(--blue)', damage: 'var(--brand)', adjust: 'var(--text3)' };
+    $('inventory-body').innerHTML = (logs || []).length
+      ? (logs || []).map(l => `<tr>
+          <td><div style="font-weight:600;font-size:13px">${esc(l.productName || l.productId)}</div><div style="font-size:11px;color:var(--text3)">${esc(l.productId)}</div></td>
+          <td><span style="padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:${typeBg[l.type]||'#f5f5f5'};color:${typeColor[l.type]||'var(--text3)'}">${typeIcons[l.type]||''} ${l.type}</span></td>
+          <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:${l.type === 'in' || l.type === 'return' ? 'var(--green)' : 'var(--brand)'}">${l.type === 'in' || l.type === 'return' ? '+' : l.type === 'adjust' ? '' : '-'}${l.qty}</span></td>
+          <td style="font-size:12px;color:var(--text3)">${l.stockBefore ?? '—'}</td>
+          <td><strong>${l.stockAfter ?? '—'}</strong></td>
+          <td style="font-size:12px;max-width:120px">${esc(l.note || l.ref || '—')}</td>
+          <td style="font-size:11px;color:var(--text3)">${fmtDate(l.createdAt)}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-warehouse" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>কোনো log নেই</td></tr>`;
+
+    const pages = pagination?.pages || 1;
+    if ($('inv-pg-info')) $('inv-pg-info').textContent = `Showing ${Math.min((page-1)*20+1,total)}–${Math.min(page*20,total)} of ${total}`;
+    const pg = [];
+    if (page > 1) pg.push(`<button class="pg-btn" onclick="loadInventory(${page-1})"><i class="fa-solid fa-chevron-left"></i></button>`);
+    for (let i = Math.max(1,page-2); i <= Math.min(pages,page+2); i++) pg.push(`<button class="pg-btn ${i===page?'active':''}" onclick="loadInventory(${i})">${i}</button>`);
+    if (page < pages) pg.push(`<button class="pg-btn" onclick="loadInventory(${page+1})"><i class="fa-solid fa-chevron-right"></i></button>`);
+    if ($('inv-pg-btns')) $('inv-pg-btns').innerHTML = pg.join('');
+  } catch (e) {
+    $('inventory-body').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--brand);padding:30px">Inventory API error: ${e.message}</td></tr>`;
+  }
+}
+
+async function addInventoryEntry() {
+  const productId = $('inv-pid')?.value?.trim();
+  const type = $('inv-type')?.value;
+  const qty = parseInt($('inv-qty')?.value);
+  const costPrice = parseFloat($('inv-cost')?.value) || 0;
+  const ref = $('inv-ref')?.value?.trim() || '';
+  const note = $('inv-note')?.value?.trim() || '';
+  if (!productId || !type || !qty || qty <= 0) { toast('Product ID, Type, এবং Quantity দিন!', 'warning'); return; }
+  try {
+    const data = await fetch('/api/admin?action=inventory-add', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, type, qty, costPrice, ref, note, refType: 'manual' }),
+    }).then(r => r.json());
+    if (data.ok) {
+      toast(`✅ Stock ${type}: ${qty} units (After: ${data.stockAfter})`, 'success');
+      ['inv-pid','inv-qty','inv-cost','inv-ref','inv-note'].forEach(id => { if ($(id)) $(id).value = ''; });
+      loadInventory();
+    } else toast(data.error || 'Error', 'warning');
+  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+}
+
+/* ═══════════════════════════════════════════
+   NOTIFICATIONS BROADCAST
+═══════════════════════════════════════════ */
+async function sendBroadcast() {
+  const title = $('notif-title')?.value?.trim();
+  const message = $('notif-message')?.value?.trim();
+  const type = $('notif-type')?.value || 'promo';
+  const icon = $('notif-icon')?.value?.trim() || '🔔';
+  const link = $('notif-link')?.value?.trim() || '';
+  const channel = $('notif-channel')?.value || 'app';
+  const segment = $('notif-segment')?.value || '';
+  if (!title || !message) { toast('Title এবং Message দিন!', 'warning'); return; }
+  if (!confirm(`"${title}" — সকল ${segment || 'active'} user দের কাছে পাঠাবেন?`)) return;
+  try {
+    const data = await fetch('/api/admin?action=notify-broadcast', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, message, type, icon, link, channel, segment }),
+    }).then(r => r.json());
+    if (data.ok) {
+      toast(`✅ Notification পাঠানো হয়েছে! SMS: ${data.smsSent || 0}`, 'success');
+      ['notif-title','notif-message','notif-link'].forEach(id => { if ($(id)) $(id).value = ''; });
+    } else toast(data.error || 'Error', 'warning');
+  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+}
+
+function fillNotifTemplate(type) {
+  const templates = {
+    sale:    { title: '🔥 Flash Sale চলছে! — সীমিত সময়', message: 'আমাদের সবচেয়ে বড় sale এখন live! সেরা দামে সেরা পণ্য কিনুন। শেষ হওয়ার আগেই অর্ডার করুন! 🎉', icon: '🔥' },
+    arrival: { title: '✨ নতুন পণ্য এসেছে!', message: 'আপনার পছন্দের নতুন collection এখন available। এখনই দেখুন এবং আপনার পছন্দের পণ্যটি বুক করুন!', icon: '✨' },
+    loyalty: { title: '🏆 Loyalty Reward পেয়েছেন!', message: 'আপনার loyalty points এর জন্য ধন্যবাদ! আপনার accumulated points দিয়ে এখনই discount পান।', icon: '🏆' },
+  };
+  const t = templates[type];
+  if (!t) return;
+  if ($('notif-title')) $('notif-title').value = t.title;
+  if ($('notif-message')) $('notif-message').value = t.message;
+  if ($('notif-icon')) $('notif-icon').value = t.icon;
+  toast('Template লোড হয়েছে!', 'success');
+}
+
 /* ─── UTILITY ─── */
 function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
@@ -2289,6 +2905,20 @@ window.renderScheduledFlashSales = renderScheduledFlashSales;
 window.deleteLocalSale = deleteLocalSale;
 window.quickScheduleFlash = quickScheduleFlash;
 window.toast = toast;
+// New sections
+window.loadReturns = loadReturns;
+window.openReturnModal = openReturnModal;
+window.submitReturnUpdate = submitReturnUpdate;
+window.loadAbandoned = loadAbandoned;
+window.loadSuppliers = loadSuppliers;
+window.editSupplier = editSupplier;
+window.resetSupplierForm = resetSupplierForm;
+window.saveSupplier = saveSupplier;
+window.deleteSupplier = deleteSupplier;
+window.loadInventory = loadInventory;
+window.addInventoryEntry = addInventoryEntry;
+window.sendBroadcast = sendBroadcast;
+window.fillNotifTemplate = fillNotifTemplate;
 
 </script>
 </body>
