@@ -61,11 +61,11 @@
 const {
   connectDB, Order, User, Product, Comment, Newsletter, Coupon,
   FlashSale, Bundle, AbandonedCart, LoyaltyTxn, SiteStats,
-} = require('../_db');
+} = require('./_db');
 const {
   handleCors, isAdmin, sanitize, sendEmail, sendSMS,
   orderStatusEmail, orderShippedSMS,
-} = require('../_helpers');
+} = require('./_helpers');
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    MAIN HANDLER
