@@ -886,6 +886,9 @@ tr:hover td{background:var(--bg)}
         <div class="pm-field"><label>Colors</label><input id="pm-colors" placeholder="Black, White, Red, Blue"></div>
         <div class="pm-field"><label>Material</label><input id="pm-material" placeholder="Cotton, Polyester..."></div>
         <div class="pm-field"><label>Viewers Now</label><input id="pm-viewers" type="number" placeholder="12" min="1"></div>
+        <div class="pm-field"><label>Warranty</label><input id="pm-warranty" placeholder="১ বছর ওয়ারেন্টি (gadgets)"></div>
+        <div class="pm-field"><label>SKU Code</label><input id="pm-sku" placeholder="SLX-001"></div>
+        <div class="pm-field" style="grid-column:1/-1"><label>Video URL (YouTube/TikTok - optional)</label><input id="pm-video" placeholder="https://youtube.com/..."></div>
       </div>
       <div class="pm-field"><label>Description</label><textarea id="pm-desc" rows="3" placeholder="পণ্যের বিস্তারিত বিবরণ..."></textarea></div>
       <div class="pm-field"><label>Product Image URL</label>
@@ -1209,51 +1212,88 @@ async function viewOrder(id) {
       <div style="display:flex;justify-content:space-between;font-family:'Syne',sans-serif;font-size:17px;font-weight:700;border-top:1px solid var(--border);padding-top:9px;margin-top:5px"><span>Total</span><span style="color:var(--brand)">${fmt(o.total)}</span></div>
     </div>
     <div class="status-update">
-      <div class="su-title"><i class="fa-solid fa-pen-to-square" style="color:var(--brand)"></i> Update Status</div>
-      <div class="su-form">
-        <select id="su-status">
-          ${['pending','confirmed','processing','shipped','delivered','cancelled','returned'].map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${statusLabel(s)}</option>`).join('')}
-        </select>
-        <input type="text" id="su-tracking" placeholder="Tracking ID (optional)" value="${o.trackingId||''}">
-        <button class="btn-update" onclick="updateOrderStatus('${o.orderId}')"><i class="fa-solid fa-check"></i> Update</button>
+      <div class="su-title"><i class="fa-solid fa-pen-to-square" style="color:var(--brand)"></i> Order Status আপডেট করুন</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:5px">Status</label>
+          <select id="su-status" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;background:#fff">
+            ${['pending','confirmed','processing','shipped','out_for_delivery','delivered','cancelled','refunded'].map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${statusLabel(s)}</option>`).join('')}
+          </select></div>
+        <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:5px">Courier</label>
+          <input type="text" id="su-courier" placeholder="Pathao / RedX / SA Paribahan" value="${o.tracking&&o.tracking.courier||''}" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+        <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:5px">Tracking ID</label>
+          <input type="text" id="su-tracking" placeholder="Tracking number" value="${o.tracking&&o.tracking.trackingId||''}" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+        <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;display:block;margin-bottom:5px">Admin Note</label>
+          <input type="text" id="su-note" placeholder="Internal note (optional)" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
       </div>
-    </div>`;
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-update" onclick="updateOrderStatus('${o.orderId}')"><i class="fa-solid fa-floppy-disk"></i> Status Save</button>
+        <button class="btn-update" style="background:var(--blue)" onclick="verifyPayment('${o.orderId}')"><i class="fa-solid fa-circle-check"></i> Payment Verify</button>
+        <button class="btn-update" style="background:var(--brand)" onclick="cancelOrder('${o.orderId}')"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      </div>
+    </div>`;}
 }
 
 async function updateOrderStatus(orderId) {
-  const status   = $('su-status').value;
+  const status   = $('su-status')?.value;
   const tracking = $('su-tracking')?.value || '';
-  const data = await fetch('/api/admin?action=status', {
-    method: 'PUT',
-    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId, status, trackingId: tracking }),
-  }).then(r=>r.json());
-  if (data.ok) { toast('Status updated! ✅', 'success'); loadOrders(currentPage); }
-  else toast(data.error || 'Error', 'warning');
+  const courier  = $('su-courier')?.value || '';
+  const note     = $('su-note')?.value || '';
+  if (!status) { toast('Status দিন!', 'warning'); return; }
+  try {
+    const resp = await fetch('/api/admin?action=status', {
+      method: 'POST',   // BUG FIX: was PUT, backend only accepts POST
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, id: orderId, status, trackId: tracking, courier, note }),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Status আপডেট হয়েছে!', 'success'); closeOrderModal(); loadOrders(currentPage); }
+    else toast(data.error || 'Update হয়নি', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
 async function quickStatus(orderId, currentStatus) {
-  const next = { pending:'confirmed', confirmed:'processing', processing:'shipped', shipped:'delivered' };
+  const next = { pending:'confirmed', confirmed:'processing', processing:'shipped', shipped:'out_for_delivery', out_for_delivery:'delivered' };
   const newStatus = next[currentStatus] || 'confirmed';
-  if (!confirm(`"${orderId}" এর status "${statusLabel(currentStatus)}" থেকে "${statusLabel(newStatus)}" করবেন?`)) return;
-  const data = await fetch('/api/admin?action=status', {
-    method: 'PUT',
-    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId, status: newStatus }),
-  }).then(r=>r.json());
-  if (data.ok) { toast('Status updated! ✅', 'success'); loadOrders(currentPage); }
-  else toast(data.error || 'Error', 'warning');
+  if (!confirm(`"${orderId}" — Status "${statusLabel(currentStatus)}" থেকে "${statusLabel(newStatus)}" করবেন?`)) return;
+  try {
+    const resp = await fetch('/api/admin?action=status', {
+      method: 'POST',   // BUG FIX: was PUT
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, id: orderId, status: newStatus }),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Status → ' + statusLabel(newStatus), 'success'); loadOrders(currentPage); }
+    else toast(data.error || 'Update হয়নি', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
 async function cancelOrder(orderId) {
-  if (!confirm(`"${orderId}" cancel করবেন?`)) return;
-  const data = await fetch('/api/admin?action=order', {
-    method: 'DELETE',
-    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderId }),
-  }).then(r=>r.json());
-  if (data.ok) { toast('Order cancelled', 'success'); loadOrders(currentPage); }
-  else toast(data.error, 'warning');
+  if (!confirm(`"${orderId}" cancel করবেন? এই action undo হবে না।`)) return;
+  try {
+    // BUG FIX: no DELETE handler — use action=status with 'cancelled'
+    const resp = await fetch('/api/admin?action=status', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, id: orderId, status: 'cancelled', note: 'Admin কর্তৃক বাতিল' }),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Order cancelled', 'success'); closeOrderModal(); loadOrders(currentPage); }
+    else toast(data.error || 'Cancel হয়নি', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
+}
+
+async function verifyPayment(orderId) {
+  if (!confirm(`"${orderId}" এর payment verify করবেন?`)) return;
+  try {
+    const resp = await fetch('/api/admin?action=payment-verify', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, payStatus: 'verified' }),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Payment verified!', 'success'); closeOrderModal(); loadOrders(currentPage); }
+    else toast(data.error || 'Verify হয়নি', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
 function closeOrderModal() { $('order-modal').classList.remove('open'); }
@@ -1407,7 +1447,9 @@ function renderAdminProducts() {
         <td><div class="action-btns">
           <button class="ab-btn ab-view" onclick="viewProductDetail('${p.productId||p.id}')" title="View"><i class="fa-solid fa-eye"></i></button>
           <button class="ab-btn ab-edit" title="Toggle Flash" onclick="toggleProductFlag('${p.productId||p.id}','isFlash')" style="background:${p.isFlash?'rgba(255,184,0,.15)':''}"><i class="fa-solid fa-bolt"></i></button>
-          <button class="ab-btn ab-del" title="Toggle Active" onclick="toggleProductFlag('${p.productId||p.id}','isActive')"><i class="fa-solid fa-toggle-${p.isActive!==false?'on':'off'}"></i></button>
+          <button class="ab-btn ab-edit" title="Edit Product" onclick="openProductModal(allAdminProds.find(x=>(x.productId||x.id)==='${p.productId||p.id}'))"><i class="fa-solid fa-pen"></i></button>
+          <button class="ab-btn ab-del" title="Delete Product" onclick="deleteProduct('${p.productId||p.id}','${(p.name||'').replace(/'/g,"\\'")}')"><i class="fa-solid fa-trash"></i></button>
+          <button class="ab-btn" title="Toggle Active" onclick="toggleProductFlag('${p.productId||p.id}',p.isActive!==false?'inactive':'active')" style="background:${p.isActive!==false?'rgba(0,197,138,.12)':'rgba(228,30,38,.1)'};color:${p.isActive!==false?'var(--green)':'var(--brand)'}"><i class="fa-solid fa-toggle-${p.isActive!==false?'on':'off'}"></i></button>
         </div></td>
       </tr>`).join('')
     : `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-box-open" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3"></i>কোনো product নেই</td></tr>`;
@@ -1423,15 +1465,41 @@ function renderAdminProducts() {
 function badgeBg(b) { return {hot:'#FF4500',new:'#00C58A',sale:'#E41E26',best:'#FFB800'}[b]||'#888'; }
 
 async function toggleProductFlag(id, flag) {
+  // BUG FIX: was PUT action=product — use POST action=product-edit
+  const update = {};
+  if (flag === 'featured')   update.isFeatured = true;
+  if (flag === 'unfeatured') update.isFeatured = false;
+  if (flag === 'flash')      update.isFlash = true;
+  if (flag === 'unflash')    update.isFlash = false;
+  if (flag === 'new')        update.isNew = true;
+  if (flag === 'unnew')      update.isNew = false;
+  if (flag === 'active')     update.isActive = true;
+  if (flag === 'inactive')   update.isActive = false;
+  update.productId = id;
   try {
-    const data = await fetch('/api/admin?action=product', {
-      method: 'PUT',
+    const resp = await fetch('/api/admin?action=product-edit', {
+      method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId: id, flag }),
-    }).then(r=>r.json());
-    if (data.ok) { toast('Updated! ✅', 'success'); loadAdminProducts(); }
-    else { toast(data.error || 'Error', 'warning'); }
-  } catch { toast('Cannot update — check API', 'warning'); }
+      body: JSON.stringify(update),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Updated!', 'success'); loadAdminProducts(); }
+    else toast(data.error || 'Update হয়নি', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm(`"${name}" permanently delete করবেন? এই কাজ undo হবে না।`)) return;
+  try {
+    const resp = await fetch('/api/admin?action=product-delete', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId: id }),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Product delete হয়েছে!', 'success'); loadAdminProducts(); }
+    else toast(data.error || 'Delete হয়নি', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
 function viewProductDetail(id) {
@@ -1461,7 +1529,9 @@ async function loadReviews() {
   const rating = $('review-rating-filter')?.value || '';
   $('reviews-body').innerHTML = `<div style="text-align:center;padding:40px"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
   try {
-    let url = `action=reviews${status?'&status='+status:''}${rating?'&rating='+rating:''}`;
+    // BUG FIX: backend uses 'filter' param (pending/approved/all), not 'status'
+    const filterVal = status === 'pending' ? 'pending' : status === 'approved' ? 'approved' : 'all';
+    let url = `action=reviews&filter=${filterVal}${rating?'&rating='+rating:''}`;
     const data = await adminFetch(url);
     if (!data.ok) throw new Error(data.error);
     const reviews = data.reviews || [];
@@ -1523,16 +1593,24 @@ async function loadReviews() {
 }
 
 async function reviewAction(id, action) {
-  if (action === 'delete' && !confirm('এই review delete করবেন?')) return;
+  if (action === 'delete' && !confirm('এই review permanently delete করবেন?')) return;
+  // BUG FIX: use /api/admin with correct action names: review-approve, review-delete
+  let apiAction;
+  let body = { id };
+  if (action === 'approve') { apiAction = 'review-approve'; body = { id, hide: false }; }
+  else if (action === 'hide')   { apiAction = 'review-approve'; body = { id, hide: true }; }
+  else if (action === 'delete') { apiAction = 'review-delete'; body = { id }; }
+  else { apiAction = 'review-approve'; body = { id, hide: false }; }
   try {
-    const data = await fetch('/api/comments?action='+action, {
+    const resp = await fetch('/api/admin?action=' + apiAction, {
       method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ commentId: id }),
-    }).then(r=>r.json());
-    if (data.ok) { toast('Done! ✅', 'success'); loadReviews(); }
-    else toast(data.error||'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Done!', 'success'); loadReviews(); }
+    else toast(data.error || 'Error', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
 function showReplyBox(id, idx) {
@@ -1543,28 +1621,40 @@ function showReplyBox(id, idx) {
 async function submitReply(id) {
   const text = document.getElementById(`reply-text-${id}`)?.value?.trim();
   if (!text) { toast('Reply লিখুন!', 'warning'); return; }
+  // BUG FIX: use /api/admin?action=review-reply (not /api/comments)
   try {
-    const data = await fetch('/api/comments?action=reply', {
+    const resp = await fetch('/api/admin?action=review-reply', {
       method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ commentId: id, replyText: text }),
-    }).then(r=>r.json());
-    if (data.ok) { toast('Reply পাঠানো হয়েছে! ✅', 'success'); loadReviews(); }
-    else toast(data.error||'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
+      body: JSON.stringify({ id, text }),
+    });
+    const data = await resp.json();
+    if (data.ok) { toast('✅ Reply পাঠানো হয়েছে!', 'success'); loadReviews(); }
+    else toast(data.error || 'Error', 'warning');
+  } catch(e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
 async function approveAllReviews() {
   if (!confirm('All pending reviews approve করবেন?')) return;
+  // BUG FIX: no bulk approve in admin.js - approve one by one via loaded reviews
   try {
-    const data = await fetch('/api/comments?action=approveAll', {
-      method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    }).then(r=>r.json());
-    if (data.ok) { toast(`${data.count||'All'} reviews approved! ✅`, 'success'); loadReviews(); }
-    else toast(data.error||'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
+    const data = await adminFetch('action=reviews&filter=pending&limit=100');
+    if (!data.ok) throw new Error(data.error);
+    const pending = (data.comments || []).filter(r => !r.isApproved && !r.isHidden);
+    if (!pending.length) { toast('কোনো pending review নেই', 'default'); return; }
+    let done = 0;
+    for (const r of pending) {
+      const resp = await fetch('/api/admin?action=review-approve', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: r._id, hide: false }),
+      });
+      const d = await resp.json();
+      if (d.ok) done++;
+    }
+    toast(`✅ ${done}টি review approve হয়েছে!`, 'success');
+    loadReviews();
+  } catch(e) { toast('Error: ' + e.message, 'warning'); }
 }
 
 /* ═══════════════════════════════════════════
@@ -1806,6 +1896,9 @@ function openProductModal(prod = null) {
     document.getElementById('pm-colors').value = (prod.colors||[]).join(', ');
     document.getElementById('pm-material').value = prod.material || '';
     document.getElementById('pm-viewers').value = prod.viewers || '12';
+    if(document.getElementById('pm-warranty')) document.getElementById('pm-warranty').value = prod.warranty || '';
+    if(document.getElementById('pm-sku')) document.getElementById('pm-sku').value = prod.sku || '';
+    if(document.getElementById('pm-video')) document.getElementById('pm-video').value = prod.videoUrl || '';
     document.getElementById('pm-desc').value = prod.desc || '';
     document.getElementById('pm-img').value = prod.img || '';
     document.getElementById('pm-featured').checked = !!prod.isFeatured;
@@ -1813,7 +1906,7 @@ function openProductModal(prod = null) {
     document.getElementById('pm-flash').checked = !!prod.isFlash;
     if(prod.img) showImgPreview([prod.img]);
   } else {
-    ['pm-name','pm-price','pm-orig','pm-stock','pm-reviews','pm-sizes','pm-colors','pm-material','pm-desc','pm-img'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['pm-name','pm-price','pm-orig','pm-stock','pm-reviews','pm-sizes','pm-colors','pm-material','pm-desc','pm-img','pm-warranty','pm-sku','pm-video'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('pm-rating').value = '4.5';
     document.getElementById('pm-viewers').value = '12';
     document.getElementById('pm-featured').checked = false;
@@ -1874,52 +1967,74 @@ function handleImgDrop(e) {
 }
 
 async function saveProduct() {
-  const name = document.getElementById('pm-name')?.value?.trim();
-  const cat = document.getElementById('pm-cat')?.value;
-  const price = parseFloat(document.getElementById('pm-price')?.value);
-  const orig = parseFloat(document.getElementById('pm-orig')?.value)||price;
-  const stock = parseInt(document.getElementById('pm-stock')?.value)||50;
-  const rating = parseFloat(document.getElementById('pm-rating')?.value)||4.5;
-  const reviews = parseInt(document.getElementById('pm-reviews')?.value)||0;
-  const badge = document.getElementById('pm-badge')?.value;
-  const sizes = (document.getElementById('pm-sizes')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const colors = (document.getElementById('pm-colors')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const material = document.getElementById('pm-material')?.value?.trim();
-  const viewers = parseInt(document.getElementById('pm-viewers')?.value)||12;
-  const desc = document.getElementById('pm-desc')?.value?.trim();
-  let img = document.getElementById('pm-img')?.value?.trim();
-  const isFeatured = document.getElementById('pm-featured')?.checked;
-  const isNew = document.getElementById('pm-new')?.checked;
-  const isFlash = document.getElementById('pm-flash')?.checked;
+  const name      = document.getElementById('pm-name')?.value?.trim();
+  const cat       = document.getElementById('pm-cat')?.value;
+  const price     = parseFloat(document.getElementById('pm-price')?.value);
+  const orig      = parseFloat(document.getElementById('pm-orig')?.value) || price;
+  const stock     = parseInt(document.getElementById('pm-stock')?.value) || 50;
+  const rating    = parseFloat(document.getElementById('pm-rating')?.value) || 4.5;
+  const reviews   = parseInt(document.getElementById('pm-reviews')?.value) || 0;
+  const badge     = document.getElementById('pm-badge')?.value || 'new';
+  const sizes     = (document.getElementById('pm-sizes')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+  const colors    = (document.getElementById('pm-colors')?.value || '').split(',').map(s => s.trim()).filter(Boolean);
+  const material  = document.getElementById('pm-material')?.value?.trim() || '';
+  const viewers   = parseInt(document.getElementById('pm-viewers')?.value) || 12;
+  const desc      = document.getElementById('pm-desc')?.value?.trim() || '';
+  const warranty  = document.getElementById('pm-warranty')?.value?.trim() || '';
+  const sku       = document.getElementById('pm-sku')?.value?.trim() || '';
+  const videoUrl  = document.getElementById('pm-video')?.value?.trim() || '';
+  const isFeatured= !!document.getElementById('pm-featured')?.checked;
+  const isNew     = !!document.getElementById('pm-new')?.checked;
+  const isFlash   = !!document.getElementById('pm-flash')?.checked;
+  let   img       = document.getElementById('pm-img')?.value?.trim() || '';
 
-  if(!name || !cat || !price) { toast('Name, Category, Price আবশ্যক!','warning'); return; }
+  if (!name) { toast('Product নাম দিন!', 'warning'); return; }
+  if (!cat)  { toast('Category দিন!', 'warning'); return; }
+  if (!price || isNaN(price) || price <= 0) { toast('সঠিক Price দিন!', 'warning'); return; }
 
-  // Use first uploaded image if available
-  if(uploadedImages.length > 0 && img === 'uploaded') img = uploadedImages[0];
-  if(!img) img = `https://source.unsplash.com/400x500/?${cat.replace(/-/g,',')}`;
+  // Use uploaded image if available
+  if (uploadedImages.length > 0 && (img === 'uploaded' || !img)) img = uploadedImages[0];
+  if (!img) img = `https://source.unsplash.com/400x500/?${encodeURIComponent(cat.replace(/-/g,','))}`;
 
-  const productData = { name, cat, price, orig, stock, rating, reviews, badge, sizes, colors, material, viewers, desc, img, isFeatured, isNew, isFlash };
+  const productData = {
+    name, cat, price, orig, stock, rating, reviews, badge,
+    sizes, colors, material, viewers, desc, warranty, sku, videoUrl,
+    img, images: uploadedImages.length > 0 ? uploadedImages : [img],
+    isFeatured, isNew, isFlash, isActive: true,
+  };
+
+  // BUG FIX: Correct action names — backend uses product-add vs product-edit (always POST)
+  const action = editingProductId ? 'product-edit' : 'product-add';
+  if (editingProductId) productData.productId = editingProductId;
+
+  const btn = document.querySelector('.btn-save-product');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> সংরক্ষণ হচ্ছে...'; }
 
   try {
-    const method = editingProductId ? 'PATCH' : 'POST';
-    if(editingProductId) productData.id = editingProductId;
-    const data = await fetch('/api/admin?action=product', {
-      method,
+    const resp = await fetch(`/api/admin?action=${action}`, {
+      method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
       body: JSON.stringify(productData),
-    }).then(r=>r.json());
-    if(data.ok) {
-      toast(editingProductId ? 'Product updated! ✅' : 'Product added! ✅', 'success');
+    });
+    const data = await resp.json();
+
+    if (data.ok) {
+      toast(editingProductId ? '✅ Product আপডেট হয়েছে!' : '✅ Product যোগ হয়েছে!', 'success');
       closeProductModal();
-      if(typeof loadAdminProducts === 'function') loadAdminProducts();
-    } else toast(data.error||'Error saving product','warning');
-  } catch {
-    // Offline: save to localStorage for later sync
-    toast('Server offline — local এ save হয়েছে','warning');
-    const localProds = JSON.parse(localStorage.getItem('slx_pending_products')||'[]');
-    localProds.push({...productData, _pending: true, _time: Date.now()});
+      loadAdminProducts();
+      uploadedImages = [];
+    } else {
+      toast(data.error || 'Product সংরক্ষণ হয়নি — ' + JSON.stringify(data), 'warning');
+    }
+  } catch (err) {
+    console.error('saveProduct error:', err);
+    const localProds = JSON.parse(localStorage.getItem('slx_pending_products') || '[]');
+    localProds.push({ ...productData, _pending: true, _time: Date.now() });
     localStorage.setItem('slx_pending_products', JSON.stringify(localProds));
+    toast('Server offline — locally saved', 'warning');
     closeProductModal();
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Product Save করুন'; }
   }
 }
 
