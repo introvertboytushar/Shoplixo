@@ -1,66 +1,90 @@
 /**
  * ══════════════════════════════════════════════════════════════
- *  SHOPLIXO — /api/admin  (Ultra Professional v3)
+ *  SHOPLIXO — /api/admin  (Ultra Professional v4 — FIXED)
  *  ⚠️  Protected by x-admin-key header
  *
  *  ── DASHBOARD ────────────────────────────────────────────────
- *  GET  ?action=stats          → Full dashboard statistics
- *  GET  ?action=analytics      → Revenue chart, top products
+ *  GET  ?action=stats            → Full dashboard statistics
  *
  *  ── PRODUCTS ─────────────────────────────────────────────────
- *  GET  ?action=products       → Products list (paginated, filterable)
- *  GET  ?action=product&id=x   → Single product
- *  POST ?action=product-add    → নতুন product যোগ করুন
- *  POST ?action=product-edit   → Product আপডেট করুন
- *  POST ?action=product-delete → Product মুছুন
- *  POST ?action=product-toggle → Stock / Active toggle
- *  POST ?action=product-bulk   → Bulk operations (delete/feature/flash)
+ *  GET  ?action=products         → Products list (paginated, filterable)
+ *  GET  ?action=product&id=x     → Single product
+ *  POST ?action=product-add      → নতুন product যোগ করুন
+ *  POST ?action=product-edit     → Product আপডেট করুন
+ *  POST ?action=product-delete   → Product মুছুন
+ *  POST ?action=product-bulk     → Bulk operations (ids[] or category + stockIncrease)
  *
  *  ── ORDERS ───────────────────────────────────────────────────
- *  GET  ?action=orders         → Orders list (paginated, filterable)
- *  GET  ?action=order&id=x     → Single order detail
- *  POST ?action=status         → Order status আপডেট
- *  POST ?action=payment-verify → Payment verify করুন
+ *  GET  ?action=orders           → Orders list (paginated, filterable, date range)
+ *  GET  ?action=order&id=x       → Single order detail
+ *  POST ?action=status           → Order status আপডেট
+ *  POST ?action=payment-verify   → Payment verify করুন
+ *
+ *  ── RETURN REQUESTS ──────────────────────────────────────────
+ *  GET  ?action=returns          → Return requests list
+ *  POST ?action=return-update    → Return status আপডেট / Refund process
  *
  *  ── CUSTOMERS ────────────────────────────────────────────────
- *  GET  ?action=customers      → Users list
- *  POST ?action=customer-ban   → User ban/unban
+ *  GET  ?action=customers        → Users list
+ *  POST ?action=customer-ban     → User ban/unban
  *
  *  ── COUPONS ──────────────────────────────────────────────────
- *  GET  ?action=coupons        → Coupon list
- *  POST ?action=coupon         → Coupon তৈরি / আপডেট
- *  POST ?action=coupon-delete  → Coupon মুছুন
- *  POST ?action=toggle-coupon  → Coupon on/off
+ *  GET  ?action=coupons          → Coupon list
+ *  POST ?action=coupon           → Coupon তৈরি / আপডেট
+ *  POST ?action=coupon-delete    → Coupon মুছুন
+ *  POST ?action=toggle-coupon    → Coupon on/off
  *
  *  ── REVIEWS ──────────────────────────────────────────────────
- *  GET  ?action=reviews        → All reviews (pending/approved)
- *  POST ?action=review-approve → Review approve করুন
- *  POST ?action=review-delete  → Review মুছুন
- *  POST ?action=review-reply   → Admin reply দিন
+ *  GET  ?action=reviews          → All reviews (pending/approved/all)
+ *  POST ?action=review-approve   → Review approve করুন
+ *  POST ?action=review-delete    → Review মুছুন
+ *  POST ?action=review-reply     → Admin reply দিন
  *
  *  ── FLASH SALES ──────────────────────────────────────────────
- *  GET  ?action=flash-sales    → Flash sale list
- *  POST ?action=flash-sale-add → Flash sale তৈরি
- *  POST ?action=flash-sale-del → Flash sale মুছুন
+ *  GET  ?action=flash-sales      → Flash sale list
+ *  POST ?action=flash-sale-add   → Flash sale তৈরি
+ *  POST ?action=flash-sale-del   → Flash sale মুছুন
  *
  *  ── BUNDLES ──────────────────────────────────────────────────
- *  GET  ?action=bundles        → Bundle list
- *  POST ?action=bundle-add     → Bundle তৈরি
- *  POST ?action=bundle-edit    → Bundle আপডেট
- *  POST ?action=bundle-delete  → Bundle মুছুন
+ *  GET  ?action=bundles          → Bundle list
+ *  POST ?action=bundle-add       → Bundle তৈরি
+ *  POST ?action=bundle-edit      → Bundle আপডেট
+ *  POST ?action=bundle-delete    → Bundle মুছুন
  *
  *  ── NEWSLETTER ───────────────────────────────────────────────
- *  GET  ?action=newsletter     → Subscribers list
- *  POST ?action=newsletter-del → Subscriber মুছুন
+ *  GET  ?action=newsletter       → Subscribers list
+ *  POST ?action=newsletter-del   → Subscriber মুছুন
  *
  *  ── ABANDONED CARTS ──────────────────────────────────────────
- *  GET  ?action=abandoned      → Abandoned carts
+ *  GET  ?action=abandoned        → Abandoned carts
+ *
+ *  ── SUPPLIERS ────────────────────────────────────────────────
+ *  GET  ?action=suppliers        → Supplier list
+ *  POST ?action=supplier-add     → Supplier যোগ করুন
+ *  POST ?action=supplier-edit    → Supplier আপডেট
+ *  POST ?action=supplier-delete  → Supplier মুছুন
+ *
+ *  ── INVENTORY ────────────────────────────────────────────────
+ *  GET  ?action=inventory        → Inventory log (filterable by product/type)
+ *  POST ?action=inventory-add    → Manual stock entry
+ *
+ *  ── REFERRALS ────────────────────────────────────────────────
+ *  GET  ?action=referrals        → Referral tracking data
+ *
+ *  ── NOTIFICATIONS ────────────────────────────────────────────
+ *  POST ?action=notify-broadcast → Broadcast notification to all/segment users
+ *
+ *  ── SITE SETTINGS ────────────────────────────────────────────
+ *  GET  ?action=settings         → Get all site settings
+ *  POST ?action=settings         → Save site settings
  * ══════════════════════════════════════════════════════════════
  */
 
 const {
   connectDB, Order, User, Product, Comment, Newsletter, Coupon,
   FlashSale, Bundle, AbandonedCart, LoyaltyTxn, SiteStats,
+  Supplier, InventoryLog, ReturnRequest, Notification, Affiliate,
+  Referral, SiteSettings, getSetting, setSetting, getSettings,
 } = require('./_db');
 const {
   handleCors, isAdmin, sanitize, sendEmail, sendSMS,
@@ -97,6 +121,7 @@ module.exports = async (req, res) => {
         todayRevObj, monthRevObj, lastMonthRevObj,
         statusBreakdown, revenueByDayRaw, topProductsRaw,
         totalProducts, lowStockProducts, pendingReviews, newsletterCount,
+        pendingReturns, abandonedCount,
       ] = await Promise.all([
         Order.countDocuments(),
         Order.aggregate([{ $match: { status: { $nin: ['cancelled','refunded'] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
@@ -124,6 +149,8 @@ module.exports = async (req, res) => {
         Product.countDocuments({ stock: { $lte: 5 }, isActive: true }),
         Comment.countDocuments({ isApproved: false, isHidden: false }),
         Newsletter.countDocuments({ isActive: true }),
+        ReturnRequest.countDocuments({ status: 'pending' }).catch(() => 0),
+        AbandonedCart.countDocuments({ isConverted: false, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } }).catch(() => 0),
       ]);
 
       const totalRev     = totalRevObj[0]?.total     || 0;
@@ -140,6 +167,7 @@ module.exports = async (req, res) => {
           todayOrders, todayRev, monthOrders, monthRev,
           revenueGrowth, orderGrowth,
           totalProducts, lowStockProducts, pendingReviews, newsletterCount,
+          pendingReturns, abandonedCount,
         },
         statusBreakdown: statusBreakdown.map(s => ({ status: s._id, count: s.count })),
         revenueByDay: revenueByDayRaw.map(d => ({ date: d._id, revenue: d.revenue, orders: d.orders })),
@@ -156,14 +184,14 @@ module.exports = async (req, res) => {
   ═══════════════════════════════════════════════════════════ */
   if (action === 'products' && req.method === 'GET') {
     try {
-      const page    = Math.max(1, parseInt(req.query?.page  || '1'));
-      const limit   = Math.min(100, parseInt(req.query?.limit || '20'));
-      const search  = sanitize(req.query?.search || '', 100);
-      const cat     = sanitize(req.query?.cat    || '', 50);
-      const badge   = sanitize(req.query?.badge  || '', 20);
-      const stock   = req.query?.stock; // 'low', 'out', 'all'
-      const skip    = (page - 1) * limit;
-      const sort    = req.query?.sort || 'newest';
+      const page   = Math.max(1, parseInt(req.query?.page  || '1'));
+      const limit  = Math.min(200, parseInt(req.query?.limit || '20'));
+      const search = sanitize(req.query?.search || '', 100);
+      const cat    = sanitize(req.query?.cat    || '', 50);
+      const badge  = sanitize(req.query?.badge  || '', 20);
+      const stock  = req.query?.stock;
+      const skip   = (page - 1) * limit;
+      const sort   = req.query?.sort || 'newest';
 
       const query = {};
       if (cat)   query.cat   = cat;
@@ -180,12 +208,9 @@ module.exports = async (req, res) => {
       }
 
       const sortMap = {
-        newest:   { createdAt: -1 },
-        oldest:   { createdAt: 1 },
-        price_hi: { price: -1 },
-        price_lo: { price: 1 },
-        stock_lo: { stock: 1 },
-        sold:     { totalSold: -1 },
+        newest:   { createdAt: -1 }, oldest:   { createdAt: 1 },
+        price_hi: { price: -1 },    price_lo: { price: 1 },
+        stock_lo: { stock: 1 },     sold:     { totalSold: -1 },
       };
 
       const [products, total] = await Promise.all([
@@ -193,18 +218,13 @@ module.exports = async (req, res) => {
         Product.countDocuments(query),
       ]);
 
-      return res.json({
-        ok: true, products, total,
-        pagination: { page, limit, pages: Math.ceil(total / limit) },
-      });
+      return res.json({ ok: true, products, total, pagination: { page, limit, pages: Math.ceil(total / limit) } });
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Products লোড হয়নি' });
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── SINGLE PRODUCT ──────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── SINGLE PRODUCT ─────────────────────────────────────── */
   if (action === 'product' && req.method === 'GET') {
     const { id } = req.query;
     if (!id) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
@@ -213,23 +233,18 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, product });
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── ADD PRODUCT ─────────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── ADD PRODUCT ─────────────────────────────────────────── */
   if (action === 'product-add' && req.method === 'POST') {
     try {
       const b = req.body || {};
-
       if (!b.name?.trim()) return res.status(400).json({ ok: false, error: 'Product নাম দিন' });
       if (!b.cat?.trim())  return res.status(400).json({ ok: false, error: 'Category দিন' });
       if (!b.price)        return res.status(400).json({ ok: false, error: 'Price দিন' });
       if (!b.img?.trim())  return res.status(400).json({ ok: false, error: 'Image URL দিন' });
 
-      // Auto-generate productId
       const count = await Product.countDocuments();
       const productId = b.productId?.trim() || `SL-${String(count + 1).padStart(4, '0')}`;
 
-      // Check uniqueness
       const existing = await Product.findOne({ productId });
       if (existing) return res.status(409).json({ ok: false, error: `Product ID "${productId}" আগে থেকেই আছে` });
 
@@ -241,7 +256,7 @@ module.exports = async (req, res) => {
         orig:      b.orig ? parseFloat(b.orig) : undefined,
         img:       sanitize(b.img, 500),
         images:    Array.isArray(b.images) ? b.images.slice(0, 10).map(i => sanitize(i, 500)) : [],
-        badge:     ['hot','new','sale','sold'].includes(b.badge) ? b.badge : 'new',
+        badge:     ['hot','new','sale','sold','trending','exclusive'].includes(b.badge) ? b.badge : 'new',
         rating:    parseFloat(b.rating) || 5,
         reviews:   parseInt(b.reviews) || 0,
         stock:     parseInt(b.stock) ?? 100,
@@ -270,9 +285,7 @@ module.exports = async (req, res) => {
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── EDIT PRODUCT ─────────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── EDIT PRODUCT ─────────────────────────────────────────── */
   if (action === 'product-edit' && req.method === 'POST') {
     try {
       const b  = req.body || {};
@@ -283,17 +296,17 @@ module.exports = async (req, res) => {
       const fields = ['name','cat','img','desc','material','warranty','sku','videoUrl','seoTitle','seoDesc','badge'];
       fields.forEach(f => { if (b[f] !== undefined) updates[f] = sanitize(String(b[f]), f === 'desc' ? 3000 : 500); });
 
-      if (b.price     !== undefined) updates.price      = parseFloat(b.price);
-      if (b.orig      !== undefined) updates.orig       = parseFloat(b.orig);
-      if (b.stock     !== undefined) updates.stock      = parseInt(b.stock);
-      if (b.rating    !== undefined) updates.rating     = parseFloat(b.rating);
-      if (b.reviews   !== undefined) updates.reviews    = parseInt(b.reviews);
-      if (b.viewers   !== undefined) updates.viewers    = parseInt(b.viewers);
-      if (b.isFeatured!== undefined) updates.isFeatured = Boolean(b.isFeatured);
-      if (b.isNew     !== undefined) updates.isNew      = Boolean(b.isNew);
-      if (b.isFlash   !== undefined) updates.isFlash    = Boolean(b.isFlash);
-      if (b.isActive  !== undefined) updates.isActive   = Boolean(b.isActive);
-      if (b.weight    !== undefined) updates.weight     = parseFloat(b.weight);
+      if (b.price      !== undefined) updates.price      = parseFloat(b.price);
+      if (b.orig       !== undefined) updates.orig       = parseFloat(b.orig);
+      if (b.stock      !== undefined) updates.stock      = parseInt(b.stock);
+      if (b.rating     !== undefined) updates.rating     = parseFloat(b.rating);
+      if (b.reviews    !== undefined) updates.reviews    = parseInt(b.reviews);
+      if (b.viewers    !== undefined) updates.viewers    = parseInt(b.viewers);
+      if (b.isFeatured !== undefined) updates.isFeatured = Boolean(b.isFeatured);
+      if (b.isNew      !== undefined) updates.isNew      = Boolean(b.isNew);
+      if (b.isFlash    !== undefined) updates.isFlash    = Boolean(b.isFlash);
+      if (b.isActive   !== undefined) updates.isActive   = Boolean(b.isActive);
+      if (b.weight     !== undefined) updates.weight     = parseFloat(b.weight);
 
       if (b.images !== undefined)
         updates.images = Array.isArray(b.images) ? b.images.slice(0,10).map(i => sanitize(i,500)) : [];
@@ -309,7 +322,6 @@ module.exports = async (req, res) => {
         updates, { new: true }
       );
       if (!product) return res.status(404).json({ ok: false, error: 'Product পাওয়া যায়নি' });
-
       return res.json({ ok: true, product, message: '✅ Product আপডেট হয়েছে!' });
     } catch (err) {
       console.error('Product edit error:', err);
@@ -317,9 +329,7 @@ module.exports = async (req, res) => {
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── DELETE PRODUCT ───────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── DELETE PRODUCT ───────────────────────────────────────── */
   if (action === 'product-delete' && req.method === 'POST') {
     const id = req.body?.productId || req.body?.id;
     if (!id) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
@@ -328,40 +338,59 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, message: `"${product.name}" delete হয়েছে` });
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── BULK PRODUCT OPERATIONS ──────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── BULK PRODUCT OPERATIONS (FIXED: supports category + stockIncrease) ── */
   if (action === 'product-bulk' && req.method === 'POST') {
-    const { ids, operation } = req.body || {};
-    if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ ok: false, error: 'Product IDs দিন' });
+    const { ids, operation, category, stockIncrease } = req.body || {};
 
-    const filter = { productId: { $in: ids } };
-    let result;
+    // Build filter: use ids[] if provided, else use category
+    let filter = {};
+    if (Array.isArray(ids) && ids.length) {
+      filter = { productId: { $in: ids } };
+    } else if (category) {
+      filter = { cat: category, isActive: true };
+    } else {
+      // No filter = all active products
+      filter = { isActive: true };
+    }
 
-    switch (operation) {
-      case 'delete':
-        result = await Product.deleteMany(filter);
-        return res.json({ ok: true, message: `${result.deletedCount}টি product delete হয়েছে` });
-      case 'feature':
-        result = await Product.updateMany(filter, { isFeatured: true });
-        return res.json({ ok: true, message: `${result.modifiedCount}টি product featured করা হয়েছে` });
-      case 'unfeature':
-        result = await Product.updateMany(filter, { isFeatured: false });
-        return res.json({ ok: true, message: `${result.modifiedCount}টি product unfeatured হয়েছে` });
-      case 'flash':
-        result = await Product.updateMany(filter, { isFlash: true });
-        return res.json({ ok: true, message: `${result.modifiedCount}টি product flash sale-এ যোগ হয়েছে` });
-      case 'unflash':
-        result = await Product.updateMany(filter, { isFlash: false });
-        return res.json({ ok: true, message: `${result.modifiedCount}টি product flash sale থেকে বাদ হয়েছে` });
-      case 'activate':
-        result = await Product.updateMany(filter, { isActive: true });
-        return res.json({ ok: true, message: `${result.modifiedCount}টি product activate হয়েছে` });
-      case 'deactivate':
-        result = await Product.updateMany(filter, { isActive: false });
-        return res.json({ ok: true, message: `${result.modifiedCount}টি product deactivate হয়েছে` });
-      default:
-        return res.status(400).json({ ok: false, error: 'Invalid operation' });
+    try {
+      let result;
+      switch (operation) {
+        case 'delete':
+          result = await Product.deleteMany(filter);
+          return res.json({ ok: true, message: `${result.deletedCount}টি product delete হয়েছে` });
+        case 'feature':
+          result = await Product.updateMany(filter, { isFeatured: true });
+          return res.json({ ok: true, message: `${result.modifiedCount}টি product featured করা হয়েছে` });
+        case 'unfeature':
+          result = await Product.updateMany(filter, { isFeatured: false });
+          return res.json({ ok: true, message: `${result.modifiedCount}টি product unfeatured হয়েছে` });
+        case 'flash':
+          result = await Product.updateMany(filter, { isFlash: true });
+          return res.json({ ok: true, message: `${result.modifiedCount}টি product flash sale-এ যোগ হয়েছে` });
+        case 'unflash':
+          result = await Product.updateMany(filter, { isFlash: false });
+          return res.json({ ok: true, message: `${result.modifiedCount}টি product flash sale থেকে বাদ হয়েছে` });
+        case 'activate':
+          if (stockIncrease && stockIncrease > 0) {
+            // Stock increase operation
+            result = await Product.updateMany(filter, { $inc: { stock: parseInt(stockIncrease) } });
+            return res.json({ ok: true, message: `${result.modifiedCount}টি product-এ +${stockIncrease} stock যোগ হয়েছে` });
+          }
+          result = await Product.updateMany(filter, { isActive: true });
+          return res.json({ ok: true, message: `${result.modifiedCount}টি product activate হয়েছে` });
+        case 'deactivate':
+          result = await Product.updateMany(filter, { isActive: false });
+          return res.json({ ok: true, message: `${result.modifiedCount}টি product deactivate হয়েছে` });
+        case 'stock-increase':
+          if (!stockIncrease || stockIncrease <= 0) return res.status(400).json({ ok: false, error: 'stockIncrease দিন' });
+          result = await Product.updateMany(filter, { $inc: { stock: parseInt(stockIncrease) } });
+          return res.json({ ok: true, message: `${result.modifiedCount}টি product-এ +${stockIncrease} stock যোগ হয়েছে` });
+        default:
+          return res.status(400).json({ ok: false, error: 'Invalid operation. Valid: delete, feature, unfeature, flash, unflash, activate, deactivate, stock-increase' });
+      }
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Bulk operation failed: ' + err.message });
     }
   }
 
@@ -425,9 +454,7 @@ module.exports = async (req, res) => {
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── SINGLE ORDER ─────────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── SINGLE ORDER ─────────────────────────────────────────── */
   if (action === 'order' && req.method === 'GET') {
     const id = sanitize(req.query?.id || '', 30).toUpperCase();
     if (!id) return res.status(400).json({ ok: false, error: 'Order ID দিন' });
@@ -436,9 +463,7 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, order });
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── UPDATE ORDER STATUS ───────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── UPDATE ORDER STATUS ─────────────────────────────────── */
   if (action === 'status' && req.method === 'POST') {
     const b       = req.body || {};
     const id      = sanitize(b.id || b.orderId || '', 20).toUpperCase();
@@ -477,7 +502,7 @@ module.exports = async (req, res) => {
         await Order.findOneAndUpdate({ orderId: id }, { loyaltyPointsEarned: earned });
       }
 
-      // Send notification emails/SMS (non-blocking)
+      // Send notifications (non-blocking)
       if (order.customer.email) {
         sendEmail(order.customer.email, `অর্ডার আপডেট — ${id} | Shoplixo`, orderStatusEmail(order, status, trackId, courier)).catch(() => {});
       }
@@ -492,9 +517,7 @@ module.exports = async (req, res) => {
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── PAYMENT VERIFY ───────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
+  /* ── PAYMENT VERIFY ──────────────────────────────────────── */
   if (action === 'payment-verify' && req.method === 'POST') {
     const { orderId, payStatus } = req.body || {};
     if (!orderId) return res.status(400).json({ ok: false, error: 'Order ID দিন' });
@@ -509,7 +532,73 @@ module.exports = async (req, res) => {
   }
 
   /* ═══════════════════════════════════════════════════════════
-     ── CUSTOMERS LIST ───────────────────────────────────────
+     ── RETURN REQUESTS ──────────────────────────────────────
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'returns' && req.method === 'GET') {
+    try {
+      const page    = Math.max(1, parseInt(req.query?.page  || '1'));
+      const limit   = Math.min(50, parseInt(req.query?.limit || '20'));
+      const status  = sanitize(req.query?.status || '', 30);
+      const skip    = (page - 1) * limit;
+      const query   = status ? { status } : {};
+
+      const [returns, total] = await Promise.all([
+        ReturnRequest.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
+        ReturnRequest.countDocuments(query),
+      ]);
+
+      const stats = await ReturnRequest.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 }, totalRefund: { $sum: '$refundAmount' } } },
+      ]);
+
+      return res.json({
+        ok: true, returns, total,
+        pagination: { page, limit, pages: Math.ceil(total / limit) },
+        stats: Object.fromEntries(stats.map(s => [s._id, { count: s.count, totalRefund: s.totalRefund }])),
+      });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Returns লোড হয়নি: ' + err.message });
+    }
+  }
+
+  if (action === 'return-update' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+      const { returnId, status, adminNote, refundAmount, refundMethod, refundRef } = b;
+      if (!returnId || !status) return res.status(400).json({ ok: false, error: 'returnId এবং status দিন' });
+
+      const validStatuses = ['pending','approved','rejected','refunded','completed'];
+      if (!validStatuses.includes(status)) return res.status(400).json({ ok: false, error: 'Invalid status' });
+
+      const updates = {
+        status,
+        adminNote: sanitize(adminNote || '', 500),
+        processedAt: new Date(),
+        processedBy: 'admin',
+      };
+      if (refundAmount) updates.refundAmount = parseFloat(refundAmount);
+      if (refundMethod) updates.refundMethod = refundMethod;
+      if (refundRef)    updates.refundRef    = sanitize(refundRef, 100);
+
+      const ret = await ReturnRequest.findOneAndUpdate({ returnId }, updates, { new: true });
+      if (!ret) return res.status(404).json({ ok: false, error: 'Return Request পাওয়া যায়নি' });
+
+      // If approved/refunded — update order status
+      if (status === 'refunded' || status === 'completed') {
+        await Order.findOneAndUpdate(
+          { orderId: ret.orderId },
+          { status: 'returned', $push: { statusHistory: { status: 'returned', note: `Return ${status} by admin`, updatedBy: 'admin', updatedAt: new Date() } } }
+        ).catch(() => {});
+      }
+
+      return res.json({ ok: true, return: ret, message: `Return ${status}` });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Update হয়নি: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── CUSTOMERS ────────────────────────────────────────────
   ═══════════════════════════════════════════════════════════ */
   if (action === 'customers' && req.method === 'GET') {
     try {
@@ -517,8 +606,7 @@ module.exports = async (req, res) => {
       const limit  = Math.min(100, parseInt(req.query?.limit|| '20'));
       const search = sanitize(req.query?.search || '', 100);
       const skip   = (page - 1) * limit;
-
-      const query = {};
+      const query  = {};
       if (search) {
         query.$or = [
           { name:  { $regex: search, $options: 'i' } },
@@ -526,22 +614,16 @@ module.exports = async (req, res) => {
           { email: { $regex: search, $options: 'i' } },
         ];
       }
-
       const [users, total] = await Promise.all([
-        User.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit)
-          .select('-password -otp -otpExpiry -__v'),
+        User.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-password -otp -otpExpiry -__v'),
         User.countDocuments(query),
       ]);
-
       return res.json({ ok: true, users, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Customers লোড হয়নি' });
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── BAN / UNBAN CUSTOMER ─────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
   if (action === 'customer-ban' && req.method === 'POST') {
     const { userId, ban } = req.body || {};
     if (!userId) return res.status(400).json({ ok: false, error: 'User ID দিন' });
@@ -551,33 +633,34 @@ module.exports = async (req, res) => {
   }
 
   /* ═══════════════════════════════════════════════════════════
-     ── REVIEWS LIST ─────────────────────────────────────────
+     ── REVIEWS ──────────────────────────────────────────────
   ═══════════════════════════════════════════════════════════ */
   if (action === 'reviews' && req.method === 'GET') {
     try {
       const page   = Math.max(1, parseInt(req.query?.page  || '1'));
       const limit  = Math.min(50, parseInt(req.query?.limit || '20'));
-      const filter = req.query?.filter || 'pending'; // pending | approved | all
+      const filter = req.query?.filter || 'all';
+      const rating = req.query?.rating;
       const skip   = (page - 1) * limit;
-
-      const query = {};
+      const query  = {};
       if (filter === 'pending')  { query.isApproved = false; query.isHidden = false; }
       if (filter === 'approved') { query.isApproved = true; }
-
+      if (filter === 'hidden')   { query.isHidden = true; }
+      if (rating) {
+        const rArr = String(rating).split(',').map(n => parseInt(n.trim())).filter(Boolean);
+        if (rArr.length > 1) query.rating = { $in: rArr };
+        else if (rArr.length === 1) query.rating = rArr[0];
+      }
       const [comments, total] = await Promise.all([
         Comment.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
         Comment.countDocuments(query),
       ]);
-
       return res.json({ ok: true, comments, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Reviews লোড হয়নি' });
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── APPROVE REVIEW ───────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
   if (action === 'review-approve' && req.method === 'POST') {
     const { id, hide } = req.body || {};
     if (!id) return res.status(400).json({ ok: false, error: 'Review ID দিন' });
@@ -586,8 +669,6 @@ module.exports = async (req, res) => {
       : { isApproved: true, isHidden: false };
     const comment = await Comment.findByIdAndUpdate(id, update, { new: true });
     if (!comment) return res.status(404).json({ ok: false, error: 'Review পাওয়া যায়নি' });
-
-    // Recalculate product rating
     const agg = await Comment.aggregate([
       { $match: { productId: comment.productId, isApproved: true } },
       { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } },
@@ -600,9 +681,6 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, message: hide ? 'Review hidden হয়েছে' : 'Review approve হয়েছে' });
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── DELETE REVIEW ────────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
   if (action === 'review-delete' && req.method === 'POST') {
     const { id } = req.body || {};
     if (!id) return res.status(400).json({ ok: false, error: 'Review ID দিন' });
@@ -611,9 +689,6 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, message: 'Review delete হয়েছে' });
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── ADMIN REPLY TO REVIEW ────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
   if (action === 'review-reply' && req.method === 'POST') {
     const { id, text } = req.body || {};
     if (!id || !text) return res.status(400).json({ ok: false, error: 'ID এবং reply text দিন' });
@@ -635,27 +710,22 @@ module.exports = async (req, res) => {
     const b = req.body || {};
     if (!b.title || !b.startAt || !b.endAt)
       return res.status(400).json({ ok: false, error: 'Title, startAt, endAt দিন' });
-
     const sale = await FlashSale.create({
-      title:       sanitize(b.title, 200),
-      description: sanitize(b.description || '', 500),
-      startAt:     new Date(b.startAt),
-      endAt:       new Date(b.endAt),
-      isActive:    true,
-      bannerImg:   sanitize(b.bannerImg || '', 500),
+      title:            sanitize(b.title, 200),
+      description:      sanitize(b.description || '', 500),
+      startAt:          new Date(b.startAt),
+      endAt:            new Date(b.endAt),
+      isActive:         true,
+      bannerImg:        sanitize(b.bannerImg || '', 500),
       extraDiscountPct: parseFloat(b.extraDiscountPct) || 0,
       products: Array.isArray(b.products) ? b.products.map(p => ({
         productId: p.productId, salePrice: parseFloat(p.salePrice),
         origPrice: parseFloat(p.origPrice), stock: parseInt(p.stock) || 100,
       })) : [],
     });
-
-    // Update product isFlash flag
     if (sale.products.length) {
-      const pids = sale.products.map(p => p.productId);
-      await Product.updateMany({ productId: { $in: pids } }, { isFlash: true });
+      await Product.updateMany({ productId: { $in: sale.products.map(p => p.productId) } }, { isFlash: true });
     }
-
     return res.status(201).json({ ok: true, sale, message: 'Flash Sale তৈরি হয়েছে' });
   }
 
@@ -678,7 +748,6 @@ module.exports = async (req, res) => {
     const b = req.body || {};
     if (!b.title || !Array.isArray(b.productIds) || b.productIds.length < 2 || !b.discountValue)
       return res.status(400).json({ ok: false, error: 'Title, কমপক্ষে ২টি product ID এবং discount দিন' });
-
     const bundle = await Bundle.create({
       title:         sanitize(b.title, 200),
       description:   sanitize(b.description || '', 500),
@@ -778,24 +847,297 @@ module.exports = async (req, res) => {
      ── ABANDONED CARTS ──────────────────────────────────────
   ═══════════════════════════════════════════════════════════ */
   if (action === 'abandoned' && req.method === 'GET') {
-    const carts = await AbandonedCart.find({ isConverted: false })
-      .sort({ createdAt: -1 }).limit(50).lean();
-    return res.json({ ok: true, carts, total: carts.length });
+    const page  = Math.max(1, parseInt(req.query?.page  || '1'));
+    const limit = Math.min(50, parseInt(req.query?.limit || '20'));
+    const skip  = (page - 1) * limit;
+    const [carts, total] = await Promise.all([
+      AbandonedCart.find({ isConverted: false }).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      AbandonedCart.countDocuments({ isConverted: false }),
+    ]);
+    const totalValue = await AbandonedCart.aggregate([
+      { $match: { isConverted: false } },
+      { $group: { _id: null, total: { $sum: '$total' } } },
+    ]);
+    return res.json({ ok: true, carts, total, totalValue: totalValue[0]?.total || 0, pagination: { page, limit, pages: Math.ceil(total / limit) } });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── SUPPLIERS ────────────────────────────────────────────
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'suppliers' && req.method === 'GET') {
+    try {
+      const page   = Math.max(1, parseInt(req.query?.page  || '1'));
+      const limit  = Math.min(50, parseInt(req.query?.limit || '20'));
+      const search = sanitize(req.query?.search || '', 100);
+      const skip   = (page - 1) * limit;
+      const query  = search
+        ? { $or: [{ name: { $regex: search, $options: 'i' } }, { phone: { $regex: search, $options: 'i' } }] }
+        : {};
+      const [suppliers, total] = await Promise.all([
+        Supplier.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
+        Supplier.countDocuments(query),
+      ]);
+      return res.json({ ok: true, suppliers, total, pagination: { page, limit, pages: Math.ceil(total / limit) } });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Suppliers লোড হয়নি: ' + err.message });
+    }
+  }
+
+  if (action === 'supplier-add' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+      if (!b.name || !b.phone) return res.status(400).json({ ok: false, error: 'Name এবং phone দিন' });
+      const count = await Supplier.countDocuments();
+      const supplierId = b.supplierId?.trim() || `SUP-${String(count + 1).padStart(4, '0')}`;
+      const existing = await Supplier.findOne({ supplierId });
+      if (existing) return res.status(409).json({ ok: false, error: 'Supplier ID already exists' });
+
+      const supplier = await Supplier.create({
+        supplierId,
+        name:         sanitize(b.name, 200),
+        company:      sanitize(b.company || '', 200),
+        phone:        sanitize(b.phone, 20),
+        email:        sanitize(b.email || '', 150),
+        address:      sanitize(b.address || '', 500),
+        country:      sanitize(b.country || 'Bangladesh', 100),
+        website:      sanitize(b.website || '', 300),
+        type:         ['local','china','india','other'].includes(b.type) ? b.type : 'local',
+        paymentTerms: sanitize(b.paymentTerms || '', 200),
+        deliveryTime: sanitize(b.deliveryTime || '3-7 days', 100),
+        minOrder:     parseFloat(b.minOrder) || 0,
+        isActive:     b.isActive !== false,
+        notes:        sanitize(b.notes || '', 1000),
+        categories:   Array.isArray(b.categories) ? b.categories : [],
+        bankInfo: {
+          bankName:    sanitize(b.bankInfo?.bankName || '', 100),
+          accountNo:   sanitize(b.bankInfo?.accountNo || '', 50),
+          accountName: sanitize(b.bankInfo?.accountName || '', 100),
+          bkash:       sanitize(b.bankInfo?.bkash || '', 20),
+          nagad:       sanitize(b.bankInfo?.nagad || '', 20),
+        },
+      });
+      return res.status(201).json({ ok: true, supplier, message: 'Supplier যোগ হয়েছে' });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Supplier add হয়নি: ' + err.message });
+    }
+  }
+
+  if (action === 'supplier-edit' && req.method === 'POST') {
+    const b = req.body || {};
+    const id = b.supplierId || b._id;
+    if (!id) return res.status(400).json({ ok: false, error: 'Supplier ID দিন' });
+    const allowed = ['name','company','phone','email','address','country','website','type','paymentTerms','deliveryTime','minOrder','isActive','notes','categories','bankInfo'];
+    const updates = {};
+    allowed.forEach(f => { if (b[f] !== undefined) updates[f] = b[f]; });
+    const supplier = await Supplier.findOneAndUpdate(
+      { $or: [{ supplierId: id }, { _id: id.length === 24 ? id : undefined }] },
+      updates, { new: true }
+    );
+    if (!supplier) return res.status(404).json({ ok: false, error: 'Supplier পাওয়া যায়নি' });
+    return res.json({ ok: true, supplier, message: 'Supplier আপডেট হয়েছে' });
+  }
+
+  if (action === 'supplier-delete' && req.method === 'POST') {
+    const id = req.body?.supplierId || req.body?.id;
+    if (!id) return res.status(400).json({ ok: false, error: 'Supplier ID দিন' });
+    const supplier = await Supplier.findOneAndDelete({ $or: [{ supplierId: id }, { _id: id.length === 24 ? id : undefined }] });
+    if (!supplier) return res.status(404).json({ ok: false, error: 'Supplier পাওয়া যায়নি' });
+    return res.json({ ok: true, message: `"${supplier.name}" delete হয়েছে` });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── INVENTORY LOG ────────────────────────────────────────
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'inventory' && req.method === 'GET') {
+    try {
+      const page      = Math.max(1, parseInt(req.query?.page || '1'));
+      const limit     = Math.min(50, parseInt(req.query?.limit || '20'));
+      const productId = req.query?.productId || '';
+      const type      = req.query?.type || '';
+      const skip      = (page - 1) * limit;
+      const query     = {};
+      if (productId) query.productId = productId;
+      if (type)      query.type = type;
+
+      const [logs, total] = await Promise.all([
+        InventoryLog.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
+        InventoryLog.countDocuments(query),
+      ]);
+      return res.json({ ok: true, logs, total, pagination: { page, limit, pages: Math.ceil(total / limit) } });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Inventory লোড হয়নি: ' + err.message });
+    }
+  }
+
+  if (action === 'inventory-add' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+      if (!b.productId || !b.type || !b.qty) return res.status(400).json({ ok: false, error: 'productId, type, qty দিন' });
+
+      const product = await Product.findOne({ productId: b.productId });
+      if (!product) return res.status(404).json({ ok: false, error: 'Product পাওয়া যায়নি' });
+
+      const qty = parseInt(b.qty);
+      const stockBefore = product.stock || 0;
+      let stockAfter = stockBefore;
+
+      if (b.type === 'in' || b.type === 'return') stockAfter = stockBefore + qty;
+      else if (b.type === 'out' || b.type === 'damage') stockAfter = Math.max(0, stockBefore - qty);
+      else if (b.type === 'adjust') stockAfter = qty; // direct set
+
+      await Product.updateOne({ productId: b.productId }, { stock: stockAfter });
+
+      const log = await InventoryLog.create({
+        productId: b.productId,
+        productName: product.name,
+        type: b.type,
+        qty,
+        stockBefore,
+        stockAfter,
+        ref: sanitize(b.ref || '', 100),
+        refType: b.refType || 'manual',
+        note: sanitize(b.note || '', 300),
+        updatedBy: 'admin',
+        supplierId: b.supplierId || '',
+        costPrice: parseFloat(b.costPrice) || 0,
+      });
+
+      return res.status(201).json({ ok: true, log, stockAfter, message: `Stock ${b.type}: ${qty} units` });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Inventory entry failed: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── REFERRALS ────────────────────────────────────────────
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'referrals' && req.method === 'GET') {
+    try {
+      const page  = Math.max(1, parseInt(req.query?.page  || '1'));
+      const limit = Math.min(50, parseInt(req.query?.limit || '20'));
+      const skip  = (page - 1) * limit;
+
+      const [referrals, total, stats] = await Promise.all([
+        Referral.find().sort({ createdAt: -1 }).skip(skip).limit(limit)
+          .populate('referrerUserId', 'name phone').populate('referredUserId', 'name phone').lean(),
+        Referral.countDocuments(),
+        Referral.aggregate([
+          { $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+            totalPoints: { $sum: '$pointsAwarded' },
+          }},
+        ]),
+      ]);
+
+      // Revenue from referral orders
+      const refOrderIds = referrals.filter(r => r.orderId).map(r => r.orderId);
+      const revAgg = refOrderIds.length ? await Order.aggregate([
+        { $match: { orderId: { $in: refOrderIds }, status: { $nin: ['cancelled','refunded'] } } },
+        { $group: { _id: null, total: { $sum: '$pricing.total' } } },
+      ]) : [{ total: 0 }];
+
+      const completedCount = stats.find(s => s._id === 'completed')?.count || 0;
+      const totalCount     = stats.reduce((s, x) => s + x.count, 0);
+
+      return res.json({
+        ok: true, referrals, total,
+        pagination: { page, limit, pages: Math.ceil(total / limit) },
+        summary: {
+          total: totalCount,
+          completed: completedCount,
+          pending: stats.find(s => s._id === 'pending')?.count || 0,
+          conversionRate: totalCount ? Math.round((completedCount / totalCount) * 100) : 0,
+          revenueFromRefs: revAgg[0]?.total || 0,
+          totalPointsIssued: stats.reduce((s, x) => s + (x.totalPoints || 0), 0),
+        },
+      });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Referrals লোড হয়নি: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── BROADCAST NOTIFICATION ───────────────────────────────
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'notify-broadcast' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+      if (!b.title || !b.message) return res.status(400).json({ ok: false, error: 'Title এবং message দিন' });
+
+      const notification = await Notification.create({
+        type:     b.type || 'promo',
+        title:    sanitize(b.title, 200),
+        message:  sanitize(b.message, 1000),
+        icon:     b.icon || '🔔',
+        link:     sanitize(b.link || '', 500),
+        isGlobal: true,
+        channel:  b.channel || 'app',
+      });
+
+      // If SMS broadcast, send to active users (limit 100 at a time)
+      let smsSent = 0;
+      if (b.channel === 'sms' || b.channel === 'all') {
+        const query = { isActive: true, 'notificationPrefs.sms': true };
+        if (b.segment === 'loyal') query.loyaltyPoints = { $gte: 1000 };
+        if (b.segment === 'gold') query.loyaltyPoints = { $gte: 5000 };
+        const users = await User.find(query).select('phone').limit(100);
+        for (const u of users) {
+          try { await sendSMS(u.phone, `${b.title}: ${b.message} — Shoplixo`); smsSent++; } catch {}
+        }
+      }
+
+      return res.json({ ok: true, notification, smsSent, message: `Notification broadcast হয়েছে (SMS: ${smsSent})` });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Broadcast failed: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── SITE SETTINGS ────────────────────────────────────────
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'settings' && req.method === 'GET') {
+    try {
+      const group = req.query?.group || '';
+      const settings = await getSettings(group || undefined);
+      return res.json({ ok: true, settings });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Settings লোড হয়নি' });
+    }
+  }
+
+  if (action === 'settings' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+      const { key, value, group, label, type } = b;
+      if (!key) return res.status(400).json({ ok: false, error: 'key দিন' });
+      const setting = await setSetting(key, value, { group: group || 'general', label: label || key, type: type || 'string' });
+      return res.json({ ok: true, setting, message: 'Setting saved!' });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Setting save হয়নি' });
+    }
   }
 
   /* ── Fallback ─────────────────────────────────────────── */
   return res.status(400).json({
     ok: false, error: 'Invalid action',
     available: [
-      'stats', 'analytics',
+      'stats',
       'products', 'product', 'product-add', 'product-edit', 'product-delete', 'product-bulk',
       'orders', 'order', 'status', 'payment-verify',
+      'returns', 'return-update',
       'customers', 'customer-ban',
       'reviews', 'review-approve', 'review-delete', 'review-reply',
       'flash-sales', 'flash-sale-add', 'flash-sale-del',
       'bundles', 'bundle-add', 'bundle-edit', 'bundle-delete',
       'coupons', 'coupon', 'toggle-coupon', 'coupon-delete',
-      'newsletter', 'newsletter-del', 'abandoned',
+      'newsletter', 'newsletter-del',
+      'abandoned',
+      'suppliers', 'supplier-add', 'supplier-edit', 'supplier-delete',
+      'inventory', 'inventory-add',
+      'referrals',
+      'notify-broadcast',
+      'settings',
     ],
   });
 };
