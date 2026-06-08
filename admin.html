@@ -2405,18 +2405,100 @@ async function saveProduct() {
     const data = await resp.json();
     if (data.ok) {
       toast(editingProductId ? '✅ Product আপডেট হয়েছে!' : '✅ Product যোগ হয়েছে!', 'success');
+      // ══ SYNC FIX: Also save to slx_dynamic_products so index.html sees it instantly ══
+      syncProductToMainSite({ ...productData, productId: data.product?.productId || editingProductId, _id: data.product?._id, _fromAdmin: true, _savedAt: Date.now() }, editingProductId);
       closeProductModal(); loadAdminProducts(); uploadedImages = [];
     } else {
       toast(data.error || 'Product সংরক্ষণ হয়নি', 'warning');
     }
   } catch (err) {
+    // Offline fallback: save to both pending and dynamic so index.html still shows it
     const localProds = JSON.parse(localStorage.getItem('slx_pending_products') || '[]');
-    localProds.push({ ...productData, _pending: true, _time: Date.now() });
+    const newId = Date.now();
+    const offlineProd = { ...productData, id: newId, _pending: true, _time: Date.now() };
+    localProds.push(offlineProd);
     localStorage.setItem('slx_pending_products', JSON.stringify(localProds));
+    syncProductToMainSite({ ...offlineProd, _fromAdmin: true }, null);
     toast('Server offline — locally saved. Settings > Sync করুন।', 'warning');
     closeProductModal();
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Product Save করুন'; }
+  }
+}
+
+/* ══ CRITICAL FIX: Sync product to index.html via localStorage ══
+   This is the bridge between admin.html and index.html.
+   Both files run in the same origin, so localStorage is shared.
+   index.html listens for the 'storage' event and refreshes.
+*/
+function syncProductToMainSite(productData, editingId) {
+  try {
+    const dynProds = JSON.parse(localStorage.getItem('slx_dynamic_products') || '[]');
+    // Normalize the product to match index.html format
+    const normalizedProd = {
+      id: productData.id || (editingId ? parseInt(String(editingId).replace(/\D/g,'')) : Date.now()),
+      productId: productData.productId || editingId || null,
+      _mongoId: productData._id || null,
+      name: productData.name,
+      cat: productData.cat,
+      price: Number(productData.price || 0),
+      orig: Number(productData.orig || productData.price || 0),
+      stock: Number(productData.stock || 50),
+      img: productData.img || '',
+      images: productData.images || [productData.img || ''],
+      badge: productData.badge || 'new',
+      rating: Number(productData.rating || 4.5),
+      reviews: Number(productData.reviews || 0),
+      viewers: Number(productData.viewers || 12),
+      desc: productData.desc || '',
+      sizes: productData.sizes || ['S','M','L','XL','XXL'],
+      colors: productData.colors || [],
+      material: productData.material || '',
+      warranty: productData.warranty || '',
+      sku: productData.sku || '',
+      videoUrl: productData.videoUrl || '',
+      isFeatured: !!productData.isFeatured,
+      isNew: !!productData.isNew,
+      isFlash: !!productData.isFlash,
+      isActive: productData.isActive !== false,
+      _fromAdmin: true,
+      _syncedAt: Date.now(),
+    };
+
+    if (editingId) {
+      // Update existing — match by productId or id
+      const existIdx = dynProds.findIndex(p =>
+        p.productId === editingId ||
+        String(p.productId) === String(editingId) ||
+        String(p.id) === String(editingId) ||
+        String(p._mongoId) === String(editingId)
+      );
+      if (existIdx !== -1) {
+        dynProds[existIdx] = { ...dynProds[existIdx], ...normalizedProd };
+      } else {
+        dynProds.push(normalizedProd);
+      }
+    } else {
+      // New product — check for duplicate by name+price
+      const dupIdx = dynProds.findIndex(p => p.name === normalizedProd.name && p.price === normalizedProd.price && p._fromAdmin);
+      if (dupIdx !== -1) {
+        dynProds[dupIdx] = { ...dynProds[dupIdx], ...normalizedProd };
+      } else {
+        dynProds.push(normalizedProd);
+      }
+    }
+
+    localStorage.setItem('slx_dynamic_products', JSON.stringify(dynProds));
+    // Trigger storage event for index.html (same tab won't fire 'storage', but cross-tab will)
+    // For same-tab, index.html will catch this via BroadcastChannel or next visit
+    try {
+      const bc = new BroadcastChannel('slx_products_sync');
+      bc.postMessage({ type: 'product_updated', product: normalizedProd, timestamp: Date.now() });
+      bc.close();
+    } catch(e) {}
+    console.log('✅ Product synced to main site localStorage:', normalizedProd.name);
+  } catch (e) {
+    console.error('syncProductToMainSite error:', e);
   }
 }
 
