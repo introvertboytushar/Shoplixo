@@ -97,6 +97,9 @@ const {
 module.exports = async (req, res) => {
   if (handleCors(req, res)) return;
 
+  // ✅ Add cache-control so browsers don't cache API responses
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+
   if (!isAdmin(req)) {
     return res.status(401).json({ ok: false, error: 'Unauthorized. Admin key লাগবে।' });
   }
