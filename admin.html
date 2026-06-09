@@ -1217,9 +1217,18 @@ const fmt = n => '৳' + Number(n || 0).toLocaleString('en-IN');
 const fmtDate = d => d ? new Date(d).toLocaleDateString('en-BD', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 async function adminFetch(path, opts = {}) {
-  const r = await fetch(`/api/admin?${path}`, {
+  // Add cache-bust timestamp to ALL admin GET requests
+  const sep = path.includes('?') ? '&' : '?';
+  const cacheBustedPath = (opts.method && opts.method !== 'GET') ? path : path + '&_t=' + Date.now();
+  const r = await fetch(`/api/admin?${cacheBustedPath}`, {
     ...opts,
-    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    headers: {
+      'x-admin-key': adminKey,
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache, no-store',
+      'Pragma': 'no-cache',
+      ...(opts.headers || {}),
+    },
   });
   return r.json();
 }
@@ -1584,39 +1593,26 @@ async function cancelOrder(orderId) {
   if (!adminKey) { toast('Admin key নেই — আবার login করুন', 'warning'); return; }
   if (!confirm(`"${orderId}" cancel করবেন?\n\nএই action undo করা যাবে না।`)) return;
 
-  // Show loading feedback
   toast('⏳ Order cancel হচ্ছে...', 'default');
 
   try {
-    const resp = await fetch('/api/admin?action=status', {
+    const resp = await fetch('/api/admin?action=status&_t=' + Date.now(), {
       method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderId:   orderId,
-        id:        orderId,
-        status:    'cancelled',
-        note:      'Admin কর্তৃক বাতিল করা হয়েছে',
-      }),
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ orderId, id: orderId, status: 'cancelled', note: 'Admin কর্তৃক বাতিল করা হয়েছে' }),
     });
 
-    if (!resp.ok) {
-      const text = await resp.text();
-      toast(`Server error ${resp.status}: ${text.slice(0,100)}`, 'warning');
-      return;
-    }
+    let data;
+    try { data = await resp.json(); } catch(je) { toast(`❌ Server error (${resp.status})`, 'warning'); return; }
 
-    const data = await resp.json();
     if (data.ok) {
       toast('✅ Order সফলভাবে cancel হয়েছে!', 'success');
-      // Close modal if open
       const modal = $('order-modal');
       if (modal && modal.classList.contains('open')) closeOrderModal();
-      // Reload orders list
       loadOrders(currentPage || 1);
     } else {
-      // ✅ FIX: Handle "already cancelled" and other specific errors gracefully
       const errMsg = data.error || 'Cancel করা যায়নি';
-      if (errMsg.includes('already') || errMsg.includes('cancelled')) {
+      if (errMsg.toLowerCase().includes('already') || errMsg.toLowerCase().includes('cancel')) {
         toast('⚠️ Order ইতিমধ্যে cancel আছে', 'warning');
         loadOrders(currentPage || 1);
       } else {
@@ -1628,6 +1624,7 @@ async function cancelOrder(orderId) {
     toast('❌ Network error: ' + e.message, 'warning');
   }
 }
+
 
 async function verifyPayment(orderId) {
   if (!confirm(`"${orderId}" এর payment verify করবেন?`)) return;
@@ -2457,22 +2454,21 @@ async function saveProduct() {
     });
     const data = await resp.json();
     if (data.ok) {
-      toast(editingProductId ? '✅ Product আপডেট হয়েছে!' : '✅ Product যোগ হয়েছে! সব browser এ দেখা যাবে।', 'success');
-      // ✅ FIX: Clear ALL product caches so every browser gets fresh data
+      toast(editingProductId ? '✅ Product আপডেট হয়েছে! সব device এ দেখা যাবে।' : '✅ Product যোগ হয়েছে! সব browser ও phone এ দেখা যাবে।', 'success');
+      // ✅ FIX: Clear ALL product caches so every browser/device gets fresh data from DB
       try {
         localStorage.removeItem('slx_api_products_cache');
         localStorage.removeItem('slx_dynamic_products');
-        // Clear any stale admin products cache
-        const dynProds = JSON.parse(localStorage.getItem('slx_dynamic_products') || '[]');
-        const newDynProds = dynProds.filter(p => !p._fromAdmin || p.productId !== (data.product?.productId || editingProductId));
-        localStorage.setItem('slx_dynamic_products', JSON.stringify(newDynProds));
+        localStorage.removeItem('slx_admin_products');
+        localStorage.removeItem('slx_pending_products');
       } catch(e) {}
-      // Also broadcast via BroadcastChannel so open index.html tabs refresh
+      // Broadcast via BroadcastChannel so open index.html tabs on SAME browser refresh immediately
       try {
         const bc = new BroadcastChannel('slx_products_sync');
         bc.postMessage({ type: 'product_updated', product: data.product, timestamp: Date.now() });
-        bc.close();
+        setTimeout(() => bc.close(), 100);
       } catch(e) {}
+      // Other browsers/devices will get the update within 90 seconds via auto-refresh
       closeProductModal(); loadAdminProducts(); uploadedImages = [];
     } else {
       toast(data.error || 'Product সংরক্ষণ হয়নি', 'warning');

@@ -4426,11 +4426,17 @@ function initCountUp(){
 ════════════════════════════════════════════════════ */
 async function syncProductsFromAPI(silent = false) {
   try {
-    // ✅ FIX: Add cache-bust timestamp so browsers NEVER cache the product list
-    const cacheBust = '&_t=' + Date.now();
+    // ✅ Full cache bypass — timestamp + pragma headers prevent ALL browser/CDN caching
+    const cacheBust = '&_t=' + Date.now() + '&_r=' + Math.random().toString(36).slice(2);
     const res = await fetch('/api/products?limit=500&sort=newest' + cacheBust, {
+      method: 'GET',
       cache: 'no-store',
-      headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache, no-store' },
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -4538,22 +4544,32 @@ async function syncProductsFromAPI(silent = false) {
 
 /* ---------- INIT ---------- */
 document.addEventListener('DOMContentLoaded',()=>{
-  // ── Step 1: Merge localStorage dynamic products FIRST (instant, no network needed)
-  mergeLocalDynamicProducts();
-  // ── Step 2: Render with local data immediately
-  renderAll();updateCartUI();animFadeIn();initCountUp();startCD();updateUserUI();
+  // ── Step 1: UI setup (cart, user, animations — no product render yet)
+  updateCartUI();animFadeIn();initCountUp();startCD();updateUserUI();
   const wc=$('wish-count'); if(wishlist.length>0){wc.textContent=wishlist.length;wc.style.display='flex';}
-  // WP bar counts — use API for orders
+
+  // ── Step 2: Offline fallback — merge localStorage only if API fails
+  // (will be overwritten by API data immediately)
+  mergeLocalDynamicProducts();
+
+  // ── Step 3: Render immediately with whatever is in memory (static/cached)
+  renderAll();
   if($('wp-prod-count')) $('wp-prod-count').textContent=PRODUCTS.length;
   if($('adm-prod-count')) $('adm-prod-count').textContent=PRODUCTS.length;
 
-  // ── Step 3: Sync products from API immediately (DB is source of truth)
+  // ── Step 4: Sync from API — DB is the ONLY source of truth for all devices/browsers
+  // This runs immediately and replaces all local/static products with DB products
   syncProductsFromAPI(false);
 
-  // ── Step 4: Auto-refresh every 3 minutes so new admin products always appear
-  setInterval(()=>syncProductsFromAPI(true), 3 * 60 * 1000);
+  // ── Step 5: Auto-refresh every 90 seconds (faster sync for new products)
+  setInterval(()=>syncProductsFromAPI(true), 90 * 1000);
 
-  // ── Step 5: Listen for BroadcastChannel from admin panel (instant sync)
+  // ── Step 6: Visibility change refresh — when user switches back to tab, refresh
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncProductsFromAPI(true);
+  });
+
+  // ── Step 7: Listen for BroadcastChannel from admin panel (same browser instant sync)
   try {
     const bc = new BroadcastChannel('slx_products_sync');
     bc.onmessage = (e) => {
