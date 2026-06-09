@@ -3602,7 +3602,7 @@ const starsHTML = r => {let s='';for(let i=1;i<=5;i++)s+=`<i class="fa-${i<=Math
 /* ---------- PRODUCT CARD v5 (ULTRA PRO) ---------- */
 function pCard(p) {
   const d = pct(p.price, p.orig);
-  const wished = wishlist.includes(p.id);
+  const wished = wishlist.map(String).includes(String(p.id));
   const bl = {hot:'🔥 Hot',new:'✨ New',sale:'🏷️ Sale'};
   const bc = {hot:'b-hot',new:'b-new',sale:'b-sale'};
   const soldToday = Math.floor(Math.random()*45+8);
@@ -3612,7 +3612,7 @@ function pCard(p) {
   const earnPts = Math.round(p.price / 10);
   const stockPct = p.stock <= 20 ? Math.round((p.stock/20)*100) : 100;
   const stockClass = p.stock <= 3 ? 'low stock-critical' : p.stock <= 8 ? 'mid' : 'high';
-  const inCompare = compareList.includes(p.id);
+  const inCompare = compareList.map(String).includes(String(p.id));
 
   return `<div class="product-card fade-in" data-id="${p.id}" onclick="trackView(${p.id})">
     <div class="pc-img-wrap pc-img-zoom-wrap" id="pci-${p.id}">
@@ -3621,10 +3621,10 @@ function pCard(p) {
         <span class="pc-badge ${bc[p.badge]||'b-sale'}">${bl[p.badge]||p.badge}</span>
         ${d>0?`<span class="pc-badge b-disc">-${d}%</span>`:''}
       </div>
-      <button class="pc-wish ${wished?'wished':''}" onclick="event.stopPropagation();toggleWish(${p.id},this)"><i class="fa-${wished?'solid':'regular'} fa-heart"></i></button>
+      <button class="pc-wish ${wished?'wished':''}" onclick="event.stopPropagation();toggleWish('${p.id}',this)"><i class="fa-${wished?'solid':'regular'} fa-heart"></i></button>
       <div class="pc-overlay">
-        <button class="pc-quick" onclick="event.stopPropagation();openQV(${p.id})"><i class="fa-solid fa-eye"></i> Quick View</button>
-        <button class="pc-cart-fast" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fa-solid fa-cart-plus"></i></button>
+        <button class="pc-quick" onclick="event.stopPropagation();openQV('${p.id}')"><i class="fa-solid fa-eye"></i> Quick View</button>
+        <button class="pc-cart-fast" onclick="event.stopPropagation();addToCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i></button>
       </div>
     </div>
     <div class="pc-body">
@@ -3643,12 +3643,12 @@ function pCard(p) {
       <div class="pc-delivery"><i class="fa-solid fa-truck-fast"></i> ${getDeliveryText()}</div>
       <div class="pc-actions-row">
         <button class="pc-size-btn" onclick="event.stopPropagation();openSizeChart('${p.cat}')"><i class="fa-solid fa-ruler"></i> Size Chart</button>
-        <button class="pc-qr-btn" onclick="event.stopPropagation();openQRModal(${p.id},'${p.name.replace(/'/g,"\\'")}','${p.cat}')"><i class="fa-solid fa-qrcode"></i> Verify</button>
+        <button class="pc-qr-btn" onclick="event.stopPropagation();openQRModal('${p.id}','${p.name.replace(/'/g,"\\'")}','${p.cat}')"><i class="fa-solid fa-qrcode"></i> Verify</button>
       </div>
-      <button class="btn-add-cart" onclick="event.stopPropagation();addToCart(${p.id})"><i class="fa-solid fa-cart-plus"></i> Cart এ Add করুন</button>
+      <button class="btn-add-cart" onclick="event.stopPropagation();addToCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Cart এ Add করুন</button>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px">
-        <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments(${p.id},'${p.name.replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
-        <button class="pc-compare-btn ${inCompare?'in-compare':''}" onclick="event.stopPropagation();toggleCompare(${p.id})"><i class="fa-solid fa-scale-balanced"></i> ${inCompare?'✓ Added':'Compare'}</button>
+        <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments('${p.id}','${p.name.replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
+        <button class="pc-compare-btn ${inCompare?'in-compare':''}" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-scale-balanced"></i> ${inCompare?'✓ Added':'Compare'}</button>
       </div>
       <a href="https://wa.me/8801516511889?text=${waMsg}" target="_blank" class="btn-wa-order" onclick="event.stopPropagation()"><i class="fa-brands fa-whatsapp"></i> WhatsApp এ Order করুন</a>
     </div>
@@ -3739,7 +3739,7 @@ function renderFlash() {
         <div class="fc-prices"><span class="fc-price">${fmt(p.price)}</span><span class="fc-orig">${fmt(p.orig)}</span></div>
         <div class="fc-bar-wrap"><div class="fc-bar" style="width:${bar}%"></div></div>
         <div class="fc-sold">বিক্রি: ${sold}/${total}</div>
-        <button class="btn-fc" onclick="addToCart(${p.id})"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
+        <button class="btn-fc" onclick="addToCart('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
       </div>
     </div>`;
   }).join('');
@@ -3785,9 +3785,10 @@ const count=()=>cart.reduce((s,c)=>s+c.qty,0);
 
 function addToCart(pid,qty=1,size='M',color=''){
   const P = window.PRODUCTS || PRODUCTS;
-  const p=P.find(x=>x.id===pid); if(!p) return;
-  const ex=cart.find(c=>c.id===pid&&c.size===size);
-  if(ex){ex.qty+=qty;}else{cart.push({id:pid,qty,size,color,name:p.name,price:p.price,img:p.img});}
+  const p=P.find(x=>String(x.id)===String(pid)); if(!p) return;
+  const spid=String(pid);
+  const ex=cart.find(c=>String(c.id)===spid&&c.size===size);
+  if(ex){ex.qty+=qty;}else{cart.push({id:spid,qty,size,color,name:p.name,price:p.price,img:p.img,cat:p.cat||''});}
   saveCart();
   showToast(`<strong>${p.name}</strong> cart এ add হয়েছে!`,'cart-plus');
   openCart();
@@ -4007,7 +4008,8 @@ async function placeOrder(){
 
 /* ---------- WISHLIST ---------- */
 function toggleWish(pid,btn){
-  const i=wishlist.indexOf(pid);
+  pid=String(pid);
+  const i=wishlist.map(String).indexOf(pid);
   if(i===-1){wishlist.push(pid);btn.classList.add('wished');btn.querySelector('i').className='fa-solid fa-heart';showToast('Wishlist এ যোগ হয়েছে!','heart');}
   else{wishlist.splice(i,1);btn.classList.remove('wished');btn.querySelector('i').className='fa-regular fa-heart';}
   localStorage.setItem('slx_wish',JSON.stringify(wishlist));
@@ -4017,7 +4019,8 @@ function openWishlistView(){filterProducts('all',null);$('featured')?.scrollInto
 
 /* ---------- QUICK VIEW ---------- */
 function openQV(pid){
-  const p=PRODUCTS.find(x=>x.id===pid); if(!p) return;
+  const P=window.PRODUCTS||PRODUCTS;
+  const p=P.find(x=>String(x.id)===String(pid)); if(!p) return;
   const d=pct(p.price,p.orig);
   const szHTML=(p.sizes||['S','M','L','XL','XXL']).map((s,i)=>`<button class="size-btn${i===1?' active':''}" onclick="this.closest('.sg').querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')" style="min-width:40px;height:36px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border2);font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;background:#fff;transition:var(--t)">${s}</button>`).join('');
   const clrHTML=p.colors?p.colors.slice(0,5).map((c,i)=>`<button class="col-btn${i===0?' active':''}" onclick="this.closest('.cg').querySelectorAll('.col-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')" style="padding:4px 12px;border-radius:20px;border:1.5px solid var(--border2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;background:#fff;transition:var(--t)">${c}</button>`).join(''):'';
@@ -4041,14 +4044,14 @@ function openQV(pid){
           <span id="qv-qn" style="font-size:14px;font-weight:700">1</span>
           <button id="qv-inc" onclick="window._qvQ=(window._qvQ||1)+1;document.getElementById('qv-qn').textContent=window._qvQ" style="font-size:18px;color:var(--text2);background:none;border:none;cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center">+</button>
         </div>
-        <button onclick="qvAdd(${p.id})" style="flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:12px;border-radius:30px;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:var(--t)"><i class="fa-solid fa-cart-plus"></i> Cart এ Add করুন</button>
+        <button onclick="qvAdd('${p.id}')" style="flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:12px;border-radius:30px;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:var(--t)"><i class="fa-solid fa-cart-plus"></i> Cart এ Add করুন</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)"><i class="fa-solid fa-truck-fast" style="color:var(--green)"></i> Free Delivery ৳999+</div>
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)"><i class="fa-solid fa-arrows-rotate" style="color:var(--blue)"></i> 7-Day Return</div>
       </div>
       <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
-        <button onclick="closeQV();openComments(window._qvPid,(PRODUCTS.find(x=>x.id===window._qvPid)||{}).name||'পণ্য')" style="width:100%;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:10px;border-radius:var(--r-full);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--t)" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন ও লিখুন</button>
+        <button onclick="closeQV();openComments(window._qvPid,(PRODUCTS.find(x=>String(x.id)===String(window._qvPid))||{}).name||'পণ্য')" style="width:100%;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:10px;border-radius:var(--r-full);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--t)" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন ও লিখুন</button>
       </div>
     </div>`;
   window._qvQ=1; window._qvPid=pid;
@@ -4118,7 +4121,7 @@ function doSearch(){
   if(cat) res=res.filter(p=>p.cat===cat);
   $('search-title').textContent=`"${q}" — ${res.length} টি পণ্য`;
   $('search-list').innerHTML=res.length
-    ?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${res.slice(0,12).map(p=>`<div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:var(--t)" onclick="closeSearch();openQV(${p.id})" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''"><img src="${p.img}" style="width:100%;height:120px;object-fit:cover"><div style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.name}</div><div style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${fmt(p.price)}</div></div></div>`).join('')}</div>`
+    ?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${res.slice(0,12).map(p=>`<div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:var(--t)" onclick="closeSearch();openQV('${p.id}')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''"><img src="${p.img}" style="width:100%;height:120px;object-fit:cover"><div style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.name}</div><div style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${fmt(p.price)}</div></div></div>`).join('')}</div>`
     :`<div style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-search" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>কোনো পণ্য পাওয়া যায়নি।</p></div>`;
   $('search-overlay').style.display='flex';
 }
@@ -5650,6 +5653,7 @@ let compareList = [];
 const MAX_COMPARE = 2;
 
 function toggleCompare(pid, btn) {
+  pid=String(pid);
   const idx = compareList.indexOf(pid);
   if (idx > -1) {
     compareList.splice(idx, 1);
@@ -5881,7 +5885,7 @@ if (searchInput) {
       if (!results.length) { drop.innerHTML = '<div class="sld-item" style="color:var(--text3);justify-content:center">কোনো পণ্য পাওয়া যায়নি</div>'; }
       else {
         drop.innerHTML = `<div class="sld-header"><i class="fa-solid fa-magnifying-glass"></i> "${q}" — ${results.length} টি পণ্য</div>` +
-          results.map(p => `<div class="sld-item" onclick="document.getElementById('search-live-drop').classList.remove('show');openQV(${p.id})">
+          results.map(p => `<div class="sld-item" onclick="document.getElementById('search-live-drop').classList.remove('show');openQV('${p.id}')">
             <img class="sld-img" src="${p.img}" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
             <div class="sld-info">
               <div class="sld-name">${p.name}</div>
@@ -6220,7 +6224,7 @@ window.pCard = function(p) {
   const scCat = cat.includes('shirt') ? 'shirts' : cat.includes('pant') ? 'pants' : cat.includes('shoe') ? 'shoes' : 'shirts';
   const extraBtns = `
     <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
-      <button class="pc-compare-btn" onclick="event.stopPropagation();toggleCompare(${p.id},this)"><i class="fa-solid fa-code-compare"></i> Compare</button>
+      <button class="pc-compare-btn" onclick="event.stopPropagation();toggleCompare('${p.id}',this)"><i class="fa-solid fa-code-compare"></i> Compare</button>
       ${(p.sizes && p.sizes.length) ? `<button class="btn-size-chart" onclick="event.stopPropagation();openSizeChart('${scCat}')"><i class="fa-solid fa-ruler-horizontal"></i> Size Guide</button>` : ''}
     </div>
     <div class="pc-cert"><i class="fa-solid fa-qrcode"></i> Authenticity Certified</div>`;
@@ -6265,7 +6269,7 @@ function renderRecentlyViewedV2() {
     grid.innerHTML = rv.slice(0,8).map(pid => {
       const p = PRODUCTS.find(x => x.id === pid);
       if (!p) return '';
-      return `<div class="rv-card" onclick="openQV(${p.id})">
+      return `<div class="rv-card" onclick="openQV('${p.id}')">
         <img class="rv-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/150/120'">
         <div class="rv-body">
           <div class="rv-name">${p.name}</div>
@@ -7129,6 +7133,7 @@ function updatePriceRange(inp){
 let compareList = JSON.parse(localStorage.getItem('slx_compare')||'[]');
 
 function toggleCompare(pid){
+  pid=String(pid);
   if(compareList.includes(pid)){
     compareList = compareList.filter(x=>x!==pid);
     showToast('Compare list থেকে সরানো হয়েছে।','minus');
@@ -7161,7 +7166,7 @@ function updateCompareBar(){
     if(!slot) continue;
     if(compareList[i]){
       const p = PRODUCTS.find(x=>x.id===compareList[i]);
-      if(p) slot.innerHTML = `<img src="${p.img}" alt="${p.name}"><button class="cs-remove" onclick="event.stopPropagation();toggleCompare(${p.id})"><i class="fa-solid fa-xmark"></i></button>`;
+      if(p) slot.innerHTML = `<img src="${p.img}" alt="${p.name}"><button class="cs-remove" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-xmark"></i></button>`;
     } else {
       slot.innerHTML = '<i class="fa-solid fa-plus" style="opacity:.4"></i>';
       slot.className = 'compare-slot empty';
@@ -7195,7 +7200,7 @@ function buildCompareTable(){
     {label:'Stock', render:p=>p.stock<=5?`<span style="color:var(--brand);font-weight:700">মাত্র ${p.stock}টি!</span>`:`<span style="color:var(--green);font-weight:700">Available</span>`},
     {label:'Category', render:p=>p.cat.replace(/-/g,' ')},
     {label:'Material', render:p=>p.material||'—'},
-    {label:'', render:p=>`<button style="background:var(--brand);color:#fff;padding:8px 16px;border-radius:var(--r-full);border:none;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap" onclick="addToCart(${p.id});closeCompareModal()"><i class="fa-solid fa-cart-plus"></i> Cart এ Add</button>`},
+    {label:'', render:p=>`<button style="background:var(--brand);color:#fff;padding:8px 16px;border-radius:var(--r-full);border:none;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap" onclick="addToCart('${p.id}');closeCompareModal()"><i class="fa-solid fa-cart-plus"></i> Cart এ Add</button>`},
   ];
   tbl.innerHTML = rows.map(row=>`<tr>
     <td class="label" style="background:var(--bg2);font-weight:600;color:var(--dark2);white-space:nowrap;padding:12px 16px">${row.label}</td>
@@ -7753,7 +7758,7 @@ function closeWishlistPanel() {
 function renderWishlistPanel() {
   const body = document.getElementById('wishlist-panel')?.querySelector('.wlp-body');
   if(!body) return;
-  const items = wishlist.map(id => (window.SHOPLIXA_PRODUCTS || []).find(p => p.id === id)).filter(Boolean);
+  const items = wishlist.map(id => (window.SHOPLIXA_PRODUCTS || []).find(p => String(p.id) === String(id))).filter(Boolean);
   if(!items.length) {
     body.innerHTML = `<div class="wlp-empty"><i class="fa-regular fa-heart"></i><p>Wishlist খালি আছে।<br>পছন্দের পণ্যে ❤️ চাপুন।</p></div>`;
     return;
@@ -7765,7 +7770,7 @@ function renderWishlistPanel() {
         <div class="wlp-name">${p.name}</div>
         <div class="wlp-price">৳${Number(p.price).toLocaleString()}</div>
         <div class="wlp-btns">
-          <button class="wlp-add" onclick="addToCart(${p.id});showToast('Cart এ যোগ!','cart-plus')">Cart এ Add</button>
+          <button class="wlp-add" onclick="addToCart('${p.id}');showToast('Cart এ যোগ!','cart-plus')">Cart এ Add</button>
           <button class="wlp-remove" onclick="removeFromWishlist(${p.id},this)">Remove</button>
         </div>
       </div>
@@ -8012,7 +8017,7 @@ window.placeOrder = async function() {
       drop.innerHTML = `
         <div class="sld-header">🔍 "${q}" এর জন্য ফলাফল</div>
         ${results.map(p => `
-          <div class="sld-item" onclick="drop.classList.remove('show');openQV(${p.id})">
+          <div class="sld-item" onclick="drop.classList.remove('show');openQV('${p.id}')">
             <img class="sld-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
             <div class="sld-info">
               <div class="sld-name">${p.name}</div>
