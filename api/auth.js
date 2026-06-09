@@ -125,15 +125,22 @@ module.exports = async (req, res) => {
                 return res.status(401).json({ ok: false, error: 'ভুল ID বা Password!' });
             }
 
+            /* ✅ FIX: Check if user is banned (isBanned can be true even when isActive is true) */
+            if (user.isBanned) {
+                return res.status(403).json({ ok: false, error: 'আপনার account suspend করা হয়েছে। support@shoplixo.shop এ যোগাযোগ করুন।' });
+            }
+
             /* Compare password */
             const match = await bcrypt.compare(password, user.password);
             if (!match) {
                 return res.status(401).json({ ok: false, error: 'ভুল ID বা Password!' });
             }
 
-            /* Update last login */
-            user.lastLogin = new Date();
-            await user.save();
+            /* ✅ FIX: Atomic update — no separate .save() call, avoids race condition */
+            await User.findByIdAndUpdate(user._id, {
+                lastLogin: new Date(),
+                $inc: { loginCount: 1 },
+            });
 
             /* Generate JWT */
             const token = jwt.sign(

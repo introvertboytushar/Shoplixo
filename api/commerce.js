@@ -183,6 +183,23 @@ module.exports = async (req, res) => {
 
       await Newsletter.create({ email, name, source: 'website' });
       const couponCode = 'WELCOME10';
+
+      // ✅ FIX: Ensure WELCOME10 coupon exists in DB — create if missing
+      // Previously email was sent with a coupon code that might not exist in DB
+      try {
+        await Coupon.findOneAndUpdate(
+          { code: couponCode },
+          {
+            $setOnInsert: {
+              code: couponCode, type: 'percent', discount: 10,
+              minOrder: 0, maxUses: 0, isActive: true,
+              description: 'নতুন subscriber welcome discount — 10% off',
+            },
+          },
+          { upsert: true }
+        );
+      } catch(e) { /* ignore if already exists */ }
+
       sendEmail(email, '🎁 আপনার Welcome Gift — Shoplixo', newsletterWelcomeEmail(email, name, couponCode))
         .catch(() => {});
 
@@ -285,14 +302,24 @@ module.exports = async (req, res) => {
         return res.json({ ok: true, balance: user.loyaltyPoints, deducted: deductPoints });
       }
 
-      /* POST: Earn Points (called after delivery) */
+      /* POST: Earn Points — admin/system only, NOT callable by regular users */
       if (req.method === 'POST' && action === 'earn') {
-        const { orderTotal, orderId } = req.body || {};
+        // ✅ FIX: Only admin or server-side order system can award points
+        // Regular users must NOT be able to call this directly with fake orderTotal
+        if (!isAdmin(req)) {
+          return res.status(403).json({ ok: false, error: 'এই endpoint শুধু system ব্যবহার করতে পারে' });
+        }
+        const { orderTotal, orderId, userPhone } = req.body || {};
+        if (!userPhone && !decoded?.id) {
+          return res.status(400).json({ ok: false, error: 'userPhone দিন' });
+        }
         const earnedPoints = Math.floor((parseFloat(orderTotal) || 0) * POINTS_PER_TAKA);
         if (earnedPoints < 1) return res.json({ ok: true, earned: 0 });
-        const user = await User.findByIdAndUpdate(
-          decoded.id, { $inc: { loyaltyPoints: earnedPoints } }, { new: true }
+        const query = userPhone ? { phone: userPhone } : { _id: decoded.id };
+        const user = await User.findOneAndUpdate(
+          query, { $inc: { loyaltyPoints: earnedPoints } }, { new: true }
         );
+        if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
         await LoyaltyTxn.create({
           userId: user._id, phone: user.phone, type: 'earn', points: earnedPoints,
           balance: user.loyaltyPoints, ref: orderId, note: `Order ${orderId} থেকে ${earnedPoints} points অর্জন`,
