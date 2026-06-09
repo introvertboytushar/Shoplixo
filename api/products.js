@@ -26,8 +26,8 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-const { connectDB, Product } = require('../_db');
-const { handleCors, isAdmin, sanitize, sendEmail, lowStockAlertEmail } = require('../_helpers');
+const { connectDB, Product } = require('./_db');
+const { handleCors, isAdmin, sanitize, sendEmail, lowStockAlertEmail } = require('./_helpers');
 
 const LOW_STOCK_THRESHOLD = 5;
 
