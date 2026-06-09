@@ -4397,99 +4397,102 @@ function initCountUp(){
 ════════════════════════════════════════════════════ */
 async function syncProductsFromAPI() {
   try {
-    // Fetch all active products from public endpoint (no auth needed)
-    const res = await fetch('/api/products?limit=200&sort=newest', { cache: 'no-store' });
-    if (!res.ok) return;
+    // ✅ FIX: Fetch from PUBLIC /api/products endpoint (no auth needed — works on ALL browsers/devices)
+    const res = await fetch('/api/products?limit=200&sort=newest', {
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    // /api/products returns { ok, data: items, total, ... }
-    const productList = data.data || data.products || [];
-    if (!data.ok || !Array.isArray(productList) || productList.length === 0) return;
-    // Reassign for rest of function
-    data.products = productList;
 
-    // Map API product fields to frontend format
-    const apiProds = data.products.map(p => ({
-      id: p._id || p.productId,       // use _id as numeric-like identifier
-      _mongoId: p._id,
-      productId: p.productId,
-      name: p.name,
-      cat: p.cat,
-      price: p.price,
-      orig: p.orig || p.price,
-      stock: p.stock ?? 50,
-      img: p.img || `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=500&fit=crop&q=80`,
-      images: p.images || [],
-      badge: p.badge || 'new',
-      rating: p.rating || 4.5,
-      reviews: p.reviews || 0,
-      viewers: p.viewers || Math.floor(Math.random()*20+5),
+    // Support both response shapes
+    const productList = data.products || data.data || [];
+    if (!data.ok || !Array.isArray(productList) || productList.length === 0) return;
+
+    // Map API fields → frontend format
+    const apiProds = productList.map(p => ({
+      id:         p._id || p.productId,
+      _mongoId:   p._id,
+      productId:  p.productId,
+      name:       p.name,
+      cat:        p.cat,
+      price:      p.price,
+      orig:       p.orig || p.price,
+      stock:      p.stock ?? 50,
+      img:        p.img || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=500&fit=crop&q=80',
+      images:     p.images  || [],
+      badge:      p.badge   || 'new',
+      rating:     p.rating  || 4.5,
+      reviews:    p.reviews || 0,
+      viewers:    p.viewers || Math.floor(Math.random() * 20 + 5),
       isFeatured: !!p.isFeatured,
-      isNew: !!p.isNew,
-      isFlash: !!p.isFlash,
-      sizes: p.sizes || ['S','M','L','XL','XXL'],
-      colors: p.colors || [],
-      desc: p.desc || '',
-      material: p.material || '',
-      tags: p.tags || [],
-      _fromAPI: true,
+      isNew:      !!p.isNew,
+      isFlash:    !!p.isFlash,
+      sizes:      p.sizes   || ['S','M','L','XL','XXL'],
+      colors:     p.colors  || [],
+      desc:       p.desc    || '',
+      material:   p.material|| '',
+      tags:       p.tags    || [],
+      totalSold:  p.totalSold || 0,
+      _fromAPI:   true,
     }));
 
     if (apiProds.length === 0) return;
 
-    // Merge: API products override static ones by productId; new ones are appended
-    const staticIds = new Set(window.SHOPLIXA_PRODUCTS.map(p => p.productId || String(p.id)));
+    // ✅ FIX: API products REPLACE static list (DB is the source of truth)
+    // Keep static products that have no matching API product
     let added = 0, updated = 0;
+    const apiProductIds = new Set(apiProds.map(ap => ap.productId));
 
+    // Remove static products that now exist in DB (avoid duplicates)
+    window.SHOPLIXA_PRODUCTS = window.SHOPLIXA_PRODUCTS.filter(
+      p => !apiProductIds.has(p.productId || String(p.id))
+    );
+
+    // Add all API products
     apiProds.forEach(ap => {
-      const key = ap.productId;
-      const existIdx = window.SHOPLIXA_PRODUCTS.findIndex(p => (p.productId || String(p.id)) === key);
-      if (existIdx !== -1) {
-        // Update existing static product with live data
-        window.SHOPLIXA_PRODUCTS[existIdx] = { ...window.SHOPLIXA_PRODUCTS[existIdx], ...ap };
-        updated++;
-      } else {
-        // Give new API products a unique numeric id for cart compatibility
-        ap.id = ap.id || ('api_' + key);
-        window.SHOPLIXA_PRODUCTS.push(ap);
-        added++;
-      }
+      ap.id = ap.id || ('api_' + ap.productId);
+      window.SHOPLIXA_PRODUCTS.push(ap);
+      added++;
     });
 
-    // Rebuild merged PRODUCTS global
+    // Rebuild global PRODUCTS array
     window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
 
     // Re-render with live data
     renderAll();
     updateCartUI();
 
-    // Update admin count displays
+    // Update counts
     const allCount = window.PRODUCTS.length;
-    if($('wp-prod-count')) $('wp-prod-count').textContent = allCount;
-    if($('adm-prod-count')) $('adm-prod-count').textContent = allCount;
+    if ($('wp-prod-count'))  $('wp-prod-count').textContent  = allCount;
+    if ($('adm-prod-count')) $('adm-prod-count').textContent = allCount;
 
-    // Cache for offline fallback
+    // ✅ Cache latest for offline fallback
     try { localStorage.setItem('slx_api_products_cache', JSON.stringify(apiProds)); } catch(e) {}
 
-    console.log(`%c✅ API Sync: ${added} নতুন + ${updated} updated (total: ${allCount})`, 'color:#00C58A;font-weight:bold');
+    console.log(`%c✅ Shoplixo Sync: ${added} products loaded from server`, 'color:#00C58A;font-weight:bold;font-size:13px');
+
   } catch (e) {
-    // Offline: load from cache
+    // ── Offline fallback: use cached products ──
+    console.warn('Product API unavailable, using cache:', e.message);
     try {
       const cached = JSON.parse(localStorage.getItem('slx_api_products_cache') || '[]');
       if (cached.length > 0) {
+        const cachedIds = new Set(cached.map(ap => ap.productId));
+        window.SHOPLIXA_PRODUCTS = window.SHOPLIXA_PRODUCTS.filter(
+          p => !cachedIds.has(p.productId || String(p.id))
+        );
         cached.forEach(ap => {
-          const existIdx = window.SHOPLIXA_PRODUCTS.findIndex(p => (p.productId || String(p.id)) === ap.productId);
-          if (existIdx !== -1) {
-            window.SHOPLIXA_PRODUCTS[existIdx] = { ...window.SHOPLIXA_PRODUCTS[existIdx], ...ap };
-          } else {
-            ap.id = ap.id || ('api_' + ap.productId);
-            window.SHOPLIXA_PRODUCTS.push(ap);
-          }
+          ap.id = ap.id || ('api_' + ap.productId);
+          window.SHOPLIXA_PRODUCTS.push(ap);
         });
         window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
-        renderAll(); updateCartUI();
+        renderAll();
+        updateCartUI();
+        console.log('%c📦 Loaded products from offline cache', 'color:#FFB800');
       }
-    } catch(ce) {}
-    console.warn('Product API sync failed (offline mode):', e.message);
+    } catch(ce) { console.warn('Cache read failed:', ce); }
   }
 }
 

@@ -1535,11 +1535,12 @@ async function viewOrder(id) {
 }
 
 async function updateOrderStatus(orderId) {
-  const status = $('su-status')?.value;
+  const status   = $('su-status')?.value;
   const tracking = $('su-tracking')?.value || '';
-  const courier = $('su-courier')?.value || '';
-  const note = $('su-note')?.value || '';
-  if (!status) { toast('Status দিন!', 'warning'); return; }
+  const courier  = $('su-courier')?.value  || '';
+  const note     = $('su-note')?.value     || '';
+  if (!status)   { toast('Status দিন!', 'warning'); return; }
+  if (!adminKey) { toast('Admin key নেই — আবার login করুন', 'warning'); return; }
   try {
     const resp = await fetch('/api/admin?action=status', {
       method: 'POST',
@@ -1547,9 +1548,14 @@ async function updateOrderStatus(orderId) {
       body: JSON.stringify({ orderId, id: orderId, status, trackId: tracking, courier, note }),
     });
     const data = await resp.json();
-    if (data.ok) { toast('✅ Status আপডেট হয়েছে!', 'success'); closeOrderModal(); loadOrders(currentPage); }
-    else toast(data.error || 'Update হয়নি', 'warning');
-  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+    if (data.ok) {
+      toast('✅ Status আপডেট হয়েছে!', 'success');
+      closeOrderModal();
+      loadOrders(currentPage || 1);
+    } else {
+      toast('❌ ' + (data.error || 'Update হয়নি'), 'warning');
+    }
+  } catch (e) { toast('❌ Network error: ' + e.message, 'warning'); }
 }
 
 async function quickStatus(orderId, currentStatus) {
@@ -1569,17 +1575,46 @@ async function quickStatus(orderId, currentStatus) {
 }
 
 async function cancelOrder(orderId) {
-  if (!confirm(`"${orderId}" cancel করবেন? এই action undo হবে না।`)) return;
+  if (!orderId) { toast('Order ID পাওয়া যায়নি', 'warning'); return; }
+  if (!adminKey) { toast('Admin key নেই — আবার login করুন', 'warning'); return; }
+  if (!confirm(`"${orderId}" cancel করবেন?\n\nএই action undo করা যাবে না।`)) return;
+
+  // Show loading feedback
+  toast('⏳ Order cancel হচ্ছে...', 'default');
+
   try {
     const resp = await fetch('/api/admin?action=status', {
       method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, id: orderId, status: 'cancelled', note: 'Admin কর্তৃক বাতিল' }),
+      body: JSON.stringify({
+        orderId:   orderId,
+        id:        orderId,
+        status:    'cancelled',
+        note:      'Admin কর্তৃক বাতিল করা হয়েছে',
+      }),
     });
+
+    if (!resp.ok) {
+      const text = await resp.text();
+      toast(`Server error ${resp.status}: ${text.slice(0,100)}`, 'warning');
+      return;
+    }
+
     const data = await resp.json();
-    if (data.ok) { toast('✅ Order cancelled', 'success'); closeOrderModal(); loadOrders(currentPage); }
-    else toast(data.error || 'Cancel হয়নি', 'warning');
-  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+    if (data.ok) {
+      toast('✅ Order সফলভাবে cancel হয়েছে!', 'success');
+      // Close modal if open
+      const modal = $('order-modal');
+      if (modal && modal.classList.contains('open')) closeOrderModal();
+      // Reload orders list
+      loadOrders(currentPage || 1);
+    } else {
+      toast('❌ ' + (data.error || 'Cancel করা যায়নি'), 'warning');
+    }
+  } catch (e) {
+    console.error('cancelOrder error:', e);
+    toast('❌ Network error: ' + e.message, 'warning');
+  }
 }
 
 async function verifyPayment(orderId) {
@@ -1811,9 +1846,15 @@ async function deleteProduct(id, name) {
       body: JSON.stringify({ productId: id }),
     });
     const data = await resp.json();
-    if (data.ok) { toast('✅ Product delete হয়েছে!', 'success'); loadAdminProducts(); }
-    else toast(data.error || 'Delete হয়নি', 'warning');
-  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+    if (data.ok) {
+      toast('✅ Product delete হয়েছে!', 'success');
+      // Clear public cache so all browsers get fresh data
+      try { localStorage.removeItem('slx_api_products_cache'); } catch(e) {}
+      loadAdminProducts();
+    } else {
+      toast(data.error || 'Delete হয়নি', 'warning');
+    }
+  } catch (e) { toast('❌ Server error: ' + e.message, 'warning'); }
 }
 
 function viewProductDetail(id) {
@@ -2405,7 +2446,9 @@ async function saveProduct() {
     const data = await resp.json();
     if (data.ok) {
       toast(editingProductId ? '✅ Product আপডেট হয়েছে!' : '✅ Product যোগ হয়েছে!', 'success');
-      // ══ SYNC FIX: Also save to slx_dynamic_products so index.html sees it instantly ══
+      // Clear the public product cache so index.html fetches fresh from /api/products
+      try { localStorage.removeItem('slx_api_products_cache'); } catch(e) {}
+      // Also sync locally for same-browser instant update
       syncProductToMainSite({ ...productData, productId: data.product?.productId || editingProductId, _id: data.product?._id, _fromAdmin: true, _savedAt: Date.now() }, editingProductId);
       closeProductModal(); loadAdminProducts(); uploadedImages = [];
     } else {
