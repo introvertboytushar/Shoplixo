@@ -153,7 +153,7 @@ const productSchema = new mongoose.Schema({
   costPrice: { type: Number, default: 0 },   // for profit calculation
   img: { type: String, default: '' },
   images: { type: [String], default: [] },
-  badge: { type: String, enum: ['hot','new','sale','sold','trending','exclusive'], default: 'new' },
+  badge: { type: String, enum: ['hot','new','sale','sold','best','trending','exclusive'], default: 'new' },
   rating: { type: Number, default: 5, min: 0, max: 5 },
   reviews: { type: Number, default: 0 },
   stock: { type: Number, default: 100 },
@@ -182,6 +182,8 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true, collection: 'products' });
 productSchema.index({ name: 'text', tags: 'text', desc: 'text', brand: 'text' });
 productSchema.index({ cat: 1, isActive: 1, price: 1 });
+productSchema.index({ isActive: 1, isFeatured: 1, createdAt: -1 });
+productSchema.index({ isActive: 1, isFlash: 1 });
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    SUPPLIER SCHEMA (Dropshipping)
@@ -404,6 +406,8 @@ const abandonedCartSchema = new mongoose.Schema({
   isConverted: { type: Boolean, default: false },
   ip:         String,
 }, { timestamps: true, collection: 'abandoned_carts' });
+// ✅ TTL: Auto-delete unconverted carts after 30 days
+abandonedCartSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000, partialFilterExpression: { isConverted: false } });
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    NEWSLETTER SCHEMA

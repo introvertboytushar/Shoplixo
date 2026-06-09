@@ -262,7 +262,7 @@ module.exports = async (req, res) => {
         orig:      b.orig ? parseFloat(b.orig) : undefined,
         img:       sanitize(b.img, 500),
         images:    Array.isArray(b.images) ? b.images.slice(0, 10).map(i => sanitize(i, 500)) : [],
-        badge:     ['hot','new','sale','sold','trending','exclusive'].includes(b.badge) ? b.badge : 'new',
+        badge:     ['hot','new','sale','sold','best','trending','exclusive'].includes(b.badge) ? b.badge : 'new',
         rating:    parseFloat(b.rating) || 5,
         reviews:   parseInt(b.reviews) || 0,
         stock:     parseInt(b.stock) ?? 100,
