@@ -1541,6 +1541,11 @@ async function updateOrderStatus(orderId) {
   const note     = $('su-note')?.value     || '';
   if (!status)   { toast('Status দিন!', 'warning'); return; }
   if (!adminKey) { toast('Admin key নেই — আবার login করুন', 'warning'); return; }
+  
+  // Extra confirmation for destructive statuses
+  if ((status === 'cancelled' || status === 'refunded') && 
+      !confirm(`Order "${orderId}" status "${statusLabel(status)}" করবেন? এটি undo করা যাবে না।`)) return;
+
   try {
     const resp = await fetch('/api/admin?action=status', {
       method: 'POST',
@@ -1609,7 +1614,14 @@ async function cancelOrder(orderId) {
       // Reload orders list
       loadOrders(currentPage || 1);
     } else {
-      toast('❌ ' + (data.error || 'Cancel করা যায়নি'), 'warning');
+      // ✅ FIX: Handle "already cancelled" and other specific errors gracefully
+      const errMsg = data.error || 'Cancel করা যায়নি';
+      if (errMsg.includes('already') || errMsg.includes('cancelled')) {
+        toast('⚠️ Order ইতিমধ্যে cancel আছে', 'warning');
+        loadOrders(currentPage || 1);
+      } else {
+        toast('❌ ' + errMsg, 'warning');
+      }
     }
   } catch (e) {
     console.error('cancelOrder error:', e);
@@ -2445,11 +2457,22 @@ async function saveProduct() {
     });
     const data = await resp.json();
     if (data.ok) {
-      toast(editingProductId ? '✅ Product আপডেট হয়েছে!' : '✅ Product যোগ হয়েছে!', 'success');
-      // Clear the public product cache so index.html fetches fresh from /api/products
-      try { localStorage.removeItem('slx_api_products_cache'); } catch(e) {}
-      // Also sync locally for same-browser instant update
-      syncProductToMainSite({ ...productData, productId: data.product?.productId || editingProductId, _id: data.product?._id, _fromAdmin: true, _savedAt: Date.now() }, editingProductId);
+      toast(editingProductId ? '✅ Product আপডেট হয়েছে!' : '✅ Product যোগ হয়েছে! সব browser এ দেখা যাবে।', 'success');
+      // ✅ FIX: Clear ALL product caches so every browser gets fresh data
+      try {
+        localStorage.removeItem('slx_api_products_cache');
+        localStorage.removeItem('slx_dynamic_products');
+        // Clear any stale admin products cache
+        const dynProds = JSON.parse(localStorage.getItem('slx_dynamic_products') || '[]');
+        const newDynProds = dynProds.filter(p => !p._fromAdmin || p.productId !== (data.product?.productId || editingProductId));
+        localStorage.setItem('slx_dynamic_products', JSON.stringify(newDynProds));
+      } catch(e) {}
+      // Also broadcast via BroadcastChannel so open index.html tabs refresh
+      try {
+        const bc = new BroadcastChannel('slx_products_sync');
+        bc.postMessage({ type: 'product_updated', product: data.product, timestamp: Date.now() });
+        bc.close();
+      } catch(e) {}
       closeProductModal(); loadAdminProducts(); uploadedImages = [];
     } else {
       toast(data.error || 'Product সংরক্ষণ হয়নি', 'warning');

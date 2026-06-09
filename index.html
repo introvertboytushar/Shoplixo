@@ -3695,12 +3695,20 @@ function _renderGridInner(id,items,lim){
 function renderAll() {
   // Always use the latest merged product list
   const P = window.PRODUCTS || PRODUCTS;
-  renderGrid('main-grid', P.filter(p=>p.isFeatured));
+  // ✅ FIX: Show ALL active products in main-grid (not just featured)
+  // Featured products get priority at the top, rest follow
+  const featured = P.filter(p=>p.isFeatured);
+  const nonFeatured = P.filter(p=>!p.isFeatured && p.isActive!==false);
+  const allSorted = [...featured, ...nonFeatured];
+  renderGrid('main-grid', allSorted.length ? allSorted : P);
   renderGrid('new-grid', P.filter(p=>p.isNew));
   renderGrid('women-grid', P.filter(p=>['women','women-bags','women-shoes'].includes(p.cat)));
   renderGrid('gadget-grid', P.filter(p=>p.cat==='gadgets'));
   renderFlash();
   updateCatCounts();
+  // Update product count display
+  const allCount = P.length;
+  if($('adv-filter-result-txt')) $('adv-filter-result-txt').textContent = `${allCount}টি পণ্য দেখাচ্ছে`;
 }
 
 function updateCatCounts() {
@@ -3742,8 +3750,22 @@ function filterProducts(cat, btn) {
   document.querySelectorAll('.f-tab').forEach(t=>t.classList.remove('active'));
   if(btn) btn.classList.add('active');
   const P = window.PRODUCTS || PRODUCTS;
-  const items = cat==='all' ? P.filter(p=>p.isFeatured) : P.filter(p=>p.cat===cat);
-  renderGrid('main-grid', items, 12);
+  // ✅ FIX: 'all' tab shows ALL active products, not just featured
+  let items;
+  if(cat==='all'){
+    const featured = P.filter(p=>p.isFeatured && p.isActive!==false);
+    const nonFeatured = P.filter(p=>!p.isFeatured && p.isActive!==false);
+    items = [...featured, ...nonFeatured];
+    if(!items.length) items = P;
+  } else {
+    items = P.filter(p=>p.cat===cat && p.isActive!==false);
+  }
+  // Reset dataset.loaded so new data re-renders
+  const el=$('main-grid');
+  if(el) el.removeAttribute('data-loaded');
+  renderGrid('main-grid', items, 20);
+  const count = items.length;
+  if($('adv-filter-result-txt')) $('adv-filter-result-txt').textContent = `${count}টি পণ্য দেখাচ্ছে`;
 }
 function filterCat(cat) {
   const sec=$('featured');
@@ -4084,12 +4106,19 @@ function doSearch(){
   const q=$('search-input').value.trim().toLowerCase();
   const cat=$('search-cat').value;
   if(!q) return;
+  // ✅ FIX: Always use latest product list including API products
   const P = window.PRODUCTS || PRODUCTS;
-  let res=P.filter(p=>p.name.toLowerCase().includes(q)||(p.desc&&p.desc.toLowerCase().includes(q)));
+  let res=P.filter(p=>{
+    const nameMatch = p.name.toLowerCase().includes(q);
+    const descMatch = p.desc && p.desc.toLowerCase().includes(q);
+    const tagMatch = p.tags && p.tags.some(t=>t.toLowerCase().includes(q));
+    const catMatch = p.cat && p.cat.toLowerCase().includes(q);
+    return (nameMatch || descMatch || tagMatch || catMatch) && p.isActive!==false;
+  });
   if(cat) res=res.filter(p=>p.cat===cat);
   $('search-title').textContent=`"${q}" — ${res.length} টি পণ্য`;
   $('search-list').innerHTML=res.length
-    ?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${res.slice(0,9).map(p=>`<div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:var(--t)" onclick="closeSearch();openQV(${p.id})" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''"><img src="${p.img}" style="width:100%;height:120px;object-fit:cover"><div style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.name}</div><div style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${fmt(p.price)}</div></div></div>`).join('')}</div>`
+    ?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${res.slice(0,12).map(p=>`<div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:var(--t)" onclick="closeSearch();openQV(${p.id})" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''"><img src="${p.img}" style="width:100%;height:120px;object-fit:cover"><div style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.name}</div><div style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${fmt(p.price)}</div></div></div>`).join('')}</div>`
     :`<div style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-search" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>কোনো পণ্য পাওয়া যায়নি।</p></div>`;
   $('search-overlay').style.display='flex';
 }
@@ -4395,19 +4424,23 @@ function initCountUp(){
    🔄 API PRODUCT SYNC — Admin panel থেকে add করা
    products এখানে automatically দেখা যাবে
 ════════════════════════════════════════════════════ */
-async function syncProductsFromAPI() {
+async function syncProductsFromAPI(silent = false) {
   try {
-    // ✅ FIX: Fetch from PUBLIC /api/products endpoint (no auth needed — works on ALL browsers/devices)
-    const res = await fetch('/api/products?limit=200&sort=newest', {
+    // ✅ FIX: Add cache-bust timestamp so browsers NEVER cache the product list
+    const cacheBust = '&_t=' + Date.now();
+    const res = await fetch('/api/products?limit=500&sort=newest' + cacheBust, {
       cache: 'no-store',
-      headers: { 'Accept': 'application/json' },
+      headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache, no-store' },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
     // Support both response shapes
     const productList = data.products || data.data || [];
-    if (!data.ok || !Array.isArray(productList) || productList.length === 0) return;
+    if (!data.ok || !Array.isArray(productList)) return;
+
+    // ✅ FIX: Even 0 products is valid — admin may have removed all
+    // Only skip if there was a network/parse error (handled in catch)
 
     // Map API fields → frontend format
     const apiProds = productList.map(p => ({
@@ -4428,6 +4461,7 @@ async function syncProductsFromAPI() {
       isFeatured: !!p.isFeatured,
       isNew:      !!p.isNew,
       isFlash:    !!p.isFlash,
+      isActive:   p.isActive !== false,
       sizes:      p.sizes   || ['S','M','L','XL','XXL'],
       colors:     p.colors  || [],
       desc:       p.desc    || '',
@@ -4437,41 +4471,43 @@ async function syncProductsFromAPI() {
       _fromAPI:   true,
     }));
 
-    if (apiProds.length === 0) return;
+    // ✅ FIX: API products ARE the source of truth — replace all API-sourced products
+    const apiProductIds = new Set(apiProds.map(ap => ap.productId).filter(Boolean));
 
-    // ✅ FIX: API products REPLACE static list (DB is the source of truth)
-    // Keep static products that have no matching API product
-    let added = 0, updated = 0;
-    const apiProductIds = new Set(apiProds.map(ap => ap.productId));
-
-    // Remove static products that now exist in DB (avoid duplicates)
-    window.SHOPLIXA_PRODUCTS = window.SHOPLIXA_PRODUCTS.filter(
-      p => !apiProductIds.has(p.productId || String(p.id))
+    // Keep only non-API static/local products (ones that don't have matching productId in DB)
+    window.SHOPLIXA_PRODUCTS = (window.SHOPLIXA_PRODUCTS || []).filter(
+      p => !p._fromAPI && !apiProductIds.has(p.productId || String(p.id))
     );
 
     // Add all API products
     apiProds.forEach(ap => {
       ap.id = ap.id || ('api_' + ap.productId);
       window.SHOPLIXA_PRODUCTS.push(ap);
-      added++;
     });
 
     // Rebuild global PRODUCTS array
     window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
+    PRODUCTS = window.PRODUCTS;
 
-    // Re-render with live data
+    // Re-render with live data — reset all grids so they properly re-render
+    ['main-grid','new-grid','women-grid','gadget-grid','flash-grid'].forEach(id=>{
+      const el=$(id); if(el) el.removeAttribute('data-loaded');
+    });
     renderAll();
     updateCartUI();
 
-    // Update counts
+    // Update counts everywhere
     const allCount = window.PRODUCTS.length;
     if ($('wp-prod-count'))  $('wp-prod-count').textContent  = allCount;
     if ($('adm-prod-count')) $('adm-prod-count').textContent = allCount;
+    if ($('adm-p-total'))    $('adm-p-total').textContent    = `(${allCount} products)`;
 
-    // ✅ Cache latest for offline fallback
+    // ✅ Cache for offline fallback
     try { localStorage.setItem('slx_api_products_cache', JSON.stringify(apiProds)); } catch(e) {}
 
-    console.log(`%c✅ Shoplixo Sync: ${added} products loaded from server`, 'color:#00C58A;font-weight:bold;font-size:13px');
+    if (!silent) {
+      console.log(`%c✅ Shoplixo Sync: ${apiProds.length} products loaded from server`, 'color:#00C58A;font-weight:bold;font-size:13px');
+    }
 
   } catch (e) {
     // ── Offline fallback: use cached products ──
@@ -4479,15 +4515,19 @@ async function syncProductsFromAPI() {
     try {
       const cached = JSON.parse(localStorage.getItem('slx_api_products_cache') || '[]');
       if (cached.length > 0) {
-        const cachedIds = new Set(cached.map(ap => ap.productId));
-        window.SHOPLIXA_PRODUCTS = window.SHOPLIXA_PRODUCTS.filter(
-          p => !cachedIds.has(p.productId || String(p.id))
+        const cachedIds = new Set(cached.map(ap => ap.productId).filter(Boolean));
+        window.SHOPLIXA_PRODUCTS = (window.SHOPLIXA_PRODUCTS || []).filter(
+          p => !p._fromAPI && !cachedIds.has(p.productId || String(p.id))
         );
         cached.forEach(ap => {
           ap.id = ap.id || ('api_' + ap.productId);
           window.SHOPLIXA_PRODUCTS.push(ap);
         });
         window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
+        PRODUCTS = window.PRODUCTS;
+        ['main-grid','new-grid','women-grid','gadget-grid'].forEach(id=>{
+          const el=$(id); if(el) el.removeAttribute('data-loaded');
+        });
         renderAll();
         updateCartUI();
         console.log('%c📦 Loaded products from offline cache', 'color:#FFB800');
@@ -4503,14 +4543,26 @@ document.addEventListener('DOMContentLoaded',()=>{
   // ── Step 2: Render with local data immediately
   renderAll();updateCartUI();animFadeIn();initCountUp();startCD();updateUserUI();
   const wc=$('wish-count'); if(wishlist.length>0){wc.textContent=wishlist.length;wc.style.display='flex';}
-  // WP bar counts
-  const orders=JSON.parse(localStorage.getItem('slx_orders')||'[]');
-  if($('wp-order-count')) $('wp-order-count').textContent=orders.length;
+  // WP bar counts — use API for orders
   if($('wp-prod-count')) $('wp-prod-count').textContent=PRODUCTS.length;
   if($('adm-prod-count')) $('adm-prod-count').textContent=PRODUCTS.length;
 
-  // ── Step 3: Sync products from API in background (admin.html/server additions)
-  syncProductsFromAPI();
+  // ── Step 3: Sync products from API immediately (DB is source of truth)
+  syncProductsFromAPI(false);
+
+  // ── Step 4: Auto-refresh every 3 minutes so new admin products always appear
+  setInterval(()=>syncProductsFromAPI(true), 3 * 60 * 1000);
+
+  // ── Step 5: Listen for BroadcastChannel from admin panel (instant sync)
+  try {
+    const bc = new BroadcastChannel('slx_products_sync');
+    bc.onmessage = (e) => {
+      if (e.data && (e.data.type === 'product_updated' || e.data.type === 'product_deleted')) {
+        console.log('%c🔔 Admin panel থেকে product update — refreshing...', 'color:#0066FF');
+        syncProductsFromAPI(true);
+      }
+    };
+  } catch(e) {}
 });
 
 /* ── Merge ALL localStorage dynamic products into SHOPLIXA_PRODUCTS ── */
@@ -6767,7 +6819,11 @@ function resetPriceFilter(){
   updateRangeSlider();
 }
 function getFilteredProducts(){
-  let base = currentFilterCat==='all' ? PRODUCTS.filter(p=>p.isFeatured) : PRODUCTS.filter(p=>p.cat===currentFilterCat);
+  // ✅ FIX: 'all' shows ALL active products, not just featured
+  const P = window.PRODUCTS || PRODUCTS;
+  let base = currentFilterCat==='all'
+    ? P.filter(p=>p.isActive!==false)
+    : P.filter(p=>p.cat===currentFilterCat && p.isActive!==false);
   // Price filter
   if(advFilter.minPrice>0 || advFilter.maxPrice<12000)
     base = base.filter(p=>p.price>=advFilter.minPrice && p.price<=advFilter.maxPrice);
@@ -6786,7 +6842,7 @@ function getFilteredProducts(){
     base = base.filter(p=>p.isFlash);
   if(document.getElementById('avail-featured') && document.getElementById('avail-featured').checked)
     base = base.filter(p=>p.isFeatured);
-  // Sort
+  // Sort — featured products always come first in default sort
   const sort = document.getElementById('quick-sort')?.value || advFilter.sort;
   if(sort==='price-low') base.sort((a,b)=>a.price-b.price);
   else if(sort==='price-high') base.sort((a,b)=>b.price-a.price);
@@ -6798,6 +6854,14 @@ function getFilteredProducts(){
     const db=(b.orig&&b.price)?(b.orig-b.price)/b.orig:0;
     return db-da;
   });
+  else {
+    // Default: featured products first
+    base.sort((a,b)=>{
+      if(a.isFeatured && !b.isFeatured) return -1;
+      if(!a.isFeatured && b.isFeatured) return 1;
+      return 0;
+    });
+  }
   return base;
 }
 function updateAfdResultCount(){
@@ -6836,8 +6900,14 @@ function resetAllFilters(){
   const badge = document.getElementById('filter-active-count');
   if(badge) badge.style.display='none';
   const txt = document.getElementById('adv-filter-result-txt');
-  if(txt) txt.textContent='সব পণ্য দেখাচ্ছে';
-  renderGrid('main-grid', PRODUCTS.filter(p=>p.isFeatured));
+  const P = window.PRODUCTS || PRODUCTS;
+  if(txt) txt.textContent=`${P.length}টি পণ্য দেখাচ্ছে`;
+  // ✅ FIX: Show ALL products on reset, not just featured
+  const featured = P.filter(p=>p.isFeatured && p.isActive!==false);
+  const nonFeatured = P.filter(p=>!p.isFeatured && p.isActive!==false);
+  const allSorted = [...featured, ...nonFeatured];
+  const el=$('main-grid'); if(el) el.removeAttribute('data-loaded');
+  renderGrid('main-grid', allSorted.length ? allSorted : P, 20);
   showToast('Filter reset করা হয়েছে', 'rotate-left');
 }
 // Hook quick-sort into filter
