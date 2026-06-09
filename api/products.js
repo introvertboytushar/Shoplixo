@@ -72,8 +72,12 @@ module.exports = async (req, res) => {
   /* ── CORS: সব browser/device থেকে access করা যাবে ── */
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-key, Authorization');
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-key, Authorization, Cache-Control, Pragma');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  res.setHeader('Vary', 'Accept-Encoding');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 

@@ -17,8 +17,17 @@ const crypto     = require('crypto');
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin',  process.env.CORS_ORIGIN || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Admin-Key,X-Requested-With,X-Affiliate-Code');
+  // ✅ FIX: Include both lowercase (x-admin-key) and capitalized (X-Admin-Key)
+  // because different browsers/clients may send either casing
+  res.setHeader('Access-Control-Allow-Headers',
+    'Content-Type,Authorization,X-Admin-Key,x-admin-key,X-Requested-With,X-Affiliate-Code,Cache-Control,Pragma');
+  res.setHeader('Access-Control-Expose-Headers', 'X-Total-Count,X-Page,X-Pages');
   res.setHeader('Access-Control-Max-Age', '86400');
+  // ✅ FIX: Global cache prevention — ensures NO browser, CDN, or proxy caches API responses
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
 }
 function handleCors(req, res) {
   setCors(res);
@@ -60,12 +69,24 @@ function verifyToken(req) {
    ADMIN AUTH — support multiple admin keys
 ================================================================ */
 function isAdmin(req) {
-  const key = req.headers['x-admin-key'] || req.query?.key || req.body?.adminKey || '';
+  // ✅ FIX: trim() prevents whitespace from causing auth failures
+  // Also check lowercase header (some HTTP clients normalize headers)
+  const key = (
+    req.headers['x-admin-key'] ||
+    req.headers['X-Admin-Key'] ||
+    req.query?.key ||
+    req.body?.adminKey ||
+    ''
+  ).trim();
+
+  if (!key) return false;
+
   const adminKeys = [
     process.env.ADMIN_PASSWORD,
     process.env.ADMIN_SECRET,
     process.env.ADMIN_KEY_2,   // secondary admin key
-  ].filter(Boolean);
+  ].filter(Boolean).map(k => k.trim()); // trim env vars too (common copy-paste issue)
+
   return adminKeys.includes(key);
 }
 
@@ -467,19 +488,22 @@ function returnApprovedEmail(returnReq, refundAmount) {
 }
 
 /* ================================================================
-   RATE LIMIT — improved with sliding window
+   RATE LIMIT — sliding window per IP
 ================================================================ */
 const _rateMap = new Map();
 
-// Clean up every 10 minutes
+// ✅ FIX: Clean up every 5 minutes (was 10) for lower memory usage
 setInterval(() => {
   const now = Date.now();
   for (const [key, data] of _rateMap) {
-    if (now - data.start > 600000) _rateMap.delete(key);
+    if (now - data.start > 300000) _rateMap.delete(key);
   }
-}, 600000);
+}, 300000);
 
-function checkRateLimit(key, max = 20, windowMs = 60000) {
+// ✅ FIX: Increased default max from 20 → 60 per minute
+// 20/min was too restrictive — a single product page visit
+// triggers multiple API calls (products, cart, user, etc.)
+function checkRateLimit(key, max = 60, windowMs = 60000) {
   const now  = Date.now();
   const data = _rateMap.get(key) || { count: 0, start: now };
   if (now - data.start > windowMs) {

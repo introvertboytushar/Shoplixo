@@ -97,8 +97,11 @@ const {
 module.exports = async (req, res) => {
   if (handleCors(req, res)) return;
 
-  // ✅ Add cache-control so browsers don't cache API responses
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  // ✅ Strong cache prevention — admin responses must never be cached
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
 
   if (!isAdmin(req)) {
     return res.status(401).json({ ok: false, error: 'Unauthorized. Admin key লাগবে।' });
@@ -477,10 +480,16 @@ module.exports = async (req, res) => {
 
     const validStatuses = ['pending','confirmed','processing','shipped','out_for_delivery','delivered','cancelled','refunded'];
     if (!id || !validStatuses.includes(status)) {
-      return res.status(400).json({ ok: false, error: 'Order ID এবং valid status দিন' });
+      return res.status(400).json({ ok: false, error: 'Order ID এবং valid status দিন (pending/confirmed/processing/shipped/out_for_delivery/delivered/cancelled/refunded)' });
     }
 
     try {
+      // Check current status to prevent duplicate cancel
+      const existingOrder = await Order.findOne({ orderId: id }).select('status').lean();
+      if (!existingOrder) return res.status(404).json({ ok: false, error: 'Order পাওয়া যায়নি' });
+      if (existingOrder.status === status && status === 'cancelled') {
+        return res.json({ ok: true, message: `Order ইতিমধ্যে ${status} আছে`, orderId: id, alreadyInStatus: true });
+      }
       const updateObj = {
         status,
         $push: {
