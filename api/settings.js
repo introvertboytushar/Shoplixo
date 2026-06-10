@@ -27,8 +27,8 @@
  * ══════════════════════════════════════════════════════════════
  */
 
-const { connectDB, SiteSettings, getSetting, setSetting, getSettings } = require('../_db');
-const { handleCors, isAdmin, sanitize } = require('../_helpers');
+const { connectDB, SiteSettings, getSetting, setSetting, getSettings } = require('./_db');
+const { handleCors, isAdmin, sanitize } = require('./_helpers');
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    PUBLIC SETTINGS CACHE  (60 s TTL, invalidated on every write)
