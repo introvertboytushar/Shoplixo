@@ -73,7 +73,7 @@ input,textarea,select{font-family:inherit}
 .ann-close:hover{color:#fff;background:rgba(255,255,255,.1)}
 
 /* ===== ADMIN TOP BAR (WordPress style) ===== */
-#wp-admin-bar{background:#1d2327;color:#a7aaad;padding:0;font-size:12px;display:flex;align-items:center;height:32px;position:sticky;top:0;z-index:1100}
+#wp-admin-bar{background:#1d2327;color:#a7aaad;padding:0;font-size:12px;display:none;align-items:center;height:32px;position:sticky;top:0;z-index:1100}
 #wp-admin-bar .ab-inner{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 12px}
 .ab-left,.ab-right{display:flex;align-items:center;gap:0}
 .ab-item{display:flex;align-items:center;gap:5px;padding:0 8px;height:32px;color:#a7aaad;font-size:12px;transition:var(--t);cursor:pointer;white-space:nowrap}
@@ -3776,6 +3776,32 @@ let PRODUCTS = window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
 const CFG = window.SHOPLIXA_CONFIG || {
   bkash:'01516511889',nagad:'01516511889',rocket:'01516511889',upay:'01516511889',freeShippingMin:999
 };
+
+/* ── UPGRADE-I2: Load dynamic settings from DB ── */
+async function loadPublicSettings(){
+  try{
+    const res=await fetch('/api/settings?action=public');
+    if(!res.ok) return;
+    const data=await res.json();
+    if(data.ok && data.settings){
+      const s=data.settings;
+      if(s.shippingCost!==undefined) CFG.shippingCost=s.shippingCost;
+      if(s.freeShippingMin!==undefined) CFG.freeShippingMin=s.freeShippingMin;
+      if(s.bkashNumber) CFG.bkash=s.bkashNumber;
+      if(s.nagadNumber) CFG.nagad=s.nagadNumber;
+      if(s.rocketNumber) CFG.rocket=s.rocketNumber;
+      if(s.upayNumber) CFG.upay=s.upayNumber;
+      if(s.whatsappNumber) CFG.whatsapp=s.whatsappNumber;
+      if(window.SHOPLIXA_CONFIG) Object.assign(window.SHOPLIXA_CONFIG, CFG);
+      // Update payment display if checkout is open
+      const payBox=$('pay-info-box');
+      if(payBox && payBox.classList.contains('show')){
+        const pn=$('pay-number');
+        if(pn && selPayment) pn.textContent=CFG[selPayment]||'01516511889';
+      }
+    }
+  } catch(e){ /* use defaults silently */ }
+}
 // Sync helper — call whenever PRODUCTS changes
 function syncProductsVar() {
   PRODUCTS = window.PRODUCTS = window.PRODUCTS || window.SHOPLIXA_PRODUCTS.slice();
@@ -3787,7 +3813,7 @@ let wishlist = JSON.parse(localStorage.getItem('slx_wish')||'[]');
 let currentUser = JSON.parse(localStorage.getItem('slx_user')||'null');
 let selPayment = 'bkash';
 let discount = 0;
-const COUPONS = {LIXA20:20,LIXA25:25,NEWSLIXA10:10,SAVE15:15,SHOPLIXO5:5};
+const COUPONS = {LIXA20:20,LIXA25:25,NEWSLIXA10:10,SAVE15:15,SHOPLIXO5:5}; // fallback only
 
 const $ = id => document.getElementById(id);
 const fmt = n => '৳' + Number(n).toLocaleString('en-IN');
@@ -4072,16 +4098,46 @@ function selPay(m,el){
   else{box.classList.add('show');$('pay-method-name').textContent=names[m];$('pay-number').textContent=CFG[m]||'01516511889';}
 }
 
-function applyCoupon(){
+async function applyCoupon(){
   const code=$('ck-coupon').value.trim().toUpperCase();
   const msg=$('coupon-msg'); msg.style.display='block';
-  if(COUPONS[code]){
-    discount=COUPONS[code];
-    msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
-    ckRefresh();
-  } else {
-    discount=0;
-    msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ Invalid coupon</span>`;
+  if(!code){ msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ Coupon code লিখুন</span>`; return; }
+  const btn=document.querySelector('.coupon-row button');
+  if(btn){ btn.disabled=true; btn.textContent='চেক করছে...'; }
+  try{
+    const res=await fetch(`/api/commerce?action=validate-coupon`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code, subtotal:total()})
+    });
+    const data=await res.json();
+    if(data.ok && data.discount>0){
+      discount=data.discount;
+      msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
+      ckRefresh();
+    } else {
+      // API returned error — try local fallback
+      if(COUPONS[code]){
+        discount=COUPONS[code];
+        msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
+        ckRefresh();
+      } else {
+        discount=0;
+        msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ ${data.error||'Invalid coupon'}</span>`;
+      }
+    }
+  } catch(e){
+    // Network error — fallback to local
+    if(COUPONS[code]){
+      discount=COUPONS[code];
+      msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
+      ckRefresh();
+    } else {
+      discount=0;
+      msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ Invalid coupon</span>`;
+    }
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Apply'; }
   }
 }
 
@@ -4537,6 +4593,11 @@ function updateUserUI(){
     // ── Admin detection
     const adminEmails=['introvertboytushar@gmail.com','admin@shoplixo.shop','nayemislamtushar@gmail.com'];
     if(adminEmails.includes((currentUser.email||'').toLowerCase())||currentUser.isAdmin){ currentUser.isAdmin=true; }
+    // ── Show admin bar only for admins (BUG-4 fix: default is display:none)
+    if(currentUser.isAdmin){
+      const ab=$('wp-admin-bar');
+      if(ab){ ab.style.display='flex'; $('main-header').style.top='32px'; }
+    }
 
     // ── Mobile menu login/register links → show name
     const mLoginEl = document.querySelector('#mobile-menu .mob-link[onclick*="login"]');
@@ -4934,6 +4995,8 @@ async function syncProductsFromAPI(silent = false) {
 document.addEventListener('DOMContentLoaded',()=>{
   // ── Step 1: UI setup (cart, user, animations — no product render yet)
   updateCartUI();animFadeIn();initCountUp();startCD();updateUserUI();
+  // ── Load dynamic settings from DB (shipping cost, payment numbers etc.)
+  loadPublicSettings();
   // Mobile login CTA — show if not logged in
   setTimeout(()=>{
     const ctaEl = document.getElementById('mob-login-cta');

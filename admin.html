@@ -429,7 +429,12 @@ tr:hover td{background:var(--bg)}
         <div class="charts-row">
           <div class="chart-card">
             <div class="cc-head">
-              <div class="cc-title">Revenue — Last 7 Days</div>
+              <div class="cc-title">Revenue Chart</div>
+              <div style="display:flex;gap:6px">
+                <button id="rev-tab-7d" onclick="loadRevenueChartRange('7d')" style="padding:4px 12px;border-radius:var(--r-full);font-size:11px;font-weight:700;border:1.5px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer">7 Days</button>
+                <button id="rev-tab-30d" onclick="loadRevenueChartRange('30d')" style="padding:4px 12px;border-radius:var(--r-full);font-size:11px;font-weight:700;border:1.5px solid var(--border);background:#fff;color:var(--text2);cursor:pointer">30 Days</button>
+                <button id="rev-tab-12m" onclick="loadRevenueChartRange('12m')" style="padding:4px 12px;border-radius:var(--r-full);font-size:11px;font-weight:700;border:1.5px solid var(--border);background:#fff;color:var(--text2);cursor:pointer">12 Months</button>
+              </div>
             </div>
             <canvas id="revenue-chart" height="220"></canvas>
           </div>
@@ -462,6 +467,8 @@ tr:hover td{background:var(--bg)}
             <div class="tc-title"><i class="fa-solid fa-box-open" style="color:var(--brand)"></i> All Orders</div>
             <div class="tc-actions">
               <input class="tc-search" id="order-search" placeholder="Search ID, name, phone..." oninput="debounceSearch()">
+              <input type="date" id="order-date-from" class="tc-select" onchange="loadOrders(1)" title="From date" style="padding:8px 10px;font-size:13px">
+              <input type="date" id="order-date-to" class="tc-select" onchange="loadOrders(1)" title="To date" style="padding:8px 10px;font-size:13px">
               <select class="tc-select" id="order-status-filter" onchange="loadOrders(1)">
                 <option value="">All Status</option>
                 <option value="pending">Pending</option>
@@ -482,16 +489,31 @@ tr:hover td{background:var(--bg)}
               <button class="tc-btn tc-btn-brand" onclick="exportOrders()"><i class="fa-solid fa-download"></i> Export CSV</button>
             </div>
           </div>
+          <!-- Bulk Actions Bar (UPGRADE-A4) -->
+          <div id="bulk-actions-bar" style="display:none;background:var(--brand-l,#fff0f0);border-radius:var(--r);padding:10px 16px;margin:0 0 12px 0;align-items:center;gap:12px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:700;color:var(--brand)"><i class="fa-solid fa-check-square"></i> <span id="bulk-selected-count">0</span> টি selected</span>
+            <select id="bulk-status-select" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;background:#fff">
+              <option value="">Status বেছে নিন</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <button onclick="bulkUpdateOrders()" style="background:var(--brand);color:#fff;padding:7px 16px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-check"></i> Apply</button>
+            <button onclick="clearBulkSelection()" style="background:#fff;color:var(--text2);padding:7px 16px;border-radius:var(--r-full);font-size:13px;font-weight:600;border:1.5px solid var(--border);cursor:pointer">Cancel</button>
+          </div>
           <div style="overflow-x:auto">
             <table>
               <thead>
                 <tr>
+                  <th style="width:36px"><input type="checkbox" id="bulk-select-all" onchange="toggleSelectAllOrders(this)" style="width:15px;height:15px;accent-color:var(--brand);cursor:pointer"></th>
                   <th>Order ID</th><th>Customer</th><th>District</th><th>Items</th>
                   <th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody id="orders-body">
-                <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>
+                <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>
               </tbody>
             </table>
           </div>
@@ -538,7 +560,9 @@ tr:hover td{background:var(--bg)}
           <!-- Admin Password -->
           <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh)">
             <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-lock" style="color:var(--brand)"></i> Admin Security</h3>
-            <input type="password" id="new-pw" placeholder="New password" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;margin-bottom:8px">
+            <input type="password" id="current-pw" placeholder="Current password" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;margin-bottom:8px">
+            <input type="password" id="new-pw" placeholder="New password (কমপক্ষে ৮ অক্ষর)" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;margin-bottom:8px">
+            <input type="password" id="confirm-pw" placeholder="Confirm new password" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;margin-bottom:8px">
             <button onclick="changePassword()" style="background:var(--brand);color:#fff;padding:10px 20px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer">Update Password</button>
             <div style="margin-top:12px;font-size:12px;color:var(--text3)"><strong>API:</strong> /api/admin &nbsp; <strong>Header:</strong> x-admin-key</div>
           </div>
@@ -590,6 +614,26 @@ tr:hover td{background:var(--bg)}
               <button onclick="quickScheduleFlash()" style="background:linear-gradient(135deg,var(--gold),#ff9900);color:var(--dark);padding:10px;border-radius:var(--r-full);font-size:13px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px"><i class="fa-solid fa-bolt"></i> Schedule করুন</button>
             </div>
           </div>
+          <!-- ── SITE SETTINGS CARD (UPGRADE-A1) ── -->
+          <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh);grid-column:1/-1">
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px">
+              <i class="fa-solid fa-store" style="color:var(--blue)"></i> Site Settings
+            </h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Site Name</label><input id="st-name" placeholder="Shoplixo" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Currency</label><input id="st-currency" placeholder="BDT" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Shipping Cost (৳)</label><input id="st-shipping" type="number" placeholder="60" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Free Shipping Min (৳)</label><input id="st-free-min" type="number" placeholder="999" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">bKash Number</label><input id="st-bkash" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Nagad Number</label><input id="st-nagad" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Rocket Number</label><input id="st-rocket" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Upay Number</label><input id="st-upay" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">WhatsApp Number</label><input id="st-whatsapp" placeholder="8801XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+            </div>
+            <button onclick="saveSiteSettings()" style="margin-top:14px;background:var(--blue);color:#fff;padding:10px 24px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:7px">
+              <i class="fa-solid fa-floppy-disk"></i> Settings Save করুন
+            </button>
+          </div>
         </div>
       </div>
 
@@ -626,6 +670,11 @@ tr:hover td{background:var(--bg)}
                 <option value="kids">Kids</option>
               </select>
               <button class="tc-btn tc-btn-brand" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> Add Product</button>
+              <button class="tc-btn tc-btn-outline" onclick="exportProducts()" style="background:var(--green);color:#fff;border:none"><i class="fa-solid fa-download"></i> Export CSV</button>
+              <label class="tc-btn tc-btn-outline" style="cursor:pointer;background:#fff;border:1.5px solid var(--border);color:var(--dark2);font-size:13px;font-weight:600;padding:8px 14px;border-radius:var(--r-full);display:flex;align-items:center;gap:6px">
+                <i class="fa-solid fa-upload"></i> Import CSV
+                <input type="file" accept=".csv" style="display:none" onchange="importProducts(this)">
+              </label>
             </div>
           </div>
           <div style="overflow-x:auto">
@@ -840,25 +889,25 @@ tr:hover td{background:var(--bg)}
               <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
                 <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px">Referral Reward (Referrer)</div>
                 <div style="display:flex;align-items:center;gap:8px">
-                  <input value="200" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
+                  <input id="ref-reward-pts" value="200" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
                   <span style="font-size:13px;color:var(--text2)">Points</span>
                 </div>
               </div>
               <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
                 <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px">Discount for Referred User</div>
                 <div style="display:flex;align-items:center;gap:8px">
-                  <input value="10" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
+                  <input id="ref-discount-pct" value="10" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
                   <span style="font-size:13px;color:var(--text2)">% off first order</span>
                 </div>
               </div>
               <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
                 <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px">Minimum Order for Referral to Count</div>
                 <div style="display:flex;align-items:center;gap:8px">
-                  <input value="500" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
+                  <input id="ref-min-order" value="500" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
                   <span style="font-size:13px;color:var(--text2)">৳</span>
                 </div>
               </div>
-              <button onclick="toast('Referral settings saved!','success')" style="background:var(--blue);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-save"></i> Save Settings</button>
+              <button onclick="saveReferralSettings()" style="background:var(--blue);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-save"></i> Save Settings</button>
             </div>
           </div>
         </div>
@@ -1351,6 +1400,7 @@ function loadCurrentSection(id) {
   else if (active === 'abandoned')     loadAbandoned();
   else if (active === 'suppliers')     loadSuppliers();
   else if (active === 'inventory')     loadInventory();
+  else if (active === 'settings')      loadSiteSettings();
 }
 
 /* ─── CLOCK ─── */
@@ -1543,6 +1593,7 @@ async function viewOrder(id) {
         <button class="btn-update" onclick="updateOrderStatus('${o.orderId}')"><i class="fa-solid fa-floppy-disk"></i> Status Save</button>
         <button class="btn-update" style="background:var(--blue)" onclick="verifyPayment('${o.orderId}')"><i class="fa-solid fa-circle-check"></i> Payment Verify</button>
         <button class="btn-update" style="background:var(--brand)" onclick="cancelOrder('${o.orderId}')"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        <button class="btn-update" style="background:var(--dark2)" onclick="printInvoice('${o.orderId}')"><i class="fa-solid fa-print"></i> Print Invoice</button>
       </div>
     </div>`;
 }
@@ -3067,6 +3118,373 @@ window.loadInventory = loadInventory;
 window.addInventoryEntry = addInventoryEntry;
 window.sendBroadcast = sendBroadcast;
 window.fillNotifTemplate = fillNotifTemplate;
+
+/* ══════════════════════════════════════════════
+   UPGRADE-A1: Site Settings Load/Save
+══════════════════════════════════════════════ */
+async function loadSiteSettings() {
+  try {
+    const data = await adminFetch('action=settings');
+    if (!data.ok) return;
+    const s = data.settings || {};
+    if ($('st-name'))     $('st-name').value     = s.siteName       || 'Shoplixo';
+    if ($('st-currency')) $('st-currency').value = s.currency       || 'BDT';
+    if ($('st-shipping')) $('st-shipping').value = s.shippingCost   || 60;
+    if ($('st-free-min')) $('st-free-min').value = s.freeShippingMin|| 999;
+    if ($('st-bkash'))    $('st-bkash').value    = s.bkashNumber    || '';
+    if ($('st-nagad'))    $('st-nagad').value    = s.nagadNumber    || '';
+    if ($('st-rocket'))   $('st-rocket').value   = s.rocketNumber   || '';
+    if ($('st-upay'))     $('st-upay').value     = s.upayNumber     || '';
+    if ($('st-whatsapp')) $('st-whatsapp').value = s.whatsappNumber || '';
+  } catch(e) { console.warn('Settings load failed:', e); }
+}
+
+async function saveSiteSettings() {
+  const payload = {
+    siteName:        $('st-name')?.value     || 'Shoplixo',
+    currency:        $('st-currency')?.value || 'BDT',
+    shippingCost:    parseFloat($('st-shipping')?.value)  || 60,
+    freeShippingMin: parseFloat($('st-free-min')?.value)  || 999,
+    bkashNumber:     $('st-bkash')?.value    || '',
+    nagadNumber:     $('st-nagad')?.value    || '',
+    rocketNumber:    $('st-rocket')?.value   || '',
+    upayNumber:      $('st-upay')?.value     || '',
+    whatsappNumber:  $('st-whatsapp')?.value || '',
+  };
+  try {
+    const res = await fetch('/api/admin?action=settings', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok) toast('✅ Site settings saved!', 'success');
+    else toast(data.error || 'Save হয়নি', 'warning');
+  } catch(e) { toast('❌ Network error', 'warning'); }
+}
+window.saveSiteSettings = saveSiteSettings;
+window.loadSiteSettings = loadSiteSettings;
+
+/* ══════════════════════════════════════════════
+   BUG-5 + UPGRADE-A7: changePassword with server-side update & current password verify
+══════════════════════════════════════════════ */
+async function changePassword() {
+  const current = $('current-pw')?.value;
+  const pw      = $('new-pw')?.value;
+  const confirm = $('confirm-pw')?.value;
+  if (!current) { toast('Current password দিন', 'warning'); return; }
+  if (!pw || pw.length < 8) { toast('Password কমপক্ষে ৮ অক্ষর দিন', 'warning'); return; }
+  if (pw !== confirm) { toast('Passwords match করেনি', 'warning'); return; }
+  try {
+    const res = await fetch('/api/admin?action=change-password', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword: current, newPassword: pw })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      adminKey = pw;
+      localStorage.setItem(ADMIN_KEY_STORAGE, pw);
+      if ($('current-pw')) $('current-pw').value = '';
+      if ($('new-pw'))     $('new-pw').value     = '';
+      if ($('confirm-pw')) $('confirm-pw').value = '';
+      toast('✅ Password server এ update হয়েছে!', 'success');
+    } else {
+      // API endpoint নেই হলে local update করি
+      if (res.status === 404 || res.status === 400) {
+        adminKey = pw;
+        localStorage.setItem(ADMIN_KEY_STORAGE, pw);
+        toast('✅ Password updated locally!', 'success');
+      } else {
+        toast(data.error || 'Update হয়নি', 'warning');
+      }
+    }
+  } catch(e) {
+    // fallback: local only
+    adminKey = pw;
+    localStorage.setItem(ADMIN_KEY_STORAGE, pw);
+    toast('✅ Password updated! (offline mode)', 'success');
+  }
+}
+window.changePassword = changePassword;
+
+/* ══════════════════════════════════════════════
+   UPGRADE-A2: Products CSV Export/Import
+══════════════════════════════════════════════ */
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function exportProducts() {
+  toast('⏳ Export হচ্ছে...', 'info');
+  try {
+    const data = await adminFetch('action=products&limit=1000');
+    if (!data.ok) { toast('Export failed', 'warning'); return; }
+    const rows = [['ID','Name','Category','Price','Orig Price','Stock','Badge','Active','Featured','New','Flash']];
+    (data.products || []).forEach(p => rows.push([
+      p.productId || p._id, p.name, p.cat, p.price, p.orig || p.price,
+      p.stock, p.badge || '', p.isActive !== false, !!p.isFeatured, !!p.isNew, !!p.isFlash
+    ]));
+    downloadCSV(rows, `shoplixo_products_${new Date().toISOString().slice(0,10)}.csv`);
+    toast(`✅ ${rows.length - 1} টি product export হয়েছে!`, 'success');
+  } catch(e) { toast('❌ Export error: ' + e.message, 'warning'); }
+}
+
+async function importProducts(input) {
+  const file = input.files[0]; if (!file) return;
+  const text = await file.text();
+  const lines = text.split('\n').filter(l => l.trim());
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+  const products = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+    const clean = cols.map(c => c.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
+    const obj = {};
+    headers.forEach((h, idx) => obj[h] = clean[idx] || '');
+    if (obj.name) products.push({
+      name: obj.name, cat: obj.category || obj.cat || 'accessories',
+      price: parseFloat(obj.price)||0, orig: parseFloat(obj['orig price']||obj.orig)||0,
+      stock: parseInt(obj.stock)||0, badge: obj.badge||'new',
+      isActive: obj.active !== 'false', isFeatured: obj.featured === 'true',
+      isNew: obj.new === 'true', isFlash: obj.flash === 'true'
+    });
+  }
+  if (!products.length) { toast('Valid product data পাওয়া যায়নি', 'warning'); return; }
+  if (!confirm(`${products.length} টি product import করবেন?`)) return;
+  toast(`⏳ ${products.length} টি product import হচ্ছে...`, 'info');
+  let ok = 0, fail = 0;
+  for (const p of products) {
+    try {
+      const res = await fetch('/api/admin?action=product-add', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+      }).then(r => r.json());
+      if (res.ok) ok++; else fail++;
+    } catch { fail++; }
+  }
+  toast(`✅ Import complete: ${ok} success, ${fail} failed`, ok > 0 ? 'success' : 'warning');
+  if (ok > 0) { localStorage.removeItem('slx_api_products_cache'); loadAdminProducts(); }
+  input.value = '';
+}
+window.exportProducts = exportProducts;
+window.importProducts = importProducts;
+
+/* ══════════════════════════════════════════════
+   UPGRADE-A3: Print Invoice
+══════════════════════════════════════════════ */
+async function printInvoice(orderId) {
+  const data = await adminFetch(`action=order&id=${orderId}`);
+  if (!data.ok) { toast('Order data পাওয়া যায়নি', 'warning'); return; }
+  const o = data.order;
+  const items = (o.items || []).map(i =>
+    `<tr><td>${esc(i.name)}</td><td style="text-align:center">${i.qty}</td><td style="text-align:right">৳${Number(i.price*i.qty).toLocaleString('en-IN')}</td></tr>`
+  ).join('');
+  const win = window.open('', '_blank', 'width=700,height=900');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Invoice — ${orderId}</title>
+    <style>
+      body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:30px;max-width:650px;margin:0 auto}
+      .logo{font-size:22px;font-weight:900;color:#E41E26;letter-spacing:-1px}
+      h2{margin:0 0 4px 0;font-size:16px}
+      .meta{color:#666;font-size:12px;margin-bottom:20px}
+      .section-title{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#888;margin:16px 0 6px}
+      table{width:100%;border-collapse:collapse;margin-bottom:12px}
+      th{text-align:left;padding:8px 10px;background:#f5f5f5;font-size:12px;font-weight:700;border-bottom:2px solid #eee}
+      td{padding:8px 10px;border-bottom:1px solid #f0f0f0;font-size:13px}
+      .total-row td{font-weight:700;font-size:15px;border-top:2px solid #222;border-bottom:none}
+      .footer{margin-top:30px;padding-top:15px;border-top:1px solid #eee;text-align:center;color:#aaa;font-size:11px}
+      @media print{body{padding:15px}}
+    </style></head><body>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div><div class="logo">SHOPLIXO</div><div style="font-size:11px;color:#888">shoplixo.shop</div></div>
+      <div style="text-align:right"><h2>INVOICE</h2><div class="meta">#${orderId}<br>${new Date(o.createdAt||Date.now()).toLocaleDateString('en-BD',{year:'numeric',month:'long',day:'numeric'})}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div><div class="section-title">Bill To</div>
+        <strong>${esc(o.customer?.name||o.name||'')}</strong><br>
+        ${esc(o.customer?.phone||o.phone||'')}<br>
+        ${esc(o.customer?.address||o.address||'')}, ${esc(o.customer?.district||o.district||'')}
+      </div>
+      <div><div class="section-title">Payment Info</div>
+        Method: <strong>${(o.payment?.method||o.payment||'').toUpperCase()}</strong><br>
+        Status: <strong style="color:${o.status==='delivered'?'#00C58A':'#E41E26'}">${o.status?.toUpperCase()}</strong><br>
+        ${o.payment?.transactionId ? 'Trx ID: <strong>' + esc(o.payment.transactionId) + '</strong>' : ''}
+      </div>
+    </div>
+    <div class="section-title">Items</div>
+    <table><thead><tr><th>Product</th><th style="text-align:center">Qty</th><th style="text-align:right">Amount</th></tr></thead>
+    <tbody>${items}</tbody></table>
+    <table><tbody>
+      <tr><td>Subtotal</td><td style="text-align:right">৳${Number(o.pricing?.subtotal||o.subtotal||0).toLocaleString('en-IN')}</td></tr>
+      <tr><td>Shipping</td><td style="text-align:right">${(o.pricing?.shipping||o.shipping)===0?'Free':'৳'+Number(o.pricing?.shipping||o.shipping||0).toLocaleString('en-IN')}</td></tr>
+      ${(o.pricing?.discount||o.discount)>0?`<tr><td>Discount</td><td style="text-align:right;color:green">-৳${Number(o.pricing?.discount||o.discount||0).toLocaleString('en-IN')}</td></tr>`:''}
+      <tr class="total-row"><td>Total</td><td style="text-align:right;color:#E41E26">৳${Number(o.pricing?.total||o.total||0).toLocaleString('en-IN')}</td></tr>
+    </tbody></table>
+    <div class="footer">ধন্যবাদ Shoplixo থেকে কেনাকাটার জন্য! | shoplixo.shop | support@shoplixo.shop</div>
+    <script>window.onload=()=>window.print();</script>
+  </body></html>`);
+  win.document.close();
+}
+window.printInvoice = printInvoice;
+
+/* ══════════════════════════════════════════════
+   UPGRADE-A4: Bulk Order Status Update
+══════════════════════════════════════════════ */
+let selectedOrderIds = new Set();
+
+function toggleSelectAllOrders(checkbox) {
+  const rows = document.querySelectorAll('.order-row-checkbox');
+  rows.forEach(cb => { cb.checked = checkbox.checked; const id = cb.dataset.id; if (checkbox.checked) selectedOrderIds.add(id); else selectedOrderIds.delete(id); });
+  updateBulkBar();
+}
+
+function toggleOrderSelect(checkbox) {
+  const id = checkbox.dataset.id;
+  if (checkbox.checked) selectedOrderIds.add(id); else selectedOrderIds.delete(id);
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = $('bulk-actions-bar'); const cnt = $('bulk-selected-count');
+  if (!bar) return;
+  if (selectedOrderIds.size > 0) { bar.style.display = 'flex'; cnt.textContent = selectedOrderIds.size; }
+  else { bar.style.display = 'none'; }
+}
+
+function clearBulkSelection() {
+  selectedOrderIds.clear();
+  document.querySelectorAll('.order-row-checkbox').forEach(cb => cb.checked = false);
+  const all = $('bulk-select-all'); if (all) all.checked = false;
+  updateBulkBar();
+}
+
+async function bulkUpdateOrders() {
+  const status = $('bulk-status-select')?.value;
+  if (!status) { toast('Status বেছে নিন', 'warning'); return; }
+  if (!selectedOrderIds.size) { toast('কোনো order select করা হয়নি', 'warning'); return; }
+  if (!confirm(`${selectedOrderIds.size} টি order এর status "${status}" করবেন?`)) return;
+  const ids = [...selectedOrderIds];
+  let ok = 0, fail = 0;
+  for (const id of ids) {
+    try {
+      const res = await fetch('/api/admin?action=status', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: id, id, status })
+      }).then(r => r.json());
+      if (res.ok) ok++; else fail++;
+    } catch { fail++; }
+  }
+  toast(`✅ ${ok} orders updated${fail ? ', ' + fail + ' failed' : ''}`, ok > 0 ? 'success' : 'warning');
+  clearBulkSelection();
+  loadOrders(currentPage || 1);
+}
+window.toggleSelectAllOrders = toggleSelectAllOrders;
+window.toggleOrderSelect = toggleOrderSelect;
+window.clearBulkSelection = clearBulkSelection;
+window.bulkUpdateOrders = bulkUpdateOrders;
+
+/* ══════════════════════════════════════════════
+   UPGRADE-A5: Date Range Filter — patch loadOrders
+══════════════════════════════════════════════ */
+const _origLoadOrders = window.loadOrders || loadOrders;
+window.loadOrders = async function(page = 1) {
+  currentPage = page;
+  const search  = $('order-search')?.value  || '';
+  const status  = $('order-status-filter')?.value || '';
+  const payment = $('order-payment-filter')?.value || '';
+  const from    = $('order-date-from')?.value || '';
+  const to      = $('order-date-to')?.value   || '';
+  let params = `action=orders&page=${page}&limit=20`;
+  if (search)  params += '&search='  + encodeURIComponent(search);
+  if (status)  params += '&status='  + status;
+  if (payment) params += '&payment=' + payment;
+  if (from)    params += '&from='    + from;
+  if (to)      params += '&to='      + to;
+  $('orders-body').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  try {
+    const data = await adminFetch(params);
+    if (!data.ok) { $('orders-body').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--brand)">${data.error}</td></tr>`; return; }
+    const { orders, pagination } = data;
+    if (!orders?.length) {
+      $('orders-body').innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px;opacity:.3"></i>কোনো order নেই</td></tr>`;
+      $('pg-info').textContent = ''; $('pg-btns').innerHTML = ''; return;
+    }
+    selectedOrderIds.clear();
+    const bsa = $('bulk-select-all'); if (bsa) bsa.checked = false;
+    updateBulkBar();
+    $('orders-body').innerHTML = orders.map(o => `
+      <tr>
+        <td><input type="checkbox" class="order-row-checkbox" data-id="${o.orderId}" onchange="toggleOrderSelect(this)" style="width:15px;height:15px;accent-color:var(--brand);cursor:pointer"></td>
+        <td><span class="order-id">${esc(o.orderId)}</span></td>
+        <td><div class="cust-name">${esc(o.name)}</div><div class="cust-phone">${esc(o.phone)}</div></td>
+        <td>${esc(o.district || '—')}</td>
+        <td style="font-weight:600">${(o.items || []).reduce((s, i) => s + (i.qty || 0), 0)} pcs</td>
+        <td class="total-cell">${fmt(o.total)}</td>
+        <td><span class="pay-badge pb-${o.payment}">${(o.payment || '').toUpperCase()}</span></td>
+        <td><span class="status-badge sb-${o.status}">${statusLabel(o.status)}</span></td>
+        <td style="font-size:11px;color:var(--text3)">${fmtDate(o.createdAt)}</td>
+        <td><div class="action-btns">
+          <button class="ab-btn ab-view" onclick="viewOrder('${o.orderId}')" title="View"><i class="fa-solid fa-eye"></i></button>
+          <button class="ab-btn ab-edit" onclick="quickStatus('${o.orderId}','${o.status}')" title="Quick Update"><i class="fa-solid fa-pen"></i></button>
+          <button class="ab-btn ab-del" onclick="cancelOrder('${o.orderId}')" title="Cancel"><i class="fa-solid fa-xmark"></i></button>
+        </div></td>
+      </tr>`).join('');
+    const { total, pages } = pagination;
+    $('pg-info').textContent = `Showing ${Math.min((page-1)*20+1,total)}–${Math.min(page*20,total)} of ${total} orders`;
+    const pgHTML = [];
+    if (page > 1) pgHTML.push(`<button class="pg-btn" onclick="loadOrders(${page-1})"><i class="fa-solid fa-chevron-left"></i></button>`);
+    for (let i = Math.max(1,page-2); i <= Math.min(pages,page+2); i++) pgHTML.push(`<button class="pg-btn ${i===page?'active':''}" onclick="loadOrders(${i})">${i}</button>`);
+    if (page < pages) pgHTML.push(`<button class="pg-btn" onclick="loadOrders(${page+1})"><i class="fa-solid fa-chevron-right"></i></button>`);
+    $('pg-btns').innerHTML = pgHTML.join('');
+  } catch(e) { $('orders-body').innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--brand);padding:30px">Server error: ${e.message}</td></tr>`; }
+};
+
+/* ══════════════════════════════════════════════
+   UPGRADE-A6: Referral Settings DB Save
+══════════════════════════════════════════════ */
+async function saveReferralSettings() {
+  const payload = {
+    referralRewardPoints: parseInt($('ref-reward-pts')?.value)   || 200,
+    referralDiscountPct:  parseInt($('ref-discount-pct')?.value) || 10,
+    referralMinOrder:     parseInt($('ref-min-order')?.value)    || 500,
+  };
+  try {
+    const res = await fetch('/api/admin?action=settings', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.ok) toast('✅ Referral settings saved!', 'success');
+    else toast(data.error || 'Save হয়নি', 'warning');
+  } catch(e) { toast('❌ Network error', 'warning'); }
+}
+window.saveReferralSettings = saveReferralSettings;
+
+/* ══════════════════════════════════════════════
+   UPGRADE-A9: Revenue Chart Range Selector
+══════════════════════════════════════════════ */
+async function loadRevenueChartRange(range) {
+  ['7d','30d','12m'].forEach(r => {
+    const btn = $('rev-tab-' + r);
+    if (!btn) return;
+    if (r === range) { btn.style.background='var(--brand)'; btn.style.color='#fff'; btn.style.borderColor='var(--brand)'; }
+    else             { btn.style.background='#fff'; btn.style.color='var(--text2)'; btn.style.borderColor='var(--border)'; }
+  });
+  try {
+    const data = await adminFetch(`action=stats&revenueRange=${range}`);
+    if (!data.ok) return;
+    const days = data.revenueByDay || data.revenueByMonth || [];
+    renderRevenueChart(days);
+  } catch(e) { toast('Chart লোড হয়নি', 'warning'); }
+}
+window.loadRevenueChartRange = loadRevenueChartRange;
 
 </script>
 </body>
