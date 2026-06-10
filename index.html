@@ -4253,6 +4253,26 @@ function renderProductDetailPage(p) {
     <button class="pdp-sticky-btn-cart" onclick="pdpAddToCart()"><i class="fa-solid fa-cart-plus"></i> Cart</button>
     <button class="pdp-sticky-btn-buy" onclick="pdpBuyNow()"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
   </div>`;
+
+// PDP gallery touch swipe
+setTimeout(() => {
+  const mainImg = document.getElementById('pdp-main-img-wrap');
+  if (!mainImg) return;
+  let startX = 0;
+  mainImg.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+  mainImg.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      const thumbs = document.querySelectorAll('.pdp-thumb');
+      const active = document.querySelector('.pdp-thumb.active');
+      if (!active || !thumbs.length) return;
+      const idx = [...thumbs].indexOf(active);
+      const next = diff > 0 ? thumbs[idx+1] : thumbs[idx-1];
+      if (next) next.click();
+    }
+  }, {passive:true});
+}, 100);
+
 }
 
 function generateFakeReviews(p) {
@@ -4604,7 +4624,7 @@ async function applyCoupon(){
   const btn=document.querySelector('.coupon-row button');
   if(btn){ btn.disabled=true; btn.textContent='চেক করছে...'; }
   try{
-    const res=await fetch(`/api/commerce?action=validate-coupon`,{
+    const res=await fetch(`/api/commerce?module=coupon`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({code, subtotal:total()})

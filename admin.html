@@ -1757,14 +1757,6 @@ function downloadCSV(rows, filename) {
   a.href = URL.createObjectURL(blob); a.download = filename; a.click();
 }
 
-function changePassword() {
-  const pw = $('new-pw')?.value;
-  if (!pw || pw.length < 8) { toast('Password কমপক্ষে ৮ অক্ষর দিন', 'warning'); return; }
-  localStorage.setItem(ADMIN_KEY_STORAGE, pw);
-  adminKey = pw;
-  toast('✅ Password updated! এখন নতুন password দিয়ে login করতে পারবেন।', 'success');
-}
-
 /* ═══════════════════════════════════════════
    PRODUCTS MANAGEMENT
 ═══════════════════════════════════════════ */
