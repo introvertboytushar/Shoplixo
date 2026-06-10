@@ -3281,7 +3281,7 @@ async function printInvoice(orderId) {
       <tr class="total-row"><td>Total</td><td style="text-align:right;color:#E41E26">৳${Number(o.pricing?.total||o.total||0).toLocaleString('en-IN')}</td></tr>
     </tbody></table>
     <div class="footer">ধন্যবাদ Shoplixo থেকে কেনাকাটার জন্য! | shoplixo.shop | support@shoplixo.shop</div>
-    <script>window.onload=()=>window.print();</script>
+    <script>window.onload=()=>window.print();<\/script>
   </body></html>`);
   win.document.close();
 }
