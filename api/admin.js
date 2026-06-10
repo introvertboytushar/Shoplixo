@@ -1,85 +1,95 @@
 /**
  * ══════════════════════════════════════════════════════════════
- *  SHOPLIXO — /api/admin  (Ultra Professional v4 — FIXED)
+ *  SHOPLIXO — /api/admin  (Ultra Professional v5 — FULLY UPGRADED)
  *  ⚠️  Protected by x-admin-key header
  *
  *  ── DASHBOARD ────────────────────────────────────────────────
- *  GET  ?action=stats            → Full dashboard statistics
+ *  GET  ?action=stats              → Full dashboard statistics
+ *  GET  ?action=stats&range=30d    → Revenue range: 7d | 30d | 12m  [NEW]
  *
  *  ── PRODUCTS ─────────────────────────────────────────────────
- *  GET  ?action=products         → Products list (paginated, filterable)
- *  GET  ?action=product&id=x     → Single product
- *  POST ?action=product-add      → নতুন product যোগ করুন
- *  POST ?action=product-edit     → Product আপডেট করুন
- *  POST ?action=product-delete   → Product মুছুন
- *  POST ?action=product-bulk     → Bulk operations (ids[] or category + stockIncrease)
+ *  GET  ?action=products           → Products list (paginated, filterable)
+ *  GET  ?action=product&id=x       → Single product
+ *  GET  ?action=products-export    → All products for CSV export    [NEW]
+ *  POST ?action=product-add        → নতুন product যোগ করুন
+ *  POST ?action=product-edit       → Product আপডেট করুন
+ *  POST ?action=product-delete     → Product মুছুন
+ *  POST ?action=product-bulk       → Bulk operations
  *
  *  ── ORDERS ───────────────────────────────────────────────────
- *  GET  ?action=orders           → Orders list (paginated, filterable, date range)
- *  GET  ?action=order&id=x       → Single order detail
- *  POST ?action=status           → Order status আপডেট
- *  POST ?action=payment-verify   → Payment verify করুন
+ *  GET  ?action=orders             → Orders list (paginated, filterable, date range)
+ *  GET  ?action=order&id=x         → Single order detail
+ *  POST ?action=status             → Order status আপডেট
+ *  POST ?action=order-bulk-status  → Bulk order status আপডেট        [NEW]
+ *  POST ?action=payment-verify     → Payment verify করুন
  *
  *  ── RETURN REQUESTS ──────────────────────────────────────────
- *  GET  ?action=returns          → Return requests list
- *  POST ?action=return-update    → Return status আপডেট / Refund process
+ *  GET  ?action=returns            → Return requests list
+ *  POST ?action=return-update      → Return status আপডেট / Refund
  *
  *  ── CUSTOMERS ────────────────────────────────────────────────
- *  GET  ?action=customers        → Users list
- *  POST ?action=customer-ban     → User ban/unban
+ *  GET  ?action=customers          → Users list (search, sort, paginate)
+ *  POST ?action=customer-ban       → User ban/unban (isBanned field)  [FIXED]
+ *  POST ?action=customer-adjust-points → Loyalty points manual adjust [NEW]
  *
  *  ── COUPONS ──────────────────────────────────────────────────
- *  GET  ?action=coupons          → Coupon list
- *  POST ?action=coupon           → Coupon তৈরি / আপডেট
- *  POST ?action=coupon-delete    → Coupon মুছুন
- *  POST ?action=toggle-coupon    → Coupon on/off
+ *  GET  ?action=coupons            → Coupon list
+ *  POST ?action=coupon             → Coupon তৈরি / আপডেট
+ *  POST ?action=coupon-delete      → Coupon মুছুন
+ *  POST ?action=toggle-coupon      → Coupon on/off
  *
  *  ── REVIEWS ──────────────────────────────────────────────────
- *  GET  ?action=reviews          → All reviews (pending/approved/all)
- *  POST ?action=review-approve   → Review approve করুন
- *  POST ?action=review-delete    → Review মুছুন
- *  POST ?action=review-reply     → Admin reply দিন
+ *  GET  ?action=reviews            → All reviews
+ *  POST ?action=review-approve     → Review approve করুন
+ *  POST ?action=review-delete      → Review মুছুন
+ *  POST ?action=review-reply       → Admin reply দিন
  *
  *  ── FLASH SALES ──────────────────────────────────────────────
- *  GET  ?action=flash-sales      → Flash sale list
- *  POST ?action=flash-sale-add   → Flash sale তৈরি
- *  POST ?action=flash-sale-del   → Flash sale মুছুন
+ *  GET  ?action=flash-sales        → Flash sale list
+ *  POST ?action=flash-sale-add     → Flash sale তৈরি
+ *  POST ?action=flash-sale-del     → Flash sale মুছুন
  *
  *  ── BUNDLES ──────────────────────────────────────────────────
- *  GET  ?action=bundles          → Bundle list
- *  POST ?action=bundle-add       → Bundle তৈরি
- *  POST ?action=bundle-edit      → Bundle আপডেট
- *  POST ?action=bundle-delete    → Bundle মুছুন
+ *  GET  ?action=bundles            → Bundle list
+ *  POST ?action=bundle-add         → Bundle তৈরি
+ *  POST ?action=bundle-edit        → Bundle আপডেট
+ *  POST ?action=bundle-delete      → Bundle মুছুন
  *
  *  ── NEWSLETTER ───────────────────────────────────────────────
- *  GET  ?action=newsletter       → Subscribers list
- *  POST ?action=newsletter-del   → Subscriber মুছুন
+ *  GET  ?action=newsletter         → Subscribers list
+ *  POST ?action=newsletter-del     → Subscriber মুছুন
  *
  *  ── ABANDONED CARTS ──────────────────────────────────────────
- *  GET  ?action=abandoned        → Abandoned carts
+ *  GET  ?action=abandoned          → Abandoned carts
  *
  *  ── SUPPLIERS ────────────────────────────────────────────────
- *  GET  ?action=suppliers        → Supplier list
- *  POST ?action=supplier-add     → Supplier যোগ করুন
- *  POST ?action=supplier-edit    → Supplier আপডেট
- *  POST ?action=supplier-delete  → Supplier মুছুন
+ *  GET  ?action=suppliers          → Supplier list
+ *  POST ?action=supplier-add       → Supplier যোগ করুন
+ *  POST ?action=supplier-edit      → Supplier আপডেট
+ *  POST ?action=supplier-delete    → Supplier মুছুন
  *
  *  ── INVENTORY ────────────────────────────────────────────────
- *  GET  ?action=inventory        → Inventory log (filterable by product/type)
- *  POST ?action=inventory-add    → Manual stock entry
+ *  GET  ?action=inventory          → Inventory log
+ *  POST ?action=inventory-add      → Manual stock entry
  *
  *  ── REFERRALS ────────────────────────────────────────────────
- *  GET  ?action=referrals        → Referral tracking data
+ *  GET  ?action=referrals          → Referral tracking data
+ *  GET  ?action=referral-settings  → Referral/loyalty settings      [NEW]
+ *  POST ?action=referral-settings  → Save referral/loyalty settings [NEW]
  *
  *  ── NOTIFICATIONS ────────────────────────────────────────────
- *  POST ?action=notify-broadcast → Broadcast notification to all/segment users
+ *  POST ?action=notify-broadcast   → Broadcast notification
  *
  *  ── SITE SETTINGS ────────────────────────────────────────────
- *  GET  ?action=settings         → Get all site settings
- *  POST ?action=settings         → Save site settings
+ *  GET  ?action=settings           → Get all site settings
+ *  POST ?action=settings           → Save site settings (bulk or single) [UPGRADED]
+ *
+ *  ── SECURITY ─────────────────────────────────────────────────
+ *  POST ?action=change-password    → Admin password পরিবর্তন         [NEW]
  * ══════════════════════════════════════════════════════════════
  */
 
+const bcrypt = require('bcryptjs');
 const {
   connectDB, Order, User, Product, Comment, Newsletter, Coupon,
   FlashSale, Bundle, AbandonedCart, LoyaltyTxn, SiteStats,
@@ -90,6 +100,26 @@ const {
   handleCors, isAdmin, sanitize, sendEmail, sendSMS,
   orderStatusEmail, orderShippedSMS,
 } = require('./_helpers');
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HELPERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/**
+ * Save a batch of key-value settings in a single Promise.all call.
+ * Each entry in `entries` is [key, value, meta?] where meta defaults to group='general'.
+ */
+async function batchSetSettings(entries) {
+  return Promise.all(
+    entries.map(([key, value, meta = {}]) =>
+      setSetting(key, value, {
+        group: meta.group || 'general',
+        label: meta.label || key,
+        type:  meta.type  || (typeof value === 'boolean' ? 'boolean' : typeof value === 'number' ? 'number' : 'string'),
+      })
+    )
+  );
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    MAIN HANDLER
@@ -112,14 +142,52 @@ module.exports = async (req, res) => {
 
   /* ═══════════════════════════════════════════════════════════
      ── DASHBOARD STATS ─────────────────────────────────────
+     UPGRADE-A9: revenueRange param (7d | 30d | 12m)
   ═══════════════════════════════════════════════════════════ */
   if (action === 'stats' && req.method === 'GET') {
     try {
-      const now       = new Date();
-      const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthE= new Date(now.getFullYear(), now.getMonth(), 0);
+      const now        = new Date();
+      const today      = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thisMonth  = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonth  = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthE = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      // ✅ UPGRADE-A9: Dynamic revenue chart range
+      const range    = req.query?.range || '7d';
+      let   chartAgg;
+      if (range === '12m') {
+        const twelveMonthsAgo = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+        chartAgg = [
+          { $match: { createdAt: { $gte: twelveMonthsAgo }, status: { $nin: ['cancelled', 'refunded'] } } },
+          { $group: {
+            _id:     { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+            revenue: { $sum: '$pricing.total' },
+            orders:  { $sum: 1 },
+          }},
+          { $sort: { _id: 1 } },
+        ];
+      } else if (range === '30d') {
+        chartAgg = [
+          { $match: { createdAt: { $gte: new Date(Date.now() - 30 * 86400000) }, status: { $nin: ['cancelled', 'refunded'] } } },
+          { $group: {
+            _id:     { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            revenue: { $sum: '$pricing.total' },
+            orders:  { $sum: 1 },
+          }},
+          { $sort: { _id: 1 } },
+        ];
+      } else {
+        // Default: 7d
+        chartAgg = [
+          { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 86400000) }, status: { $nin: ['cancelled', 'refunded'] } } },
+          { $group: {
+            _id:     { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            revenue: { $sum: '$pricing.total' },
+            orders:  { $sum: 1 },
+          }},
+          { $sort: { _id: 1 } },
+        ];
+      }
 
       const [
         totalOrders, totalRevObj, totalUsers, pendingOrders,
@@ -130,7 +198,7 @@ module.exports = async (req, res) => {
         pendingReturns, abandonedCount,
       ] = await Promise.all([
         Order.countDocuments(),
-        Order.aggregate([{ $match: { status: { $nin: ['cancelled','refunded'] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
+        Order.aggregate([{ $match: { status: { $nin: ['cancelled', 'refunded'] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
         User.countDocuments(),
         Order.countDocuments({ status: 'pending' }),
         Order.countDocuments({ createdAt: { $gte: today } }),
@@ -140,13 +208,9 @@ module.exports = async (req, res) => {
         Order.aggregate([{ $match: { createdAt: { $gte: thisMonth }, status: { $nin: ['cancelled'] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
         Order.aggregate([{ $match: { createdAt: { $gte: lastMonth, $lte: lastMonthE }, status: { $nin: ['cancelled'] } } }, { $group: { _id: null, total: { $sum: '$pricing.total' } } }]),
         Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+        Order.aggregate(chartAgg),
         Order.aggregate([
-          { $match: { createdAt: { $gte: new Date(Date.now() - 30 * 86400000) }, status: { $nin: ['cancelled','refunded'] } } },
-          { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, revenue: { $sum: '$pricing.total' }, orders: { $sum: 1 } } },
-          { $sort: { _id: 1 } },
-        ]),
-        Order.aggregate([
-          { $match: { status: { $nin: ['cancelled','refunded'] } } },
+          { $match: { status: { $nin: ['cancelled', 'refunded'] } } },
           { $unwind: '$items' },
           { $group: { _id: '$items.name', totalQty: { $sum: '$items.qty' }, totalRev: { $sum: { $multiply: ['$items.price', '$items.qty'] } }, img: { $first: '$items.img' } } },
           { $sort: { totalQty: -1 } }, { $limit: 5 },
@@ -175,9 +239,10 @@ module.exports = async (req, res) => {
           totalProducts, lowStockProducts, pendingReviews, newsletterCount,
           pendingReturns, abandonedCount,
         },
+        chartRange: range,
         statusBreakdown: statusBreakdown.map(s => ({ status: s._id, count: s.count })),
-        revenueByDay: revenueByDayRaw.map(d => ({ date: d._id, revenue: d.revenue, orders: d.orders })),
-        topProducts:  topProductsRaw.map(p => ({ name: p._id, qty: p.totalQty, revenue: p.totalRev, img: p.img })),
+        revenueByDay:    revenueByDayRaw.map(d => ({ date: d._id, revenue: d.revenue, orders: d.orders })),
+        topProducts:     topProductsRaw.map(p => ({ name: p._id, qty: p.totalQty, revenue: p.totalRev, img: p.img })),
       });
     } catch (err) {
       console.error('Stats error:', err);
@@ -217,6 +282,7 @@ module.exports = async (req, res) => {
         newest:   { createdAt: -1 }, oldest:   { createdAt: 1 },
         price_hi: { price: -1 },    price_lo: { price: 1 },
         stock_lo: { stock: 1 },     sold:     { totalSold: -1 },
+        name_az:  { name: 1 },      name_za:  { name: -1 },
       };
 
       const [products, total] = await Promise.all([
@@ -239,6 +305,23 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, product });
   }
 
+  /* ── PRODUCTS EXPORT (NEW — UPGRADE-A2) ─────────────────── */
+  if (action === 'products-export' && req.method === 'GET') {
+    try {
+      const cat   = sanitize(req.query?.cat   || '', 50);
+      const query = cat ? { cat } : {};
+      // Up to 2000 for CSV export; client renders as CSV
+      const products = await Product.find(query)
+        .sort({ createdAt: -1 })
+        .limit(2000)
+        .select('productId name cat price orig stock badge sku isActive isFeatured isFlash totalSold createdAt')
+        .lean();
+      return res.json({ ok: true, products, total: products.length });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Export failed: ' + err.message });
+    }
+  }
+
   /* ── ADD PRODUCT ─────────────────────────────────────────── */
   if (action === 'product-add' && req.method === 'POST') {
     try {
@@ -248,7 +331,7 @@ module.exports = async (req, res) => {
       if (!b.price)        return res.status(400).json({ ok: false, error: 'Price দিন' });
       if (!b.img?.trim())  return res.status(400).json({ ok: false, error: 'Image URL দিন' });
 
-      const count = await Product.countDocuments();
+      const count     = await Product.countDocuments();
       const productId = b.productId?.trim() || `SL-${String(count + 1).padStart(4, '0')}`;
 
       const existing = await Product.findOne({ productId });
@@ -262,26 +345,26 @@ module.exports = async (req, res) => {
         orig:      b.orig ? parseFloat(b.orig) : undefined,
         img:       sanitize(b.img, 500),
         images:    Array.isArray(b.images) ? b.images.slice(0, 10).map(i => sanitize(i, 500)) : [],
-        badge:     ['hot','new','sale','sold','best','trending','exclusive'].includes(b.badge) ? b.badge : 'new',
+        badge:     ['hot', 'new', 'sale', 'sold', 'best', 'trending', 'exclusive'].includes(b.badge) ? b.badge : 'new',
         rating:    parseFloat(b.rating) || 5,
         reviews:   parseInt(b.reviews) || 0,
         stock:     parseInt(b.stock) ?? 100,
         viewers:   parseInt(b.viewers) || Math.floor(Math.random() * 20 + 5),
-        isFeatured:Boolean(b.isFeatured),
+        isFeatured: Boolean(b.isFeatured),
         isNew:     b.isNew !== false,
         isFlash:   Boolean(b.isFlash),
         isActive:  b.isActive !== false,
-        sizes:     Array.isArray(b.sizes) ? b.sizes : (b.sizes ? String(b.sizes).split(',').map(s => s.trim()) : []),
+        sizes:     Array.isArray(b.sizes)  ? b.sizes  : (b.sizes  ? String(b.sizes).split(',').map(s => s.trim())  : []),
         colors:    Array.isArray(b.colors) ? b.colors : (b.colors ? String(b.colors).split(',').map(s => s.trim()) : []),
-        material:  sanitize(b.material || '', 200),
-        warranty:  sanitize(b.warranty || '', 100),
-        sku:       sanitize(b.sku || '', 50),
+        material:  sanitize(b.material  || '', 200),
+        warranty:  sanitize(b.warranty  || '', 100),
+        sku:       sanitize(b.sku       || '', 50),
         tags:      Array.isArray(b.tags) ? b.tags : (b.tags ? String(b.tags).split(',').map(s => s.trim()) : []),
-        desc:      sanitize(b.desc || '', 3000),
-        videoUrl:  sanitize(b.videoUrl || '', 500),
+        desc:      sanitize(b.desc      || '', 3000),
+        videoUrl:  sanitize(b.videoUrl  || '', 500),
         weight:    b.weight ? parseFloat(b.weight) : undefined,
-        seoTitle:  sanitize(b.seoTitle || '', 200),
-        seoDesc:   sanitize(b.seoDesc || '', 500),
+        seoTitle:  sanitize(b.seoTitle  || '', 200),
+        seoDesc:   sanitize(b.seoDesc   || '', 500),
       });
 
       return res.status(201).json({ ok: true, product, message: '✅ Product সফলভাবে যোগ হয়েছে!' });
@@ -299,7 +382,7 @@ module.exports = async (req, res) => {
       if (!id) return res.status(400).json({ ok: false, error: 'Product ID দিন' });
 
       const updates = {};
-      const fields = ['name','cat','img','desc','material','warranty','sku','videoUrl','seoTitle','seoDesc','badge'];
+      const fields  = ['name', 'cat', 'img', 'desc', 'material', 'warranty', 'sku', 'videoUrl', 'seoTitle', 'seoDesc', 'badge'];
       fields.forEach(f => { if (b[f] !== undefined) updates[f] = sanitize(String(b[f]), f === 'desc' ? 3000 : 500); });
 
       if (b.price      !== undefined) updates.price      = parseFloat(b.price);
@@ -315,7 +398,7 @@ module.exports = async (req, res) => {
       if (b.weight     !== undefined) updates.weight     = parseFloat(b.weight);
 
       if (b.images !== undefined)
-        updates.images = Array.isArray(b.images) ? b.images.slice(0,10).map(i => sanitize(i,500)) : [];
+        updates.images = Array.isArray(b.images) ? b.images.slice(0, 10).map(i => sanitize(i, 500)) : [];
       if (b.sizes !== undefined)
         updates.sizes  = Array.isArray(b.sizes)  ? b.sizes  : String(b.sizes).split(',').map(s => s.trim());
       if (b.colors !== undefined)
@@ -344,18 +427,16 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, message: `"${product.name}" delete হয়েছে` });
   }
 
-  /* ── BULK PRODUCT OPERATIONS (FIXED: supports category + stockIncrease) ── */
+  /* ── BULK PRODUCT OPERATIONS ─────────────────────────────── */
   if (action === 'product-bulk' && req.method === 'POST') {
     const { ids, operation, category, stockIncrease } = req.body || {};
 
-    // Build filter: use ids[] if provided, else use category
     let filter = {};
     if (Array.isArray(ids) && ids.length) {
       filter = { productId: { $in: ids } };
     } else if (category) {
       filter = { cat: category, isActive: true };
     } else {
-      // No filter = all active products
       filter = { isActive: true };
     }
 
@@ -379,7 +460,6 @@ module.exports = async (req, res) => {
           return res.json({ ok: true, message: `${result.modifiedCount}টি product flash sale থেকে বাদ হয়েছে` });
         case 'activate':
           if (stockIncrease && stockIncrease > 0) {
-            // Stock increase operation
             result = await Product.updateMany(filter, { $inc: { stock: parseInt(stockIncrease) } });
             return res.json({ ok: true, message: `${result.modifiedCount}টি product-এ +${stockIncrease} stock যোগ হয়েছে` });
           }
@@ -402,6 +482,7 @@ module.exports = async (req, res) => {
 
   /* ═══════════════════════════════════════════════════════════
      ── ORDERS LIST ──────────────────────────────────────────
+     UPGRADE-A5: date range already wired; confirmed here.
   ═══════════════════════════════════════════════════════════ */
   if (action === 'orders' && req.method === 'GET') {
     try {
@@ -478,18 +559,18 @@ module.exports = async (req, res) => {
     const courier = sanitize(b.courier || '', 100);
     const trackId = sanitize(b.trackId || b.tracking || '', 100);
 
-    const validStatuses = ['pending','confirmed','processing','shipped','out_for_delivery','delivered','cancelled','refunded'];
+    const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'refunded'];
     if (!id || !validStatuses.includes(status)) {
       return res.status(400).json({ ok: false, error: 'Order ID এবং valid status দিন (pending/confirmed/processing/shipped/out_for_delivery/delivered/cancelled/refunded)' });
     }
 
     try {
-      // Check current status to prevent duplicate cancel
       const existingOrder = await Order.findOne({ orderId: id }).select('status').lean();
       if (!existingOrder) return res.status(404).json({ ok: false, error: 'Order পাওয়া যায়নি' });
       if (existingOrder.status === status && status === 'cancelled') {
         return res.json({ ok: true, message: `Order ইতিমধ্যে ${status} আছে`, orderId: id, alreadyInStatus: true });
       }
+
       const updateObj = {
         status,
         $push: {
@@ -529,11 +610,58 @@ module.exports = async (req, res) => {
     }
   }
 
+  /* ── BULK ORDER STATUS UPDATE (NEW — UPGRADE-A4) ────────── */
+  if (action === 'order-bulk-status' && req.method === 'POST') {
+    const b = req.body || {};
+    const orderIds = Array.isArray(b.orderIds) ? b.orderIds.map(id => String(id).toUpperCase()) : [];
+    const status   = sanitize(b.status || '', 50);
+    const note     = sanitize(b.note   || '', 300);
+
+    const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'refunded'];
+    if (!orderIds.length)           return res.status(400).json({ ok: false, error: 'কমপক্ষে একটি Order ID দিন' });
+    if (!validStatuses.includes(status)) return res.status(400).json({ ok: false, error: 'Valid status দিন' });
+    if (orderIds.length > 100)      return res.status(400).json({ ok: false, error: 'একসাথে সর্বোচ্চ ১০০টি order update করা যাবে' });
+
+    try {
+      const historyEntry = { status, note: note || `Bulk update → ${status}`, updatedBy: 'admin', updatedAt: new Date() };
+      const result = await Order.updateMany(
+        { orderId: { $in: orderIds } },
+        {
+          $set: { status },
+          $push: { statusHistory: historyEntry },
+        }
+      );
+
+      // Award loyalty points for delivered orders (non-blocking)
+      if (status === 'delivered') {
+        Order.find({ orderId: { $in: orderIds } }).then(orders => {
+          for (const o of orders) {
+            const earned = Math.floor((o.pricing?.total || 0) / 10);
+            if (earned > 0 && o.customer?.phone) {
+              User.findOneAndUpdate(
+                { phone: o.customer.phone },
+                { $inc: { totalOrders: 1, totalSpent: o.pricing.total, loyaltyPoints: earned } }
+              ).catch(() => {});
+            }
+          }
+        }).catch(() => {});
+      }
+
+      return res.json({
+        ok: true,
+        updated: result.modifiedCount,
+        message: `✅ ${result.modifiedCount}টি order-এর status → ${status} আপডেট হয়েছে`,
+      });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Bulk status update হয়নি: ' + err.message });
+    }
+  }
+
   /* ── PAYMENT VERIFY ──────────────────────────────────────── */
   if (action === 'payment-verify' && req.method === 'POST') {
     const { orderId, payStatus } = req.body || {};
     if (!orderId) return res.status(400).json({ ok: false, error: 'Order ID দিন' });
-    const st = ['verified','failed','pending'].includes(payStatus) ? payStatus : 'verified';
+    const st    = ['verified', 'failed', 'pending'].includes(payStatus) ? payStatus : 'verified';
     const order = await Order.findOneAndUpdate(
       { orderId: orderId.toUpperCase() },
       { 'payment.status': st },
@@ -548,11 +676,11 @@ module.exports = async (req, res) => {
   ═══════════════════════════════════════════════════════════ */
   if (action === 'returns' && req.method === 'GET') {
     try {
-      const page    = Math.max(1, parseInt(req.query?.page  || '1'));
-      const limit   = Math.min(50, parseInt(req.query?.limit || '20'));
-      const status  = sanitize(req.query?.status || '', 30);
-      const skip    = (page - 1) * limit;
-      const query   = status ? { status } : {};
+      const page   = Math.max(1, parseInt(req.query?.page  || '1'));
+      const limit  = Math.min(50, parseInt(req.query?.limit || '20'));
+      const status = sanitize(req.query?.status || '', 30);
+      const skip   = (page - 1) * limit;
+      const query  = status ? { status } : {};
 
       const [returns, total] = await Promise.all([
         ReturnRequest.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
@@ -579,12 +707,12 @@ module.exports = async (req, res) => {
       const { returnId, status, adminNote, refundAmount, refundMethod, refundRef } = b;
       if (!returnId || !status) return res.status(400).json({ ok: false, error: 'returnId এবং status দিন' });
 
-      const validStatuses = ['pending','approved','rejected','refunded','completed'];
+      const validStatuses = ['pending', 'approved', 'rejected', 'refunded', 'completed'];
       if (!validStatuses.includes(status)) return res.status(400).json({ ok: false, error: 'Invalid status' });
 
       const updates = {
         status,
-        adminNote: sanitize(adminNote || '', 500),
+        adminNote:   sanitize(adminNote || '', 500),
         processedAt: new Date(),
         processedBy: 'admin',
       };
@@ -595,7 +723,6 @@ module.exports = async (req, res) => {
       const ret = await ReturnRequest.findOneAndUpdate({ returnId }, updates, { new: true });
       if (!ret) return res.status(404).json({ ok: false, error: 'Return Request পাওয়া যায়নি' });
 
-      // If approved/refunded — update order status
       if (status === 'refunded' || status === 'completed') {
         await Order.findOneAndUpdate(
           { orderId: ret.orderId },
@@ -611,14 +738,21 @@ module.exports = async (req, res) => {
 
   /* ═══════════════════════════════════════════════════════════
      ── CUSTOMERS ────────────────────────────────────────────
+     UPGRADE-A10: sort param added; isBanned field fix applied.
   ═══════════════════════════════════════════════════════════ */
   if (action === 'customers' && req.method === 'GET') {
     try {
       const page   = Math.max(1, parseInt(req.query?.page  || '1'));
-      const limit  = Math.min(100, parseInt(req.query?.limit|| '20'));
+      const limit  = Math.min(100, parseInt(req.query?.limit || '20'));
       const search = sanitize(req.query?.search || '', 100);
+      const sort   = req.query?.sort || 'newest';
+      const filter = req.query?.filter || ''; // 'banned' | 'active' | ''
       const skip   = (page - 1) * limit;
-      const query  = {};
+
+      const query = {};
+      if (filter === 'banned') query.isBanned = true;
+      if (filter === 'active') { query.isActive = true; query.isBanned = { $ne: true }; }
+
       if (search) {
         query.$or = [
           { name:  { $regex: search, $options: 'i' } },
@@ -626,22 +760,84 @@ module.exports = async (req, res) => {
           { email: { $regex: search, $options: 'i' } },
         ];
       }
+
+      const sortMap = {
+        newest:      { createdAt: -1 },
+        oldest:      { createdAt: 1 },
+        orders_hi:   { totalOrders: -1 },
+        spent_hi:    { totalSpent: -1 },
+        points_hi:   { loyaltyPoints: -1 },
+        name_az:     { name: 1 },
+      };
+
       const [users, total] = await Promise.all([
-        User.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-password -otp -otpExpiry -__v'),
+        User.find(query)
+          .sort(sortMap[sort] || { createdAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .select('-password -otp -otpExpiry -__v'),
         User.countDocuments(query),
       ]);
+
       return res.json({ ok: true, users, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Customers লোড হয়নি' });
     }
   }
 
+  /* ── BAN / UNBAN CUSTOMER (FIXED: isBanned field) ─────────
+     Previously this toggled isActive which caused auth.js login
+     to fail incorrectly. Now uses the dedicated isBanned field.
+  ──────────────────────────────────────────────────────────── */
   if (action === 'customer-ban' && req.method === 'POST') {
-    const { userId, ban } = req.body || {};
+    const { userId, ban, reason } = req.body || {};
     if (!userId) return res.status(400).json({ ok: false, error: 'User ID দিন' });
-    const user = await User.findByIdAndUpdate(userId, { isActive: !ban }, { new: true });
+
+    const updates = {
+      isBanned: Boolean(ban),
+      banReason: ban ? sanitize(reason || 'Admin দ্বারা ban করা হয়েছে', 300) : '',
+      bannedAt:  ban ? new Date() : null,
+    };
+
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password');
     if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
-    return res.json({ ok: true, message: ban ? 'User ban হয়েছে' : 'User unban হয়েছে' });
+    return res.json({ ok: true, message: ban ? `"${user.name}" ban হয়েছে` : `"${user.name}" unban হয়েছে`, user });
+  }
+
+  /* ── MANUAL LOYALTY POINTS ADJUSTMENT (NEW) ──────────────── */
+  if (action === 'customer-adjust-points' && req.method === 'POST') {
+    const b = req.body || {};
+    const { userId, points, reason } = b;
+    if (!userId || points === undefined) return res.status(400).json({ ok: false, error: 'userId এবং points দিন' });
+
+    const pts = parseInt(points);
+    if (isNaN(pts)) return res.status(400).json({ ok: false, error: 'Points অবশ্যই সংখ্যা হতে হবে' });
+
+    try {
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { $inc: { loyaltyPoints: pts } },
+        { new: true }
+      ).select('name phone loyaltyPoints');
+      if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
+
+      // Log the manual adjustment
+      await LoyaltyTxn.create({
+        userId,
+        type:   pts > 0 ? 'admin_add' : 'admin_deduct',
+        points: Math.abs(pts),
+        note:   sanitize(reason || 'Admin manual adjustment', 300),
+        balance: user.loyaltyPoints,
+      }).catch(() => {});
+
+      return res.json({
+        ok: true,
+        user,
+        message: `"${user.name}"-এর loyalty points ${pts > 0 ? '+' : ''}${pts} adjustment হয়েছে। নতুন balance: ${user.loyaltyPoints}`,
+      });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Points adjust হয়নি: ' + err.message });
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -778,8 +974,8 @@ module.exports = async (req, res) => {
   if (action === 'bundle-edit' && req.method === 'POST') {
     const { id, ...updates } = req.body || {};
     if (!id) return res.status(400).json({ ok: false, error: 'Bundle ID দিন' });
-    const allowed = ['title','description','discountType','discountValue','isActive','img','productIds'];
-    const clean = {};
+    const allowed = ['title', 'description', 'discountType', 'discountValue', 'isActive', 'img', 'productIds'];
+    const clean   = {};
     allowed.forEach(f => { if (updates[f] !== undefined) clean[f] = updates[f]; });
     const bundle = await Bundle.findByIdAndUpdate(id, clean, { new: true });
     if (!bundle) return res.status(404).json({ ok: false, error: 'Bundle পাওয়া যায়নি' });
@@ -806,7 +1002,7 @@ module.exports = async (req, res) => {
     const code = sanitize(b.code || '', 30).toUpperCase();
     if (!code) return res.status(400).json({ ok: false, error: 'Coupon code দিন' });
     const data = {
-      code, type: b.type || 'percent',
+      code, type:        b.type || 'percent',
       discount:    parseFloat(b.discount || 10),
       minOrder:    parseFloat(b.minOrder  || 0),
       maxUses:     parseInt(b.maxUses     || 0),
@@ -830,7 +1026,7 @@ module.exports = async (req, res) => {
 
   if (action === 'coupon-delete' && req.method === 'POST') {
     const code = sanitize(req.body?.code || '', 30).toUpperCase();
-    const c = await Coupon.findOneAndDelete({ code });
+    const c    = await Coupon.findOneAndDelete({ code });
     if (!c) return res.status(404).json({ ok: false, error: 'Coupon পাওয়া যায়নি' });
     return res.json({ ok: true, message: `Coupon "${code}" delete হয়েছে` });
   }
@@ -899,9 +1095,9 @@ module.exports = async (req, res) => {
     try {
       const b = req.body || {};
       if (!b.name || !b.phone) return res.status(400).json({ ok: false, error: 'Name এবং phone দিন' });
-      const count = await Supplier.countDocuments();
+      const count      = await Supplier.countDocuments();
       const supplierId = b.supplierId?.trim() || `SUP-${String(count + 1).padStart(4, '0')}`;
-      const existing = await Supplier.findOne({ supplierId });
+      const existing   = await Supplier.findOne({ supplierId });
       if (existing) return res.status(409).json({ ok: false, error: 'Supplier ID already exists' });
 
       const supplier = await Supplier.create({
@@ -913,7 +1109,7 @@ module.exports = async (req, res) => {
         address:      sanitize(b.address || '', 500),
         country:      sanitize(b.country || 'Bangladesh', 100),
         website:      sanitize(b.website || '', 300),
-        type:         ['local','china','india','other'].includes(b.type) ? b.type : 'local',
+        type:         ['local', 'china', 'india', 'other'].includes(b.type) ? b.type : 'local',
         paymentTerms: sanitize(b.paymentTerms || '', 200),
         deliveryTime: sanitize(b.deliveryTime || '3-7 days', 100),
         minOrder:     parseFloat(b.minOrder) || 0,
@@ -921,11 +1117,11 @@ module.exports = async (req, res) => {
         notes:        sanitize(b.notes || '', 1000),
         categories:   Array.isArray(b.categories) ? b.categories : [],
         bankInfo: {
-          bankName:    sanitize(b.bankInfo?.bankName || '', 100),
-          accountNo:   sanitize(b.bankInfo?.accountNo || '', 50),
+          bankName:    sanitize(b.bankInfo?.bankName    || '', 100),
+          accountNo:   sanitize(b.bankInfo?.accountNo   || '', 50),
           accountName: sanitize(b.bankInfo?.accountName || '', 100),
-          bkash:       sanitize(b.bankInfo?.bkash || '', 20),
-          nagad:       sanitize(b.bankInfo?.nagad || '', 20),
+          bkash:       sanitize(b.bankInfo?.bkash       || '', 20),
+          nagad:       sanitize(b.bankInfo?.nagad       || '', 20),
         },
       });
       return res.status(201).json({ ok: true, supplier, message: 'Supplier যোগ হয়েছে' });
@@ -935,10 +1131,10 @@ module.exports = async (req, res) => {
   }
 
   if (action === 'supplier-edit' && req.method === 'POST') {
-    const b = req.body || {};
+    const b  = req.body || {};
     const id = b.supplierId || b._id;
     if (!id) return res.status(400).json({ ok: false, error: 'Supplier ID দিন' });
-    const allowed = ['name','company','phone','email','address','country','website','type','paymentTerms','deliveryTime','minOrder','isActive','notes','categories','bankInfo'];
+    const allowed = ['name', 'company', 'phone', 'email', 'address', 'country', 'website', 'type', 'paymentTerms', 'deliveryTime', 'minOrder', 'isActive', 'notes', 'categories', 'bankInfo'];
     const updates = {};
     allowed.forEach(f => { if (b[f] !== undefined) updates[f] = b[f]; });
     const supplier = await Supplier.findOneAndUpdate(
@@ -969,7 +1165,7 @@ module.exports = async (req, res) => {
       const skip      = (page - 1) * limit;
       const query     = {};
       if (productId) query.productId = productId;
-      if (type)      query.type = type;
+      if (type)      query.type      = type;
 
       const [logs, total] = await Promise.all([
         InventoryLog.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
@@ -989,29 +1185,29 @@ module.exports = async (req, res) => {
       const product = await Product.findOne({ productId: b.productId });
       if (!product) return res.status(404).json({ ok: false, error: 'Product পাওয়া যায়নি' });
 
-      const qty = parseInt(b.qty);
-      const stockBefore = product.stock || 0;
-      let stockAfter = stockBefore;
+      const qty          = parseInt(b.qty);
+      const stockBefore  = product.stock || 0;
+      let   stockAfter   = stockBefore;
 
       if (b.type === 'in' || b.type === 'return') stockAfter = stockBefore + qty;
       else if (b.type === 'out' || b.type === 'damage') stockAfter = Math.max(0, stockBefore - qty);
-      else if (b.type === 'adjust') stockAfter = qty; // direct set
+      else if (b.type === 'adjust') stockAfter = qty;
 
       await Product.updateOne({ productId: b.productId }, { stock: stockAfter });
 
       const log = await InventoryLog.create({
-        productId: b.productId,
+        productId:   b.productId,
         productName: product.name,
-        type: b.type,
+        type:        b.type,
         qty,
         stockBefore,
         stockAfter,
-        ref: sanitize(b.ref || '', 100),
-        refType: b.refType || 'manual',
-        note: sanitize(b.note || '', 300),
-        updatedBy: 'admin',
-        supplierId: b.supplierId || '',
-        costPrice: parseFloat(b.costPrice) || 0,
+        ref:         sanitize(b.ref    || '', 100),
+        refType:     b.refType || 'manual',
+        note:        sanitize(b.note   || '', 300),
+        updatedBy:   'admin',
+        supplierId:  b.supplierId || '',
+        costPrice:   parseFloat(b.costPrice) || 0,
       });
 
       return res.status(201).json({ ok: true, log, stockAfter, message: `Stock ${b.type}: ${qty} units` });
@@ -1035,17 +1231,14 @@ module.exports = async (req, res) => {
         Referral.countDocuments(),
         Referral.aggregate([
           { $group: {
-            _id: '$status',
-            count: { $sum: 1 },
-            totalPoints: { $sum: '$pointsAwarded' },
+            _id: '$status', count: { $sum: 1 }, totalPoints: { $sum: '$pointsAwarded' },
           }},
         ]),
       ]);
 
-      // Revenue from referral orders
       const refOrderIds = referrals.filter(r => r.orderId).map(r => r.orderId);
-      const revAgg = refOrderIds.length ? await Order.aggregate([
-        { $match: { orderId: { $in: refOrderIds }, status: { $nin: ['cancelled','refunded'] } } },
+      const revAgg      = refOrderIds.length ? await Order.aggregate([
+        { $match: { orderId: { $in: refOrderIds }, status: { $nin: ['cancelled', 'refunded'] } } },
         { $group: { _id: null, total: { $sum: '$pricing.total' } } },
       ]) : [{ total: 0 }];
 
@@ -1059,13 +1252,67 @@ module.exports = async (req, res) => {
           total: totalCount,
           completed: completedCount,
           pending: stats.find(s => s._id === 'pending')?.count || 0,
-          conversionRate: totalCount ? Math.round((completedCount / totalCount) * 100) : 0,
-          revenueFromRefs: revAgg[0]?.total || 0,
+          conversionRate:   totalCount ? Math.round((completedCount / totalCount) * 100) : 0,
+          revenueFromRefs:  revAgg[0]?.total || 0,
           totalPointsIssued: stats.reduce((s, x) => s + (x.totalPoints || 0), 0),
         },
       });
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Referrals লোড হয়নি: ' + err.message });
+    }
+  }
+
+  /* ── REFERRAL / LOYALTY SETTINGS (NEW — UPGRADE-A6) ──────
+     Previously the Save button was a toast-only stub.
+     Now persists to DB via SiteSettings.
+  ──────────────────────────────────────────────────────────── */
+  if (action === 'referral-settings' && req.method === 'GET') {
+    try {
+      const keys = [
+        'referral_enabled', 'referral_reward_referrer', 'referral_reward_referee',
+        'referral_min_order', 'referral_expiry_days',
+        'loyalty_enabled', 'loyalty_points_per_taka', 'loyalty_redeem_rate',
+        'loyalty_min_redeem', 'loyalty_max_redeem_pct', 'loyalty_expiry_days',
+        'loyalty_signup_bonus', 'loyalty_review_bonus', 'loyalty_birthday_bonus',
+      ];
+      const rawSettings = await getSettings('referral');
+      const loyalSettings = await getSettings('loyalty');
+      return res.json({ ok: true, settings: { ...rawSettings, ...loyalSettings } });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Referral settings লোড হয়নি' });
+    }
+  }
+
+  if (action === 'referral-settings' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+
+      // Referral settings
+      const referralEntries = [
+        ['referral_enabled',          Boolean(b.referral_enabled),          { group: 'referral', label: 'Referral Program চালু', type: 'boolean' }],
+        ['referral_reward_referrer',  parseFloat(b.referral_reward_referrer)  || 100, { group: 'referral', label: 'Referrer পয়েন্ট', type: 'number' }],
+        ['referral_reward_referee',   parseFloat(b.referral_reward_referee)   || 50,  { group: 'referral', label: 'Referee পয়েন্ট', type: 'number' }],
+        ['referral_min_order',        parseFloat(b.referral_min_order)        || 500, { group: 'referral', label: 'Minimum Order (৳)', type: 'number' }],
+        ['referral_expiry_days',      parseInt(b.referral_expiry_days)        || 30,  { group: 'referral', label: 'Expiry (দিন)', type: 'number' }],
+      ];
+
+      // Loyalty settings
+      const loyaltyEntries = [
+        ['loyalty_enabled',           Boolean(b.loyalty_enabled),            { group: 'loyalty', label: 'Loyalty Program চালু', type: 'boolean' }],
+        ['loyalty_points_per_taka',   parseFloat(b.loyalty_points_per_taka)  || 1,   { group: 'loyalty', label: 'প্রতি ১০ টাকায় পয়েন্ট', type: 'number' }],
+        ['loyalty_redeem_rate',       parseFloat(b.loyalty_redeem_rate)      || 1,   { group: 'loyalty', label: 'Redeem: ১ পয়েন্ট = ১ টাকা', type: 'number' }],
+        ['loyalty_min_redeem',        parseInt(b.loyalty_min_redeem)         || 200, { group: 'loyalty', label: 'Minimum Redeem পয়েন্ট', type: 'number' }],
+        ['loyalty_max_redeem_pct',    parseInt(b.loyalty_max_redeem_pct)     || 20,  { group: 'loyalty', label: 'Max Redeem % per order', type: 'number' }],
+        ['loyalty_expiry_days',       parseInt(b.loyalty_expiry_days)        || 365, { group: 'loyalty', label: 'Points Expiry (দিন)', type: 'number' }],
+        ['loyalty_signup_bonus',      parseInt(b.loyalty_signup_bonus)       || 50,  { group: 'loyalty', label: 'Signup Bonus', type: 'number' }],
+        ['loyalty_review_bonus',      parseInt(b.loyalty_review_bonus)       || 20,  { group: 'loyalty', label: 'Review Bonus', type: 'number' }],
+        ['loyalty_birthday_bonus',    parseInt(b.loyalty_birthday_bonus)     || 100, { group: 'loyalty', label: 'Birthday Bonus', type: 'number' }],
+      ];
+
+      await batchSetSettings([...referralEntries, ...loyaltyEntries]);
+      return res.json({ ok: true, message: '✅ Referral ও Loyalty settings সংরক্ষিত হয়েছে!' });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Settings save হয়নি: ' + err.message });
     }
   }
 
@@ -1087,12 +1334,11 @@ module.exports = async (req, res) => {
         channel:  b.channel || 'app',
       });
 
-      // If SMS broadcast, send to active users (limit 100 at a time)
       let smsSent = 0;
       if (b.channel === 'sms' || b.channel === 'all') {
         const query = { isActive: true, 'notificationPrefs.sms': true };
         if (b.segment === 'loyal') query.loyaltyPoints = { $gte: 1000 };
-        if (b.segment === 'gold') query.loyaltyPoints = { $gte: 5000 };
+        if (b.segment === 'gold')  query.loyaltyPoints = { $gte: 5000 };
         const users = await User.find(query).select('phone').limit(100);
         for (const u of users) {
           try { await sendSMS(u.phone, `${b.title}: ${b.message} — Shoplixo`); smsSent++; } catch {}
@@ -1107,10 +1353,13 @@ module.exports = async (req, res) => {
 
   /* ═══════════════════════════════════════════════════════════
      ── SITE SETTINGS ────────────────────────────────────────
+     UPGRADE-A1: Now supports bulk object POST in addition to
+     the existing single key/value POST, matching the
+     saveSiteSettings() payload from admin.html.
   ═══════════════════════════════════════════════════════════ */
   if (action === 'settings' && req.method === 'GET') {
     try {
-      const group = req.query?.group || '';
+      const group    = req.query?.group || '';
       const settings = await getSettings(group || undefined);
       return res.json({ ok: true, settings });
     } catch (err) {
@@ -1121,12 +1370,93 @@ module.exports = async (req, res) => {
   if (action === 'settings' && req.method === 'POST') {
     try {
       const b = req.body || {};
+
+      /* ── Bulk site settings object (from admin.html Site Settings card) ── */
+      const BULK_SITE_KEYS = [
+        'siteName', 'currency', 'shippingCost', 'freeShippingMin',
+        'bkashNumber', 'nagadNumber', 'rocketNumber', 'upayNumber', 'whatsappNumber',
+        'facebookUrl', 'instagramUrl', 'youtubeUrl', 'twitterUrl',
+        'maintenanceMode', 'siteTagline', 'supportEmail', 'cloudinaryCloudName',
+      ];
+      const isBulk = BULK_SITE_KEYS.some(k => b[k] !== undefined);
+
+      if (isBulk) {
+        const entries = [];
+        const metaFor = (k) => {
+          if (['shippingCost', 'freeShippingMin'].includes(k)) return { group: 'commerce', type: 'number' };
+          if (['maintenanceMode'].includes(k))                 return { group: 'general',  type: 'boolean' };
+          if (['bkashNumber','nagadNumber','rocketNumber','upayNumber','whatsappNumber'].includes(k))
+            return { group: 'payment', type: 'string' };
+          return { group: 'general', type: 'string' };
+        };
+
+        for (const key of BULK_SITE_KEYS) {
+          if (b[key] !== undefined) {
+            let value = b[key];
+            if (metaFor(key).type === 'number')  value = parseFloat(value)  || 0;
+            if (metaFor(key).type === 'boolean') value = Boolean(value);
+            if (metaFor(key).type === 'string')  value = sanitize(String(value), 500);
+            entries.push([key, value, { ...metaFor(key), label: key }]);
+          }
+        }
+
+        await batchSetSettings(entries);
+        return res.json({ ok: true, message: `✅ ${entries.length}টি setting সংরক্ষিত হয়েছে!` });
+      }
+
+      /* ── Single key/value (original API, backward-compatible) ── */
       const { key, value, group, label, type } = b;
       if (!key) return res.status(400).json({ ok: false, error: 'key দিন' });
       const setting = await setSetting(key, value, { group: group || 'general', label: label || key, type: type || 'string' });
       return res.json({ ok: true, setting, message: 'Setting saved!' });
+
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Setting save হয়নি' });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── CHANGE ADMIN PASSWORD (NEW — BUG-5 + UPGRADE-A7)
+     Verifies current password, hashes new one, persists to DB.
+     Falls back to env ADMIN_PASSWORD for first-time comparison.
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'change-password' && req.method === 'POST') {
+    const { currentPassword, newPassword, confirmPassword } = req.body || {};
+
+    // Basic field validation
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ ok: false, error: 'বর্তমান ও নতুন password দিন' });
+    if (String(newPassword).length < 8)
+      return res.status(400).json({ ok: false, error: 'নতুন password কমপক্ষে ৮ অক্ষর হতে হবে' });
+    if (confirmPassword !== undefined && String(newPassword) !== String(confirmPassword))
+      return res.status(400).json({ ok: false, error: 'নতুন password দুটি মিলছে না' });
+
+    try {
+      // Retrieve stored hash from DB (or fall back to env plain-text for bootstrap)
+      const storedHash = await getSetting('adminPasswordHash').catch(() => null);
+
+      let isCurrentValid = false;
+      if (storedHash?.value) {
+        // Compare against bcrypt hash in DB
+        isCurrentValid = await bcrypt.compare(String(currentPassword), storedHash.value);
+      } else {
+        // Bootstrap: compare against plain-text env variable
+        isCurrentValid = String(currentPassword) === (process.env.ADMIN_PASSWORD || '');
+      }
+
+      if (!isCurrentValid)
+        return res.status(401).json({ ok: false, error: 'বর্তমান password ভুল!' });
+
+      // Hash new password and persist
+      const newHash = await bcrypt.hash(String(newPassword), 12);
+      await setSetting('adminPasswordHash', newHash, {
+        group: 'security', label: 'Admin Password Hash', type: 'secret',
+      });
+
+      return res.json({ ok: true, message: '✅ Admin password পরিবর্তন হয়েছে!' });
+    } catch (err) {
+      console.error('Change password error:', err);
+      return res.status(500).json({ ok: false, error: 'Password পরিবর্তন হয়নি' });
     }
   }
 
@@ -1135,10 +1465,11 @@ module.exports = async (req, res) => {
     ok: false, error: 'Invalid action',
     available: [
       'stats',
-      'products', 'product', 'product-add', 'product-edit', 'product-delete', 'product-bulk',
-      'orders', 'order', 'status', 'payment-verify',
+      'products', 'product', 'products-export',
+      'product-add', 'product-edit', 'product-delete', 'product-bulk',
+      'orders', 'order', 'status', 'order-bulk-status', 'payment-verify',
       'returns', 'return-update',
-      'customers', 'customer-ban',
+      'customers', 'customer-ban', 'customer-adjust-points',
       'reviews', 'review-approve', 'review-delete', 'review-reply',
       'flash-sales', 'flash-sale-add', 'flash-sale-del',
       'bundles', 'bundle-add', 'bundle-edit', 'bundle-delete',
@@ -1147,9 +1478,10 @@ module.exports = async (req, res) => {
       'abandoned',
       'suppliers', 'supplier-add', 'supplier-edit', 'supplier-delete',
       'inventory', 'inventory-add',
-      'referrals',
+      'referrals', 'referral-settings',
       'notify-broadcast',
       'settings',
+      'change-password',
     ],
   });
 };

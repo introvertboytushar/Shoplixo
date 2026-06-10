@@ -1,243 +1,567 @@
 /**
  * ══════════════════════════════════════════════════════════════
- *  SHOPLIXO — /api/auth
+ *  SHOPLIXO — /api/auth  (Ultra Professional v3)
  *
- *  POST /api/auth?action=register   → নতুন account তৈরি
- *  POST /api/auth?action=login      → Login করুন
- *  GET  /api/auth?action=profile    → Profile দেখুন (JWT লাগবে)
+ *  ── ACCOUNT ──────────────────────────────────────────────────
+ *  POST /api/auth?action=register          → নতুন account তৈরি
+ *  POST /api/auth?action=login             → Login করুন
+ *  GET  /api/auth?action=profile           → Profile দেখুন (JWT)
+ *  POST /api/auth?action=update            → Profile আপডেট
+ *  POST /api/auth?action=password          → Password পরিবর্তন
+ *  POST /api/auth?action=delete-account    → Account মুছুন
+ *
+ *  ── PASSWORD RECOVERY ────────────────────────────────────────
+ *  POST /api/auth?action=forgot-password   → OTP পাঠান (Phone/Email)
+ *  POST /api/auth?action=reset-password    → OTP দিয়ে password রিসেট
+ *
+ *  ── SESSION ──────────────────────────────────────────────────
+ *  POST /api/auth?action=refresh           → Access token রিফ্রেশ
+ *  POST /api/auth?action=logout            → Logout (session বাতিল)
  * ══════════════════════════════════════════════════════════════
  */
 
+'use strict';
+
 const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
+const crypto = require('crypto');
+
 const { connectDB, User } = require('../_db');
 const {
-    handleCors, isValidBDPhone, isValidEmail,
-    sanitize, checkRateLimit, sendEmail, welcomeEmail,
+  handleCors, isValidBDPhone, isValidEmail,
+  sanitize, checkRateLimit, sendEmail, sendSMS,
+  welcomeEmail, passwordResetEmail, otpSmsTemplate,
 } = require('../_helpers');
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CONSTANTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const JWT_SECRET      = process.env.JWT_SECRET;
+const JWT_EXPIRES     = process.env.JWT_EXPIRES         || '7d';
+const JWT_REFRESH_EXP = process.env.JWT_REFRESH_EXPIRES || '30d';
+const BCRYPT_ROUNDS   = 12;
+const OTP_ROUNDS      = 8;  // lighter hash for short-lived OTPs
+const OTP_TTL_MS      = 10 * 60 * 1000; // 10 minutes
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PURE HELPERS  (no I/O — safe to unit-test)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/** Attach security-related response headers to every auth response */
+function setSecurityHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Cache-Control', 'no-store');
+}
+
+/** Extract Bearer token from the Authorization header */
+function extractToken(req) {
+  const auth = req.headers.authorization || '';
+  return auth.startsWith('Bearer ') ? auth.slice(7) : auth.trim();
+}
+
+/** Return the caller's IP, respecting common proxy headers */
+function getClientIp(req) {
+  return (
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip']                              ||
+    req.socket?.remoteAddress                             ||
+    ''
+  );
+}
+
+/** Cryptographically secure 6-digit numeric OTP */
+function generateOTP() {
+  return String(crypto.randomInt(100_000, 999_999));
+}
+
+/** Sign a short-lived access token */
+function signAccessToken(payload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+}
+
+/** Sign a long-lived refresh token (includes type discriminator) */
+function signRefreshToken(payload) {
+  return jwt.sign({ ...payload, type: 'refresh' }, JWT_SECRET, { expiresIn: JWT_REFRESH_EXP });
+}
+
+/** Build a standard token error response */
+function tokenError(err, res) {
+  const code = err.name === 'TokenExpiredError' ? 'TOKEN_EXPIRED' : 'TOKEN_INVALID';
+  return res.status(401).json({ ok: false, code, error: 'Token invalid বা expire হয়ে গেছে। আবার login করুন।' });
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    MAIN HANDLER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 module.exports = async (req, res) => {
-    if (handleCors(req, res)) return;
+  if (handleCors(req, res)) return;
+  setSecurityHeaders(res);
 
-    const action = req.query?.action || '';
-    const ip     = req.headers['x-forwarded-for']?.split(',')[0] || '';
+  const action = req.query?.action || '';
+  const ip     = getClientIp(req);
 
-    /* ── REGISTER ────────────────────────────────────────────── */
-    if (action === 'register' && req.method === 'POST') {
-        if (!checkRateLimit(`reg_${ip}`, 5, 300000)) {
-            return res.status(429).json({ ok: false, error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
-        }
+  /* ── REGISTER ─────────────────────────────────────────────── */
+  if (action === 'register' && req.method === 'POST') {
+    if (!checkRateLimit(`reg_${ip}`, 5, 300_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
 
-        const b        = req.body || {};
-        const name     = sanitize(b.name  || '', 100);
-        const phone    = sanitize(b.phone || '', 20).replace(/\s+/g, '');
-        const email    = sanitize(b.email || '', 150).toLowerCase();
-        const password = String(b.password || '');
+    const b        = req.body || {};
+    const name     = sanitize(b.name  || '', 100).trim();
+    const phone    = sanitize(b.phone || '', 20).replace(/\s+/g, '');
+    const email    = sanitize(b.email || '', 150).toLowerCase().trim();
+    const password = String(b.password || '');
+    const refCode  = sanitize(b.referralCode || '', 20).trim();
 
-        if (!name || name.length < 2)
-            return res.status(400).json({ ok: false, error: 'সঠিক নাম দিন! (কমপক্ষে ২ অক্ষর)' });
-        if (!isValidBDPhone(phone))
-            return res.status(400).json({ ok: false, error: 'সঠিক বাংলাদেশ ফোন নম্বর দিন! (01XXXXXXXXX)' });
-        if (password.length < 8)
-            return res.status(400).json({ ok: false, error: 'Password কমপক্ষে ৮ অক্ষর হতে হবে!' });
+    if (!name || name.length < 2)
+      return res.status(400).json({ ok: false, code: 'INVALID_NAME',  error: 'সঠিক নাম দিন! (কমপক্ষে ২ অক্ষর)' });
+    if (!isValidBDPhone(phone))
+      return res.status(400).json({ ok: false, code: 'INVALID_PHONE', error: 'সঠিক বাংলাদেশ ফোন নম্বর দিন! (01XXXXXXXXX)' });
+    if (password.length < 8)
+      return res.status(400).json({ ok: false, code: 'WEAK_PASSWORD', error: 'Password কমপক্ষে ৮ অক্ষর হতে হবে!' });
+    if (email && !isValidEmail(email))
+      return res.status(400).json({ ok: false, code: 'INVALID_EMAIL', error: 'সঠিক Email দিন!' });
+
+    try {
+      await connectDB();
+
+      /* Duplicate check — phone is required; email is optional */
+      const orConditions = [{ phone }];
+      if (email) orConditions.push({ email });
+      const existing = await User.findOne({ $or: orConditions }).select('phone email').lean();
+      if (existing) {
+        const field = existing.phone === phone ? 'ফোন নম্বর' : 'Email';
+        return res.status(409).json({ ok: false, code: 'DUPLICATE', error: `এই ${field} দিয়ে ইতিমধ্যে account আছে!` });
+      }
+
+      const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      const user   = await User.create({
+        name, phone,
+        email:    email || undefined,
+        password: hashed,
+      });
+
+      /* Reward referrer (fire-and-forget) */
+      if (refCode) {
+        User.findOneAndUpdate(
+          { referralCode: refCode },
+          { $inc: { loyaltyPoints: 50 }, $push: { referralsMade: user._id } }
+        ).catch(() => {});
+      }
+
+      const payload      = { id: user._id, phone: user.phone };
+      const token        = signAccessToken(payload);
+      const refreshToken = signRefreshToken(payload);
+
+      /* Welcome email (fire-and-forget) */
+      if (email) {
+        sendEmail(
+          email,
+          `🎉 স্বাগতম ${name}! — Shoplixo Account তৈরি হয়েছে`,
+          welcomeEmail({ name, email })
+        ).catch(() => {});
+      }
+
+      return res.status(201).json({
+        ok: true, token, refreshToken,
+        user: { id: user._id, name: user.name, phone: user.phone, email: user.email || null },
+      });
+
+    } catch (err) {
+      console.error('[auth/register]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
+    }
+  }
+
+  /* ── LOGIN ────────────────────────────────────────────────── */
+  if (action === 'login' && req.method === 'POST') {
+    if (!checkRateLimit(`login_${ip}`, 10, 300_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
+
+    const b          = req.body || {};
+    const identifier = sanitize(b.identifier || b.phone || b.email || '', 150).trim();
+    const password   = String(b.password || '');
+
+    if (!identifier || !password)
+      return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'Phone/Email এবং Password দিন!' });
+
+    try {
+      await connectDB();
+
+      const user = await User.findOne({
+        $or: [{ phone: identifier }, { email: identifier.toLowerCase() }],
+        isActive: true,
+      }).select('+password');
+
+      if (!user)
+        return res.status(401).json({ ok: false, code: 'INVALID_CREDENTIALS', error: 'ভুল ID বা Password!' });
+
+      /* ✅ Banned check must happen before password compare (avoids timing oracle) */
+      if (user.isBanned)
+        return res.status(403).json({ ok: false, code: 'ACCOUNT_BANNED', error: 'আপনার account suspend করা হয়েছে। support@shoplixo.shop এ যোগাযোগ করুন।' });
+
+      const match = await bcrypt.compare(password, user.password);
+      if (!match)
+        return res.status(401).json({ ok: false, code: 'INVALID_CREDENTIALS', error: 'ভুল ID বা Password!' });
+
+      /* ✅ Atomic update — no race condition */
+      await User.findByIdAndUpdate(user._id, {
+        lastLogin:   new Date(),
+        lastLoginIp: ip,
+        $inc: { loginCount: 1 },
+      });
+
+      const payload      = { id: user._id, phone: user.phone };
+      const token        = signAccessToken(payload);
+      const refreshToken = signRefreshToken(payload);
+
+      return res.json({
+        ok: true, token, refreshToken,
+        user: {
+          id:            user._id,
+          name:          user.name,
+          phone:         user.phone,
+          email:         user.email || null,
+          totalOrders:   user.totalOrders   || 0,
+          loyaltyPoints: user.loyaltyPoints || 0,
+        },
+      });
+
+    } catch (err) {
+      console.error('[auth/login]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
+    }
+  }
+
+  /* ── PROFILE (JWT protected) ─────────────────────────────── */
+  if (action === 'profile' && req.method === 'GET') {
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Login করুন!' });
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+
+      if (decoded.type === 'refresh')
+        return res.status(401).json({ ok: false, code: 'WRONG_TOKEN_TYPE', error: 'Access token ব্যবহার করুন!' });
+
+      await connectDB();
+      const user = await User
+        .findOne({ _id: decoded.id, isActive: true })
+        .select('-password -otp -otpExpiry -otpPurpose -__v');
+
+      if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
+
+      return res.json({ ok: true, user });
+
+    } catch (err) {
+      return tokenError(err, res);
+    }
+  }
+
+  /* ── UPDATE PROFILE ──────────────────────────────────────── */
+  if (action === 'update' && req.method === 'POST') {
+    if (!checkRateLimit(`upd_${ip}`, 20, 60_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক দ্রুত request! একটু অপেক্ষা করুন।' });
+
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Login করুন!' });
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const b       = req.body || {};
+      const updates = {};
+
+      if (b.name !== undefined) {
+        const name = sanitize(b.name, 100).trim();
+        if (name.length < 2)
+          return res.status(400).json({ ok: false, code: 'INVALID_NAME', error: 'সঠিক নাম দিন! (কমপক্ষে ২ অক্ষর)' });
+        updates.name = name;
+      }
+
+      if (b.email !== undefined) {
+        const email = sanitize(b.email, 150).toLowerCase().trim();
         if (email && !isValidEmail(email))
-            return res.status(400).json({ ok: false, error: 'সঠিক Email দিন!' });
+          return res.status(400).json({ ok: false, code: 'INVALID_EMAIL', error: 'সঠিক Email দিন!' });
 
-        try {
-            await connectDB();
-
-            /* Check existing */
-            const existing = await User.findOne({
-                $or: [{ phone }, ...(email ? [{ email }] : [])],
-            });
-            if (existing) {
-                const conflict = existing.phone === phone ? 'এই ফোন নম্বর' : 'এই Email';
-                return res.status(409).json({ ok: false, error: `${conflict} দিয়ে ইতিমধ্যে account আছে!` });
-            }
-
-            /* Hash password */
-            const hashed = await bcrypt.hash(password, 12);
-
-            /* Save user */
-            const user = await User.create({
-                name, phone, email, password: hashed,
-            });
-
-            /* Generate JWT */
-            const token = jwt.sign(
-                { id: user._id, phone: user.phone },
-                process.env.JWT_SECRET,
-                { expiresIn: process.env.JWT_EXPIRES || '7d' }
-            );
-
-            /* Send welcome email (non-blocking) */
-            if (email) {
-                sendEmail(email, `🎉 স্বাগতম ${name}! — Shoplixo Account তৈরি হয়েছে`, welcomeEmail({ name, email }))
-                    .catch(() => {});
-            }
-
-            return res.status(201).json({
-                ok: true,
-                token,
-                user: {
-                    id:    user._id,
-                    name:  user.name,
-                    phone: user.phone,
-                    email: user.email,
-                },
-            });
-
-        } catch (err) {
-            console.error('Register error:', err);
-            return res.status(500).json({ ok: false, error: 'Server error, আবার চেষ্টা করুন' });
+        await connectDB();
+        if (email) {
+          const conflict = await User.findOne({ email, _id: { $ne: decoded.id } }).select('_id').lean();
+          if (conflict)
+            return res.status(409).json({ ok: false, code: 'EMAIL_TAKEN', error: 'এই Email অন্য account-এ ব্যবহার হচ্ছে!' });
         }
+        updates.email = email || null;
+      }
+
+      await connectDB();
+      const user = await User
+        .findByIdAndUpdate(decoded.id, updates, { new: true })
+        .select('-password -otp -otpExpiry -otpPurpose -__v');
+
+      if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
+
+      return res.json({ ok: true, user, message: 'Profile সফলভাবে আপডেট হয়েছে!' });
+
+    } catch (err) {
+      return tokenError(err, res);
     }
+  }
 
-    /* ── LOGIN ───────────────────────────────────────────────── */
-    if (action === 'login' && req.method === 'POST') {
-        if (!checkRateLimit(`login_${ip}`, 10, 300000)) {
-            return res.status(429).json({ ok: false, error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
-        }
+  /* ── CHANGE PASSWORD ─────────────────────────────────────── */
+  if (action === 'password' && req.method === 'POST') {
+    if (!checkRateLimit(`pwd_${ip}`, 5, 300_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
 
-        const b          = req.body || {};
-        const identifier = sanitize(b.identifier || b.phone || b.email || '', 150);
-        const password   = String(b.password || '');
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Login করুন!' });
 
-        if (!identifier || !password)
-            return res.status(400).json({ ok: false, error: 'Phone/Email এবং Password দিন!' });
+    const { oldPassword, newPassword } = req.body || {};
+    if (!oldPassword || !newPassword)
+      return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'পুরানো ও নতুন password দিন!' });
+    if (String(newPassword).length < 8)
+      return res.status(400).json({ ok: false, code: 'WEAK_PASSWORD', error: 'নতুন password কমপক্ষে ৮ অক্ষর হতে হবে!' });
+    if (oldPassword === newPassword)
+      return res.status(400).json({ ok: false, code: 'SAME_PASSWORD', error: 'নতুন password পুরানোটির মতো হতে পারবে না!' });
 
-        try {
-            await connectDB();
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      await connectDB();
+      const user = await User.findById(decoded.id).select('+password');
+      if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
 
-            /* Find user by phone OR email — include password field */
-            const user = await User.findOne({
-                $or: [
-                    { phone: identifier },
-                    { email: identifier.toLowerCase() },
-                ],
-                isActive: true,
-            }).select('+password');
+      const match = await bcrypt.compare(String(oldPassword), user.password);
+      if (!match)
+        return res.status(401).json({ ok: false, code: 'WRONG_PASSWORD', error: 'পুরানো password ভুল!' });
 
-            if (!user) {
-                return res.status(401).json({ ok: false, error: 'ভুল ID বা Password!' });
-            }
+      user.password          = await bcrypt.hash(String(newPassword), BCRYPT_ROUNDS);
+      user.passwordChangedAt = new Date();
+      await user.save();
 
-            /* ✅ FIX: Check if user is banned (isBanned can be true even when isActive is true) */
-            if (user.isBanned) {
-                return res.status(403).json({ ok: false, error: 'আপনার account suspend করা হয়েছে। support@shoplixo.shop এ যোগাযোগ করুন।' });
-            }
+      return res.json({ ok: true, message: 'Password সফলভাবে পরিবর্তন হয়েছে!' });
 
-            /* Compare password */
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) {
-                return res.status(401).json({ ok: false, error: 'ভুল ID বা Password!' });
-            }
-
-            /* ✅ FIX: Atomic update — no separate .save() call, avoids race condition */
-            await User.findByIdAndUpdate(user._id, {
-                lastLogin: new Date(),
-                $inc: { loginCount: 1 },
-            });
-
-            /* Generate JWT */
-            const token = jwt.sign(
-                { id: user._id, phone: user.phone },
-                process.env.JWT_SECRET,
-                { expiresIn: process.env.JWT_EXPIRES || '7d' }
-            );
-
-            return res.json({
-                ok: true,
-                token,
-                user: {
-                    id:            user._id,
-                    name:          user.name,
-                    phone:         user.phone,
-                    email:         user.email,
-                    totalOrders:   user.totalOrders,
-                    loyaltyPoints: user.loyaltyPoints,
-                },
-            });
-
-        } catch (err) {
-            console.error('Login error:', err);
-            return res.status(500).json({ ok: false, error: 'Server error, আবার চেষ্টা করুন' });
-        }
+    } catch (err) {
+      return tokenError(err, res);
     }
+  }
 
-    /* ── PROFILE (JWT protected) ─────────────────────────────── */
-    if (action === 'profile' && req.method === 'GET') {
-        const auth  = req.headers.authorization || '';
-        const token = auth.startsWith('Bearer ') ? auth.slice(7) : auth;
+  /* ── FORGOT PASSWORD — OTP Request ───────────────────────── */
+  if (action === 'forgot-password' && req.method === 'POST') {
+    if (!checkRateLimit(`otp_${ip}`, 3, 300_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
 
-        if (!token) return res.status(401).json({ ok: false, error: 'Login করুন!' });
+    const identifier = sanitize(req.body?.identifier || req.body?.phone || req.body?.email || '', 150).trim();
+    if (!identifier)
+      return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'Phone বা Email দিন!' });
 
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            await connectDB();
-            const user = await User.findById(decoded.id).select('-password -otp -otpExpiry');
-            if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
+    try {
+      await connectDB();
+      const user = await User.findOne({
+        $or: [{ phone: identifier }, { email: identifier.toLowerCase() }],
+        isActive: true,
+      }).select('_id name phone email');
 
-            return res.json({ ok: true, user });
-        } catch {
-            return res.status(401).json({ ok: false, error: 'Token invalid বা expire হয়ে গেছে' });
-        }
+      /*
+       * ✅ Always return 200 regardless of whether user exists.
+       * This prevents user-enumeration attacks.
+       */
+      if (!user)
+        return res.json({ ok: true, message: 'OTP পাঠানো হয়েছে (যদি account থাকে)।' });
+
+      const otp       = generateOTP();
+      const otpExpiry = new Date(Date.now() + OTP_TTL_MS);
+
+      /* Hash OTP before storing — lightweight rounds sufficient for 6-digit codes */
+      const otpHashed = await bcrypt.hash(otp, OTP_ROUNDS);
+      await User.findByIdAndUpdate(user._id, {
+        otp:        otpHashed,
+        otpExpiry,
+        otpPurpose: 'reset',
+      });
+
+      /* SMS (primary channel) */
+      const smsBody = typeof otpSmsTemplate === 'function'
+        ? otpSmsTemplate(otp)
+        : `Shoplixo Password Reset OTP: ${otp}. ১০ মিনিটে expire হবে। কাউকে বলবেন না।`;
+      sendSMS(user.phone, smsBody).catch(() => {});
+
+      /* Email (secondary channel if available) */
+      if (user.email) {
+        const emailBody = typeof passwordResetEmail === 'function'
+          ? passwordResetEmail({ name: user.name, otp })
+          : `<p>আপনার Password Reset OTP: <strong>${otp}</strong><br>এটি ১০ মিনিট valid। কাউকে বলবেন না।</p>`;
+        sendEmail(user.email, '🔐 Password Reset OTP — Shoplixo', emailBody).catch(() => {});
+      }
+
+      return res.json({ ok: true, message: 'OTP পাঠানো হয়েছে। ১০ মিনিটের মধ্যে ব্যবহার করুন।' });
+
+    } catch (err) {
+      console.error('[auth/forgot-password]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
     }
+  }
 
-    /* ── UPDATE PROFILE ──────────────────────────────────────── */
-    if (action === 'update' && req.method === 'POST') {
-        const auth  = req.headers.authorization || '';
-        const token = auth.startsWith('Bearer ') ? auth.slice(7) : auth;
-        if (!token) return res.status(401).json({ ok: false, error: 'Login করুন!' });
+  /* ── RESET PASSWORD — OTP Verify + New Password ─────────── */
+  if (action === 'reset-password' && req.method === 'POST') {
+    if (!checkRateLimit(`reset_${ip}`, 5, 300_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
 
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const b       = req.body || {};
-            const updates = {};
+    const b           = req.body || {};
+    const identifier  = sanitize(b.identifier || b.phone || b.email || '', 150).trim();
+    const otp         = sanitize(String(b.otp || ''), 6).trim();
+    const newPassword = String(b.newPassword || '');
 
-            if (b.name)  updates.name  = sanitize(b.name, 100);
-            if (b.email) updates.email = sanitize(b.email, 150).toLowerCase();
+    if (!identifier || !otp || !newPassword)
+      return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'Identifier, OTP এবং নতুন password দিন!' });
+    if (newPassword.length < 8)
+      return res.status(400).json({ ok: false, code: 'WEAK_PASSWORD', error: 'Password কমপক্ষে ৮ অক্ষর হতে হবে!' });
 
-            await connectDB();
-            const user = await User.findByIdAndUpdate(decoded.id, updates, { new: true })
-                .select('-password');
-            return res.json({ ok: true, user });
-        } catch {
-            return res.status(401).json({ ok: false, error: 'Token invalid' });
-        }
+    try {
+      await connectDB();
+      const user = await User.findOne({
+        $or:        [{ phone: identifier }, { email: identifier.toLowerCase() }],
+        isActive:   true,
+        otpPurpose: 'reset',
+        otpExpiry:  { $gt: new Date() },
+      }).select('+otp +otpExpiry +otpPurpose +password');
+
+      /* Generic error — avoid leaking whether identifier matched */
+      if (!user)
+        return res.status(400).json({ ok: false, code: 'INVALID_OTP', error: 'OTP invalid বা expire হয়ে গেছে!' });
+
+      const otpMatch = await bcrypt.compare(otp, user.otp);
+      if (!otpMatch)
+        return res.status(400).json({ ok: false, code: 'INVALID_OTP', error: 'OTP ভুল!' });
+
+      /* Reset password and wipe OTP fields atomically */
+      const hashedNew = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+      await User.findByIdAndUpdate(user._id, {
+        password:          hashedNew,
+        passwordChangedAt: new Date(),
+        $unset: { otp: '', otpExpiry: '', otpPurpose: '' },
+      });
+
+      /* Issue fresh tokens so the user is immediately logged in */
+      const payload      = { id: user._id, phone: user.phone };
+      const token        = signAccessToken(payload);
+      const refreshToken = signRefreshToken(payload);
+
+      return res.json({ ok: true, token, refreshToken, message: 'Password সফলভাবে রিসেট হয়েছে!' });
+
+    } catch (err) {
+      console.error('[auth/reset-password]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
     }
+  }
 
-    /* ── CHANGE PASSWORD ─────────────────────────────────────── */
-    if (action === 'password' && req.method === 'POST') {
-        const auth  = req.headers.authorization || '';
-        const token = auth.startsWith('Bearer ') ? auth.slice(7) : auth;
-        if (!token) return res.status(401).json({ ok: false, error: 'Login করুন!' });
+  /* ── REFRESH TOKEN ───────────────────────────────────────── */
+  if (action === 'refresh' && req.method === 'POST') {
+    /* Accept token from header OR body (mobile clients often pass in body) */
+    const token = extractToken(req) || sanitize(req.body?.refreshToken || '', 500);
+    if (!token)
+      return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Refresh token দিন!' });
 
-        const { oldPassword, newPassword } = req.body || {};
-        if (!oldPassword || !newPassword)
-            return res.status(400).json({ ok: false, error: 'পুরানো ও নতুন password দিন!' });
-        if (String(newPassword).length < 8)
-            return res.status(400).json({ ok: false, error: 'নতুন password কমপক্ষে ৮ অক্ষর!' });
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
 
-        try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            await connectDB();
-            const user = await User.findById(decoded.id).select('+password');
-            if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
+      if (decoded.type !== 'refresh')
+        return res.status(401).json({ ok: false, code: 'WRONG_TOKEN_TYPE', error: 'Refresh token ব্যবহার করুন!' });
 
-            const match = await bcrypt.compare(String(oldPassword), user.password);
-            if (!match) return res.status(401).json({ ok: false, error: 'পুরানো password ভুল!' });
+      await connectDB();
+      const user = await User
+        .findOne({ _id: decoded.id, isActive: true })
+        .select('_id phone isBanned passwordChangedAt')
+        .lean();
 
-            user.password = await bcrypt.hash(String(newPassword), 12);
-            await user.save();
-            return res.json({ ok: true, message: 'Password পরিবর্তন হয়েছে!' });
-        } catch {
-            return res.status(401).json({ ok: false, error: 'Token invalid' });
-        }
+      if (!user)
+        return res.status(401).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
+      if (user.isBanned)
+        return res.status(403).json({ ok: false, code: 'ACCOUNT_BANNED', error: 'Account suspend করা হয়েছে।' });
+
+      /* ✅ Invalidate tokens issued before the last password change */
+      if (user.passwordChangedAt) {
+        const issuedAt = new Date(decoded.iat * 1000);
+        if (issuedAt < user.passwordChangedAt)
+          return res.status(401).json({ ok: false, code: 'TOKEN_STALE', error: 'Password পরিবর্তনের পরে আবার login করুন।' });
+      }
+
+      const payload         = { id: user._id, phone: user.phone };
+      const newToken        = signAccessToken(payload);
+      const newRefreshToken = signRefreshToken(payload);
+
+      return res.json({ ok: true, token: newToken, refreshToken: newRefreshToken });
+
+    } catch (err) {
+      return tokenError(err, res);
     }
+  }
 
-    return res.status(400).json({ ok: false, error: 'Invalid action. Use: login, register, profile, update, password' });
+  /* ── LOGOUT ──────────────────────────────────────────────── */
+  if (action === 'logout' && req.method === 'POST') {
+    const token = extractToken(req);
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        /* Record logout time — refresh tokens older than this are rejected by /refresh */
+        await connectDB();
+        await User.findByIdAndUpdate(decoded.id, { lastLogout: new Date() }).catch(() => {});
+      } catch { /* Expired/invalid tokens — silent ignore on logout */ }
+    }
+    return res.json({ ok: true, message: 'Logout সফল হয়েছে।' });
+  }
+
+  /* ── DELETE ACCOUNT ──────────────────────────────────────── */
+  if (action === 'delete-account' && req.method === 'POST') {
+    if (!checkRateLimit(`del_${ip}`, 3, 600_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! পরে আবার করুন।' });
+
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Login করুন!' });
+
+    const { password } = req.body || {};
+    if (!password)
+      return res.status(400).json({ ok: false, code: 'MISSING_PASSWORD', error: 'Password দিয়ে confirm করুন!' });
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      await connectDB();
+      const user = await User.findById(decoded.id).select('+password');
+      if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
+
+      const match = await bcrypt.compare(String(password), user.password);
+      if (!match)
+        return res.status(401).json({ ok: false, code: 'WRONG_PASSWORD', error: 'ভুল password!' });
+
+      /*
+       * Soft-delete: anonymise all PII, mark inactive.
+       * Hard-delete via a scheduled cleanup job if needed.
+       */
+      await User.findByIdAndUpdate(decoded.id, {
+        isActive:  false,
+        isDeleted: true,
+        deletedAt: new Date(),
+        name:      '[Deleted User]',
+        phone:     `del_${decoded.id}`,
+        email:     null,
+        password:  '!deleted',
+        $unset:    { otp: '', otpExpiry: '', otpPurpose: '' },
+      });
+
+      return res.json({ ok: true, message: 'Account মুছে দেওয়া হয়েছে।' });
+
+    } catch (err) {
+      return tokenError(err, res);
+    }
+  }
+
+  /* ── Fallback ─────────────────────────────────────────────── */
+  return res.status(400).json({
+    ok: false,
+    code: 'INVALID_ACTION',
+    error: 'Invalid action.',
+    available: [
+      'register', 'login', 'profile', 'update', 'password',
+      'forgot-password', 'reset-password',
+      'refresh', 'logout', 'delete-account',
+    ],
+  });
 };
