@@ -26,12 +26,12 @@
 
 'use strict';
 
-const { connectDB, Order, Coupon, Product, User, AbandonedCart } = require('../_db');
+const { connectDB, Order, Coupon, Product, User, AbandonedCart } = require('./_db');
 const {
   handleCors, generateOrderId, checkRateLimit, verifyToken,
   isValidBDPhone, sanitize, sendEmail, sendSMS,
   orderConfirmationEmail, orderConfirmSMS,
-} = require('../_helpers');
+} = require('./_helpers');
 
 /* ── BD Districts (authoritative list) ──────────────────────────────────── */
 const BD_DISTRICTS = new Set([
