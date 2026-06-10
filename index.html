@@ -3501,7 +3501,7 @@ table { table-layout: fixed; width: 100% !important; }
     <div style="background:linear-gradient(135deg,var(--dark2),#2D1B6E);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:10">
       <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px"><i class="fa-solid fa-gauge" style="color:var(--gold)"></i> Shoplixo Admin Panel</div>
       <div style="display:flex;align-items:center;gap:8px">
-
+        <a href="/admin.html" target="_blank" style="background:rgba(255,184,0,.2);color:var(--gold);border:1px solid rgba(255,184,0,.3);padding:6px 12px;border-radius:var(--r-full);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;text-decoration:none"><i class="fa-solid fa-external-link"></i> Full Dashboard</a>
         <button onclick="closeWpDashboard()" style="color:rgba(255,255,255,.6);font-size:18px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
       </div>
     </div>
@@ -3575,7 +3575,7 @@ table { table-layout: fixed; width: 100% !important; }
         <!-- Product List -->
         <div id="adm-products-list" style="overflow-y:auto"></div>
         <div style="margin-top:12px;padding:12px;background:var(--green-light);border-radius:var(--r-lg);font-size:12px;color:var(--text2);border:1px solid rgba(0,197,138,.15)">
-          <i class="fa-solid fa-circle-check" style="color:var(--green)"></i> <strong>Products এখানে</strong> সরাসরি add/edit/delete করুন। পরিবর্তন তাৎক্ষণিক কার্যকর হবে।
+          <i class="fa-solid fa-circle-check" style="color:var(--green)"></i> <strong>Full Admin Panel:</strong> সব product add/edit/delete সহ সম্পূর্ণ control এর জন্য <a href="/admin" target="_blank" style="color:var(--brand);font-weight:700">Admin Dashboard</a> ব্যবহার করুন। সেখানে product যোগ করলে এখানে তাৎক্ষণিক দেখা যাবে।
         </div>
       </div>
 
@@ -3606,9 +3606,7 @@ table { table-layout: fixed; width: 100% !important; }
               <button onclick="savePaymentNumbers()" style="background:var(--blue);color:#fff;padding:10px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit">Save Numbers</button>
             </div>
           </div>
-          <div style="background:var(--bg2);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border);font-size:12px;color:var(--text2)">
-            <i class="fa-solid fa-shield-halved" style="color:var(--green)"></i> <strong>শুধু আপনার জন্য</strong> — এই panel শুধু site admin দেখতে পাবেন।
-          </div>
+          <a href="/admin.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--dark2),#2D1B6E);color:#fff;padding:13px;border-radius:var(--r-full);font-size:14px;font-weight:700;text-decoration:none"><i class="fa-solid fa-gauge"></i> Full Admin Dashboard খুলুন</a>
         </div>
       </div>
 
@@ -4227,9 +4225,9 @@ function renderProductDetailPage(p) {
         ${['ভালো মান','সঠিক সাইজ','দ্রুত ডেলিভারি','মূল্য সঠিক'].map(tag=>`<span style="background:var(--green-light);color:var(--green);border:1px solid rgba(0,197,138,.2);padding:5px 12px;border-radius:var(--r-full);font-size:12px;font-weight:600">✓ ${tag}</span>`).join('')}
       </div>
       <div id="pdp-reviews-list">
-        ${buildRealReviews(p)}
+        ${generateFakeReviews(p)}
       </div>
-      <button onclick="openReviewForm('${p.id}')" style="width:100%;margin-top:14px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:13px;border-radius:var(--r-full);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;border:none;box-shadow:0 4px 12px rgba(228,30,38,.2)">
+      <button onclick="currentUser?showToast('Review feature শীঘ্রই আসছে!','star'):openAuth('login')" style="width:100%;margin-top:14px;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:12px;border-radius:var(--r-full);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
         <i class="fa-regular fa-star"></i> রিভিউ লিখুন
       </button>
     </div>
