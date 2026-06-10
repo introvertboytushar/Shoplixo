@@ -26,12 +26,12 @@ const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const { connectDB, User } = require('../_db');
+const { connectDB, User } = require('./_db');
 const {
   handleCors, isValidBDPhone, isValidEmail,
   sanitize, checkRateLimit, sendEmail, sendSMS,
   welcomeEmail, passwordResetEmail, otpSmsTemplate,
-} = require('../_helpers');
+} = require('./_helpers');
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CONSTANTS

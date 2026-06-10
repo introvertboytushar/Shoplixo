@@ -16,8 +16,8 @@
  *  GET  /api/supplier?action=low-stock → Low stock products
  * ══════════════════════════════════════════════════════════════
  */
-const { connectDB, Supplier, Product, InventoryLog, Order } = require('../_db');
-const { handleCors, isAdmin, sanitize, generateSupplierId, checkRateLimit } = require('../_helpers');
+const { connectDB, Supplier, Product, InventoryLog, Order } = require('./_db');
+const { handleCors, isAdmin, sanitize, generateSupplierId, checkRateLimit } = require('./_helpers');
 
 module.exports = async (req, res) => {
   if (handleCors(req, res)) return;

@@ -43,11 +43,11 @@
 const {
   connectDB, Coupon, Newsletter, User, LoyaltyTxn, Referral,
   Bundle, Product, FlashSale,
-} = require('../_db');
+} = require('./_db');
 const {
   handleCors, isAdmin, verifyToken, sanitize, checkRateLimit,
   isValidEmail, sendEmail,
-} = require('../_helpers');
+} = require('./_helpers');
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    LOYALTY CONFIG

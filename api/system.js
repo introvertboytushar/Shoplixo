@@ -35,11 +35,11 @@
 const {
   connectDB, Order, User, Product, SiteStats, Newsletter,
   ReturnRequest, InventoryLog, Notification, LoyaltyTxn,
-} = require('../_db');
+} = require('./_db');
 const {
   handleCors, isAdmin, verifyToken, sanitize, checkRateLimit,
   generateReturnId, sendEmail, sendSMS, returnApprovedEmail, smsTemplates,
-} = require('../_helpers');
+} = require('./_helpers');
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    STATS CACHE (30 second TTL)

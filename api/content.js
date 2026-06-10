@@ -44,11 +44,11 @@
 
 'use strict';
 
-const { connectDB, Product, Comment, Order, Category, User } = require('../_db');
+const { connectDB, Product, Comment, Order, Category, User } = require('./_db');
 const {
   handleCors, isAdmin, verifyToken, sanitize,
   checkRateLimit, slugify,
-} = require('../_helpers');
+} = require('./_helpers');
 
 /* ── In-memory popular searches (cross-request accumulator) ─────────────── */
 /* NOTE: Resets on serverless cold starts. DB persistence added below.       */
@@ -103,7 +103,7 @@ async function persistSearchTerm(term) {
     const key = term.toLowerCase().trim();
     popularSearches.set(key, (popularSearches.get(key) || 0) + 1);
     /* If your _db.js exposes a SearchTerm model, uncomment:
-    const { SearchTerm } = require('../_db');
+    const { SearchTerm } = require('./_db');
     await SearchTerm.findOneAndUpdate(
       { term: key },
       { $inc: { count: 1 }, $set: { updatedAt: new Date() } },

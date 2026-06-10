@@ -141,6 +141,7 @@ const DEFAULT_SETTINGS = [
 /* ── Keys safe for unauthenticated frontend access ────────── */
 const PUBLIC_KEYS = [
   'site_name','site_tagline','site_logo','site_favicon','site_email','site_phone',
+  'site_maintenance',                                                           // ← FIX: maintenanceMode was undefined in public response
   'currency','announcement_bar','announcement_on','popup_image','popup_enabled','popup_delay',
   'hero_banner_1','hero_banner_2','hero_mobile_banner',
   'meta_title','meta_description','meta_keywords','og_image',

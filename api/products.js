@@ -252,6 +252,37 @@ module.exports = async (req, res) => {
         });
       }
 
+      /* ─── Product by Slug ─── */
+      if (action === 'by-slug') {
+        const slug = sanitize(req.query.slug || '', 200);
+        if (!slug) return res.status(400).json({ ok: false, error: 'slug required' });
+
+        // Slug এর last segment = productId
+        const parts = slug.split('-');
+        const possibleId = parts.slice(-1)[0].toUpperCase();
+
+        // Try productId match first
+        let product = await Product.findOne({
+          $or: [
+            { productId: { $regex: new RegExp(possibleId, 'i') } },
+            { slug: slug },
+          ],
+          isActive: true,
+        }).lean();
+
+        // Fallback: name-based search
+        if (!product) {
+          const nameQuery = slug.replace(/-[^-]*$/, '').replace(/-/g, ' ');
+          product = await Product.findOne({
+            name: { $regex: new RegExp(nameQuery, 'i') },
+            isActive: true,
+          }).lean();
+        }
+
+        if (!product) return res.status(404).json({ ok: false, error: 'Product not found' });
+        return res.json({ ok: true, product });
+      }
+
       /* ─── Single product by productId ─── */
       if (req.query.id && !action) {
         const pid     = sanitize(req.query.id, 50);
