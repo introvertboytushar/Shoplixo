@@ -4,7 +4,7 @@
   "description": "Bangladesh's #1 Dropshipping Store — Shoplixo Vercel Backend",
   "private": true,
   "engines": {
-    "node": ">=18.x"
+    "node": ">=20.x"
   },
   "scripts": {
     "dev": "vercel dev",
@@ -14,7 +14,7 @@
     "test": "node --test api/**/*.test.js"
   },
   "dependencies": {
-    "mongoose": "^8.2.0",
+    "mongoose": "^8.9.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.13",
