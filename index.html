@@ -616,8 +616,11 @@ section{padding:52px 0}
 .pc-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
 .pc-price{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--brand)}
 .pc-orig{font-size:12px;color:var(--text3);text-decoration:line-through}
-.btn-add-cart{width:100%;background:var(--dark2);color:#fff;padding:10px;border-radius:var(--r-sm);font-size:13px;font-weight:700;transition:var(--t);display:flex;align-items:center;justify-content:center;gap:7px}
-.btn-add-cart:hover{background:var(--brand)}
+.btn-add-cart{width:100%;background:linear-gradient(135deg,var(--brand) 0%,var(--brand2) 100%);color:#fff;padding:11px 10px;border-radius:var(--r-full);font-size:13px;font-weight:800;transition:var(--t);display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 14px rgba(228,30,38,.28);border:none;letter-spacing:.3px;position:relative;overflow:hidden}
+.btn-add-cart::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 60%);transition:opacity var(--t)}
+.btn-add-cart:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(228,30,38,.38)}
+.btn-add-cart:hover::before{opacity:0}
+.btn-add-cart:active{transform:translateY(0);box-shadow:0 2px 8px rgba(228,30,38,.28)}
 
 /* ===== FLASH SALE ===== */
 #flash-sale{background:var(--dark2);padding:52px 0}
@@ -884,8 +887,10 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 .pay-info-box{background:linear-gradient(135deg,rgba(228,30,38,.05),rgba(228,30,38,.02));border:1.5px solid rgba(228,30,38,.2);border-radius:var(--r-lg);padding:18px 20px;display:none}
 .pay-info-box.show{display:block}
 .pib-title{font-size:12px;color:var(--text2);text-align:center;margin-bottom:8px;font-weight:600;letter-spacing:.3px}
-.pib-number{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--brand);text-align:center;letter-spacing:3px;margin:8px 0;padding:10px 16px;background:rgba(228,30,38,.08);border-radius:var(--r-sm);border:1px dashed rgba(228,30,38,.3);cursor:pointer;transition:var(--t)}
-.pib-number:hover{background:rgba(228,30,38,.14);letter-spacing:4px}
+.pib-number{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--brand);text-align:center;letter-spacing:4px;margin:10px 0;padding:12px 16px;background:linear-gradient(135deg,rgba(228,30,38,.1),rgba(228,30,38,.06));border-radius:var(--r);border:1.5px dashed rgba(228,30,38,.4);cursor:pointer;transition:var(--t);position:relative;user-select:all;display:flex;align-items:center;justify-content:center;gap:10px}
+.pib-number::after{content:'📋';font-size:16px;opacity:.5}
+.pib-number:hover{background:linear-gradient(135deg,rgba(228,30,38,.18),rgba(228,30,38,.1));letter-spacing:5px;border-color:var(--brand)}
+.pib-number:active{transform:scale(.98)}
 .pib-note{font-size:12px;color:var(--text3);text-align:center;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px}
 /* Coupon */
 .coupon-row{display:flex;gap:10px;align-items:flex-end}
@@ -1962,8 +1967,11 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .sfb-result-count{font-size:12px;color:var(--text3);flex-shrink:0}
 
 /* ── INLINE PRODUCT DETAIL PAGE ── */
-#product-detail-page{display:none;position:fixed;inset:0;z-index:4500;background:#0D0D1A;overflow-y:auto;animation:slideInRight .35s ease}
-#product-detail-page.open{display:block}
+#product-detail-page{display:none;position:fixed;inset:0;z-index:4500;background:#0D0D1A;overflow:hidden;animation:slideInRight .35s ease;flex-direction:column}
+#product-detail-page.open{display:flex}
+#pdp-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* When PDP open, hide global sticky bar on main page */
+#product-detail-page.open ~ #sticky-buy{display:none!important}
 @keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
 .pdp-header{position:sticky;top:0;z-index:10;background:rgba(13,13,26,.95);border-bottom:1px solid rgba(255,255,255,.08);padding:12px 20px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .pdp-back{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:var(--t);font-size:16px}
@@ -2055,7 +2063,7 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .pdp-rbar-track{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .pdp-rbar-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .8s ease}
 .pdp-related{padding:20px}
-.pdp-sticky-actions{display:none;position:fixed;bottom:60px;left:0;right:0;background:rgba(255,255,255,.97);padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom,10px));box-shadow:0 -8px 32px rgba(0,0,0,.2);z-index:100;gap:8px;border-top:1px solid rgba(0,0,0,.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.pdp-sticky-actions{display:none;position:relative;width:100%;background:rgba(13,13,26,.97);padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom,10px));box-shadow:0 -4px 24px rgba(0,0,0,.5);flex-shrink:0;gap:10px;border-top:1.5px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:10}
 @media(max-width:768px){
   .pdp-sticky-actions{display:flex}
   .pdp-cta-row{display:none}
@@ -2065,8 +2073,13 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
   .pdp-main-img-wrap{max-height:min(70vw,400px);aspect-ratio:unset;height:min(70vw,400px)}
   .pdp-size-btn,.pdp-color-btn{min-height:44px}
 }
-.pdp-sticky-btn-cart{flex:0 0 auto;background:var(--dark2);color:#fff;padding:14px 18px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
-.pdp-sticky-btn-buy{flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:14px;border-radius:var(--r-full);font-size:15px;font-weight:800;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 15px rgba(228,30,38,.3);-webkit-tap-highlight-color:transparent}
+.pdp-sticky-btn-cart{flex:0 0 auto;background:rgba(255,255,255,.12);color:#fff;padding:14px 20px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:1.5px solid rgba(255,255,255,.2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;-webkit-tap-highlight-color:transparent;transition:var(--t)}
+.pdp-sticky-btn-cart:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35)}
+.pdp-sticky-btn-cart:active{transform:scale(.97)}
+.pdp-sticky-btn-buy{flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:14px;border-radius:var(--r-full);font-size:15px;font-weight:800;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 18px rgba(228,30,38,.4);-webkit-tap-highlight-color:transparent;transition:var(--t);position:relative;overflow:hidden}
+.pdp-sticky-btn-buy::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.2),transparent 60%)}
+.pdp-sticky-btn-buy:hover{box-shadow:0 6px 24px rgba(228,30,38,.55)}
+.pdp-sticky-btn-buy:active{transform:scale(.98)}
 
 /* ===== ULTRA PRO PDP FOOTER ===== */
 .pdp-pro-footer{margin-top:10px;background:linear-gradient(180deg,#0D0D1A 0%,#12122A 60%,#0A0A18 100%);overflow:hidden;padding-bottom:130px;position:relative}
@@ -2158,6 +2171,7 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 @media(max-width:400px){
   .pdpf-trust-grid{grid-template-columns:1fr!important}
 }
+/* ── PDP body padding to account for flex sticky bar ── */
 @media(max-width:768px){
   .pdpf-steps{gap:0}
   .pdpf-step-icon{width:38px;height:38px;font-size:14px}
@@ -2165,7 +2179,7 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
   .pdpf-pay-method{padding:7px 11px;font-size:11px}
   .pdpf-why-buy,.pdpf-delivery-visual,.pdpf-payment-section,.pdpf-support-section{padding:20px 16px 0}
   .pdpf-brand-strip{padding:18px 16px}
-  .pdp-pro-footer{padding-bottom:150px}
+  .pdp-pro-footer{padding-bottom:20px}
 }
 
 /* ── PRODUCT CARD ENHANCEMENTS ── */
@@ -2500,7 +2514,7 @@ table { table-layout: fixed; width: 100% !important; }
 [data-theme="dark"] .related-card{background:var(--card-bg)!important;border-color:var(--border)!important}
 [data-theme="dark"] .pdp-sec-btn{background:var(--bg2)!important;border-color:var(--border2)!important;color:var(--text2)!important}
 [data-theme="dark"] .pdp-qty-ctrl{background:var(--bg3)!important;border-color:var(--border2)!important}
-[data-theme="dark"] .pdp-sticky-actions{background:rgba(26,26,46,.97)!important;border-top-color:var(--border)!important}
+[data-theme="dark"] .pdp-sticky-actions{background:rgba(13,13,26,.98)!important;border-top-color:rgba(255,255,255,.08)!important}
 [data-theme="dark"] .pdp-breadcrumb{background:rgba(255,255,255,.02)!important;border-bottom-color:var(--border)!important}
 [data-theme="dark"] .pdp-specs-table td:first-child{background:var(--bg3)!important}
 [data-theme="dark"] .pdp-specs-table td:last-child{background:var(--card-bg)!important}
@@ -4339,13 +4353,15 @@ async function loadPublicSettings(){
     const data=await res.json();
     if(data.ok && data.settings){
       const s=data.settings;
+      // Validate: only accept a real BD phone number (not placeholder like 01XXXXXXXXX)
+      const isRealPhone = n => n && /^01[3-9]\d{8}$/.test(String(n).replace(/\s|-/g,''));
       if(s.shippingCost!==undefined) CFG.shippingCost=s.shippingCost;
       if(s.freeShippingMin!==undefined) CFG.freeShippingMin=s.freeShippingMin;
-      if(s.bkashNumber) CFG.bkash=s.bkashNumber;
-      if(s.nagadNumber) CFG.nagad=s.nagadNumber;
-      if(s.rocketNumber) CFG.rocket=s.rocketNumber;
-      if(s.upayNumber) CFG.upay=s.upayNumber;
-      if(s.whatsappNumber) CFG.whatsapp=s.whatsappNumber;
+      if(isRealPhone(s.bkashNumber)) CFG.bkash=s.bkashNumber;
+      if(isRealPhone(s.nagadNumber)) CFG.nagad=s.nagadNumber;
+      if(isRealPhone(s.rocketNumber)) CFG.rocket=s.rocketNumber;
+      if(isRealPhone(s.upayNumber)) CFG.upay=s.upayNumber;
+      if(isRealPhone(s.whatsappNumber)) CFG.whatsapp=s.whatsappNumber;
       if(window.SHOPLIXA_CONFIG) Object.assign(window.SHOPLIXA_CONFIG, CFG);
       // Update payment display if checkout is open
       const payBox=$('pay-info-box');
@@ -4910,12 +4926,7 @@ function renderProductDetailPage(p) {
     </div>
 
   </div>
-
-  <!-- Sticky bottom CTA (mobile) -->
-  <div class="pdp-sticky-actions">
-    <button class="pdp-sticky-btn-cart" onclick="pdpAddToCart()"><i class="fa-solid fa-cart-plus"></i> Cart</button>
-    <button class="pdp-sticky-btn-buy" onclick="pdpBuyNow()"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
-  </div>`;
+`;
 
 // PDP Gallery touch swipe
 setTimeout(() => {
@@ -5261,6 +5272,13 @@ function openCheckout(){
   closeCart(); ckRefresh();
   $('checkout-modal').classList.add('open'); document.body.style.overflow='hidden';
   if(currentUser){if($('ck-name'))$('ck-name').value=currentUser.name||'';if($('ck-phone'))$('ck-phone').value=currentUser.phone||'';}
+  // Always ensure payment number is set correctly from CFG (not placeholder)
+  const pn=$('pay-number');
+  if(pn) pn.textContent=CFG[selPayment]||'01516511889';
+  const pmName=$('pay-method-name');
+  if(pmName){const names={bkash:'bKash',nagad:'Nagad',rocket:'Rocket',upay:'Upay'};pmName.textContent=names[selPayment]||'bKash';}
+  const payBox=$('pay-info-box');
+  if(payBox && selPayment !== 'cod') payBox.classList.add('show');
 }
 function closeCheckout(){$('checkout-modal').classList.remove('open');document.body.style.overflow='';}
 
@@ -5287,7 +5305,14 @@ function selPay(m,el){
   const box=$('pay-info-box');
   const names={bkash:'bKash',nagad:'Nagad',rocket:'Rocket',upay:'Upay'};
   if(m==='cod'){box.classList.remove('show');}
-  else{box.classList.add('show');$('pay-method-name').textContent=names[m];$('pay-number').textContent=CFG[m]||'01516511889';}
+  else{
+    box.classList.add('show');
+    $('pay-method-name').textContent=names[m]||m;
+    // Only show a real phone number — fallback to hardcoded real number
+    const num = CFG[m];
+    const isReal = num && /^01[3-9]\d{8}$/.test(String(num).replace(/\s|-/g,''));
+    $('pay-number').textContent = isReal ? num : '01516511889';
+  }
 }
 
 async function applyCoupon(){
@@ -10309,6 +10334,11 @@ window.updateAdminPanel = updateAdminPanel;
   </div>
   <div class="pdp-breadcrumb" id="pdp-breadcrumb"></div>
   <div class="pdp-body" id="pdp-body"></div>
+  <!-- Sticky actions OUTSIDE pdp-body overflow — fixes iOS scroll bug -->
+  <div class="pdp-sticky-actions" id="pdp-sticky-actions-bar">
+    <button class="pdp-sticky-btn-cart" onclick="pdpAddToCart()"><i class="fa-solid fa-cart-plus"></i> Cart</button>
+    <button class="pdp-sticky-btn-buy" onclick="pdpBuyNow()"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
+  </div>
 </div>
 <!-- ===== EXIT INTENT OFFER BAR ===== -->
 <div id="exit-intent-bar">
@@ -10427,10 +10457,15 @@ window.renderStockBar = function(container, totalStock, soldPct){
 function copyPayNumber(){
   const num = document.getElementById('pay-number');
   if(!num) return;
-  const txt = num.textContent.trim();
+  // Get the phone number text only (first text node)
+  let txt = '';
+  for(const node of num.childNodes){
+    if(node.nodeType === 3) txt += node.textContent;
+  }
+  txt = txt.trim() || num.textContent.replace(/📋/g,'').trim();
   navigator.clipboard && navigator.clipboard.writeText(txt);
   showToast && showToast('নম্বর <strong>' + txt + '</strong> কপি হয়েছে! এখন Send Money করুন।','check');
-  if(num){ num.style.background='rgba(0,197,138,.15)'; setTimeout(()=>{num.style.background='';},1200); }
+  if(num){ num.style.background='rgba(0,197,138,.15)'; num.style.borderColor='var(--green)'; setTimeout(()=>{num.style.background='';num.style.borderColor='';},1500); }
 }
 function toggleDarkMode(){
   const html = document.documentElement;
