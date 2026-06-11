@@ -28,6 +28,11 @@
  *  PATCH  /api/commerce?module=bundle&id=xx      → Update bundle
  *  DELETE /api/commerce?module=bundle&id=xx      → Delete bundle
  *
+ *  ── SHURJOPAY ─────────────────────────────────────────────
+ *  POST /api/commerce?module=shurjopay&action=token     → Get token
+ *  POST /api/commerce?module=shurjopay&action=init      → Payment initiate
+ *  POST /api/commerce?module=shurjopay&action=verify    → Payment verify
+ *
  *  ── FLASH ────────────────────────────────────────────────────
  *  GET  /api/commerce?module=flash               → Active flash sales
  *  GET  /api/commerce?module=flash&id=xxx        → Single flash sale
@@ -666,10 +671,155 @@ module.exports = async (req, res) => {
       return res.status(405).json({ ok: false, error: 'Method not allowed' });
     }
 
+    /* ══════════════════════════════════════════════════════════
+       MODULE: SHURJOPAY  [NEW]
+       Utility endpoints for ShurjoPay payment gateway operations.
+       Main payment flow is handled in api/orders.js (payment-init / payment-verify).
+       These endpoints provide token management and sandbox testing support.
+    ══════════════════════════════════════════════════════════ */
+    if (module_ === 'shurjopay') {
+      if (req.method !== 'POST') {
+        return res.status(405).json({ ok: false, error: 'POST only' });
+      }
+      if (!checkRateLimit(`sp_${ip}`, 20, 60000)) {
+        return res.status(429).json({ ok: false, error: 'অনেক request! একটু অপেক্ষা করুন।' });
+      }
+
+      const spBase = process.env.SHURJOPAY_SANDBOX === 'true'
+        ? 'https://sandbox.shurjopayment.com'
+        : 'https://engine.shurjopayment.com';
+
+      /* Helper: get a fresh ShurjoPay token */
+      async function getSpToken() {
+        const r = await fetch(`${spBase}/api/get_token`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            username: process.env.SHURJOPAY_USERNAME,
+            password: process.env.SHURJOPAY_PASSWORD,
+          }),
+        }).then(res => res.json());
+        if (!r.token) throw new Error('ShurjoPay token পাওয়া যায়নি');
+        return r;
+      }
+
+      /* ── action=token : fetch a fresh merchant token ── */
+      if (action === 'token') {
+        try {
+          const t = await getSpToken();
+          return res.json({ ok: true, token: t.token, storeId: t.store_id });
+        } catch (err) {
+          console.error('[ShurjoPay token]', err);
+          return res.status(500).json({ ok: false, error: err.message });
+        }
+      }
+
+      /* ── action=init : initiate a payment ── */
+      if (action === 'init') {
+        const {
+          amount, currency, customerName, customerPhone,
+          customerEmail, customerAddress, items, returnUrl, cancelUrl,
+        } = req.body || {};
+
+        if (!amount || !customerName || !customerPhone || !returnUrl || !cancelUrl) {
+          return res.status(400).json({
+            ok: false,
+            error: 'amount, customerName, customerPhone, returnUrl, cancelUrl দিন',
+          });
+        }
+
+        try {
+          const tokenData = await getSpToken();
+          const orderId   = 'SL-' + Date.now().toString().slice(-8);
+
+          const payRes = await fetch(`${spBase}/api/secret-pay`, {
+            method:  'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${tokenData.token}`,
+            },
+            body: JSON.stringify({
+              prefix:           process.env.SHURJOPAY_MERCHANT_KEY_PREFIX || 'sp',
+              token:            tokenData.token,
+              return_url:       returnUrl,
+              cancel_url:       cancelUrl,
+              amount,
+              currency:         currency || 'BDT',
+              order_id:         orderId,
+              discsount_amount: 0,
+              disc_percent:     0,
+              customer_name:    customerName,
+              customer_addr:    customerAddress || '',
+              customer_phone:   customerPhone,
+              customer_email:   customerEmail   || '',
+              client_ip:        ip || '127.0.0.1',
+              product_details:  JSON.stringify(items || []),
+              value1:           'shoplixo',
+              value2: '', value3: '', value4: '',
+            }),
+          }).then(r => r.json());
+
+          if (payRes.checkout_url) {
+            return res.json({
+              ok:          true,
+              checkoutUrl: payRes.checkout_url,
+              orderId,
+              spOrderId:   payRes.sp_order_id,
+            });
+          }
+
+          console.error('[ShurjoPay init]', payRes);
+          return res.status(500).json({ ok: false, error: 'Payment initiate সমস্যা' });
+
+        } catch (err) {
+          console.error('[ShurjoPay init]', err);
+          return res.status(500).json({ ok: false, error: 'Server error' });
+        }
+      }
+
+      /* ── action=verify : verify a payment ── */
+      if (action === 'verify') {
+        const { spOrderId } = req.body || {};
+        if (!spOrderId) {
+          return res.status(400).json({ ok: false, error: 'spOrderId দিন' });
+        }
+
+        try {
+          const tokenData = await getSpToken();
+          const verifyRes = await fetch(`${spBase}/api/verification`, {
+            method:  'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${tokenData.token}`,
+            },
+            body: JSON.stringify({ order_id: spOrderId }),
+          }).then(r => r.json());
+
+          const payment = verifyRes?.[0];
+          return res.json({
+            ok:      payment?.sp_code === '1000',
+            status:  payment?.sp_code === '1000' ? 'paid' : 'failed',
+            spCode:  payment?.sp_code,
+            bankTrxId: payment?.bank_trx_id || null,
+            raw:     payment || null,
+          });
+
+        } catch (err) {
+          console.error('[ShurjoPay verify]', err);
+          return res.status(500).json({ ok: false, error: 'Server error' });
+        }
+      }
+
+      return res.status(400).json({
+        ok:    false,
+        error: 'Invalid ShurjoPay action. Use: token, init, verify',
+      });
+    }
+
     /* ── Unknown module ────────────────────────────────────────── */
     return res.status(400).json({
       ok: false,
-      error: 'Invalid module. Use: coupon, newsletter, loyalty, bundle, flash',
+      error: 'Invalid module. Use: coupon, newsletter, loyalty, bundle, flash, shurjopay',
     });
 
   } catch (err) {

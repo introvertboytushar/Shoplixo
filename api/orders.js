@@ -16,11 +16,14 @@
  *  POST /api/orders?action=reorder            → Quick reorder [NEW]
  *  POST /api/orders?action=feedback           → Post-delivery feedback [NEW]
  *  POST /api/orders?action=cart-save          → Save abandoned cart [NEW]
+ *  POST /api/orders?action=payment-init       → ShurjoPay payment initiate [NEW]
+ *  POST /api/orders?action=payment-verify     → ShurjoPay payment verify [NEW]
  * ══════════════════════════════════════════════════════════════
  *  Features: Stock decrement, SMS notification, Loyalty points,
  *             Abandoned cart conversion, Server-side price verify,
  *             Real-time coupon validation, Order cancellation window,
- *             Return/refund workflow, Post-delivery feedback
+ *             Return/refund workflow, Post-delivery feedback,
+ *             ShurjoPay online payment gateway
  * ══════════════════════════════════════════════════════════════
  */
 
@@ -924,10 +927,160 @@ module.exports = async (req, res) => {
     }
   }
 
+  /* ══════════════════════════════════════════════════════════
+     POST: ShurjoPay Payment Initiate  [NEW]
+     POST /api/orders?action=payment-init
+     Body: { amount, currency, customerName, customerPhone,
+             customerEmail, customerAddress, items, returnUrl, cancelUrl }
+  ══════════════════════════════════════════════════════════ */
+  if (action === 'payment-init' && req.method === 'POST') {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || '';
+    if (!checkRateLimit(`payinit_${ip}`, 10, 60000)) {
+      return res.status(429).json({ ok: false, error: 'অনেক request! একটু অপেক্ষা করুন।' });
+    }
+
+    const {
+      amount, currency, customerName, customerPhone,
+      customerEmail, customerAddress, items, returnUrl, cancelUrl,
+    } = req.body || {};
+
+    if (!amount || !customerName || !customerPhone || !returnUrl || !cancelUrl) {
+      return res.status(400).json({ ok: false, error: 'amount, customerName, customerPhone, returnUrl, cancelUrl দিন' });
+    }
+
+    try {
+      /* Step 1: ShurjoPay token নাও */
+      const tokenRes = await fetch('https://engine.shurjopayment.com/api/get_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: process.env.SHURJOPAY_USERNAME,
+          password: process.env.SHURJOPAY_PASSWORD,
+        }),
+      }).then(r => r.json());
+
+      if (!tokenRes.token) {
+        console.error('[ShurjoPay token]', tokenRes);
+        return res.status(500).json({ ok: false, error: 'Payment gateway সমস্যা' });
+      }
+
+      /* Step 2: Payment create করো */
+      const orderId = 'SL-' + Date.now().toString().slice(-8);
+      const payRes  = await fetch('https://engine.shurjopayment.com/api/secret-pay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokenRes.token}`,
+        },
+        body: JSON.stringify({
+          prefix:          process.env.SHURJOPAY_MERCHANT_KEY_PREFIX || 'sp',
+          token:           tokenRes.token,
+          return_url:      returnUrl,
+          cancel_url:      cancelUrl,
+          amount:          amount,
+          currency:        currency || 'BDT',
+          order_id:        orderId,
+          discsount_amount: 0,
+          disc_percent:    0,
+          customer_name:   customerName,
+          customer_addr:   customerAddress || '',
+          customer_phone:  customerPhone,
+          customer_email:  customerEmail   || '',
+          client_ip:       req.headers['x-forwarded-for']?.split(',')[0] || '127.0.0.1',
+          product_details: JSON.stringify(items || []),
+          value1:          'shoplixo',
+          value2:          '',
+          value3:          '',
+          value4:          '',
+        }),
+      }).then(r => r.json());
+
+      if (payRes.checkout_url) {
+        return res.json({
+          ok:          true,
+          checkoutUrl: payRes.checkout_url,
+          orderId,
+          spOrderId:   payRes.sp_order_id,
+        });
+      }
+
+      console.error('[ShurjoPay init]', payRes);
+      return res.status(500).json({ ok: false, error: 'Payment initiate সমস্যা' });
+
+    } catch (err) {
+      console.error('[Payment init]', err);
+      return res.status(500).json({ ok: false, error: 'Server error' });
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     POST: ShurjoPay Payment Verify (Callback)  [NEW]
+     POST /api/orders?action=payment-verify
+     Body: { orderId, spOrderId }
+  ══════════════════════════════════════════════════════════ */
+  if (action === 'payment-verify' && req.method === 'POST') {
+    const { orderId: verifyOrderId, spOrderId } = req.body || {};
+
+    if (!verifyOrderId || !spOrderId) {
+      return res.status(400).json({ ok: false, error: 'orderId ও spOrderId দিন' });
+    }
+
+    try {
+      /* Token নাও */
+      const tokenRes = await fetch('https://engine.shurjopayment.com/api/get_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: process.env.SHURJOPAY_USERNAME,
+          password: process.env.SHURJOPAY_PASSWORD,
+        }),
+      }).then(r => r.json());
+
+      if (!tokenRes.token) {
+        return res.status(500).json({ ok: false, error: 'Payment gateway সমস্যা' });
+      }
+
+      /* Payment verify করো */
+      const verifyRes = await fetch('https://engine.shurjopayment.com/api/verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokenRes.token}`,
+        },
+        body: JSON.stringify({ order_id: spOrderId }),
+      }).then(r => r.json());
+
+      const payment = verifyRes?.[0];
+      if (payment?.sp_code === '1000') {
+        /* Payment successful — order DB তে update করো */
+        await connectDB();
+        await Order.findOneAndUpdate(
+          { orderId: verifyOrderId },
+          {
+            paymentStatus:  'paid',
+            paymentMethod:  'online',
+            paymentGateway: 'shurjopay',
+            spOrderId:      payment.bank_trx_id,
+            paidAt:         new Date(),
+            status:         'confirmed',
+          }
+        );
+        return res.json({ ok: true, status: 'paid', orderId: verifyOrderId });
+      }
+
+      console.error('[ShurjoPay verify]', verifyRes);
+      return res.json({ ok: false, status: 'failed', spCode: payment?.sp_code });
+
+    } catch (err) {
+      console.error('[Payment verify]', err);
+      return res.status(500).json({ ok: false, error: 'Server error' });
+    }
+  }
+
   /* ── Unknown method / action ─────────────────────────────── */
   return res.status(405).json({
     ok:    false,
     error: 'Method not allowed',
-    hint:  'Valid actions: validate-coupon, my, invoice, stats, cancel, return, reorder, feedback, cart-save',
+    hint:  'Valid actions: validate-coupon, my, invoice, stats, cancel, return, reorder, feedback, cart-save, payment-init, payment-verify',
   });
 };
