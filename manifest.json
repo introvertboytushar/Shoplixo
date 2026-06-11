@@ -1,0 +1,54 @@
+{
+  "name": "Shoplixo — বাংলাদেশের সেরা শপিং",
+  "short_name": "Shoplixo",
+  "description": "বাংলাদেশের সেরা অনলাইন শপিং। পোশাক, গেজেট, জুতা — সব কিছু এক জায়গায়।",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#E41E26",
+  "lang": "bn",
+  "dir": "ltr",
+  "scope": "/",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "https://shoplixo.shop/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://shoplixo.shop/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://shoplixo.shop/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "নতুন পণ্য",
+      "url": "/?cat=all",
+      "description": "সব পণ্য দেখুন"
+    },
+    {
+      "name": "Men's Fashion",
+      "url": "/category/mens-shirts",
+      "description": "পুরুষদের পোশাক"
+    },
+    {
+      "name": "Gadgets",
+      "url": "/category/gadgets",
+      "description": "ইলেকট্রনিক্স ও গেজেট"
+    }
+  ],
+  "prefer_related_applications": false
+}

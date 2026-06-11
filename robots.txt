@@ -1,0 +1,31 @@
+# robots.txt — Shoplixo
+# https://shoplixo.shop
+
+User-agent: *
+
+# ── Allow public-facing pages ──
+Allow: /
+Allow: /index.html
+Allow: /404.html
+Allow: /track-order.html
+Allow: /category/
+Allow: /product/
+Allow: /search/
+
+# ── Disallow private / admin pages ──
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /profile
+Disallow: /profile.html
+
+# ── Disallow query strings that create duplicate content ──
+Disallow: /*?sort=
+Disallow: /*?page=
+Disallow: /*?ref=
+
+# ── Crawl-delay (optional, respected by some bots) ──
+Crawl-delay: 1
+
+# ── Sitemap location ──
+Sitemap: https://shoplixo.shop/sitemap.xml
