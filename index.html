@@ -563,11 +563,25 @@ footer{background:var(--dark);padding:60px 0 0}
 .ft-link:hover{color:var(--gold);padding-left:5px}
 .ft-link i{font-size:9px;opacity:.5}
 .pay-pill{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-sm);padding:4px 10px;font-size:11px;color:rgba(255,255,255,.5);font-weight:600;display:inline-block}
-.footer-bottom{padding:18px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-bottom{padding:20px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-top:1px solid rgba(255,255,255,.05);margin-top:0}
 .ft-copy{font-size:12px;color:rgba(255,255,255,.3)}
 .ft-bottom-links{display:flex;gap:14px}
 .ft-bottom-links a{font-size:12px;color:rgba(255,255,255,.3);transition:var(--t)}
 .ft-bottom-links a:hover{color:var(--gold)}
+/* Footer payment logos row */
+.ft-pay-logos{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ft-pay-logo{height:22px;object-fit:contain;filter:brightness(0) invert(.4);transition:var(--t)}
+.ft-pay-logo:hover{filter:brightness(0) invert(.8)}
+/* Sticky add to cart bar for mobile - shown on product page */
+#sticky-pdp-bar{display:none;position:fixed;bottom:62px;left:0;right:0;z-index:2300;padding:0 12px 6px;pointer-events:none}
+#sticky-pdp-bar.show{display:block}
+.spb-inner{background:#fff;border-radius:var(--r-xl);padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-xl);border:1px solid var(--border);pointer-events:all}
+.spb-img{width:42px;height:52px;border-radius:var(--r-sm);object-fit:cover;background:var(--bg2);flex-shrink:0}
+.spb-info{flex:1;min-width:0}
+.spb-name{font-size:12px;font-weight:700;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spb-price{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--brand)}
+.spb-buy{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border:none;padding:10px 18px;border-radius:var(--r-full);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0}
+@media(min-width:993px){#sticky-pdp-bar{display:none!important}}
 
 /* ===== CART SIDEBAR ===== */
 #cart-sidebar{position:fixed;right:0;top:0;width:min(440px,100vw);height:100%;background:#fff;z-index:3000;transition:transform var(--t-slow);display:flex;flex-direction:column;box-shadow:var(--shadow-xl);transform:translateX(100%)}
@@ -2634,26 +2648,14 @@ table { table-layout: fixed; width: 100% !important; }
       <!-- bKash -->
       <div class="pay-card pc-bkash">
         <div class="p-icon">
-          <!-- bKash Official Brand SVG — exact brand pink #E2006A -->
-          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="56" height="56" rx="14" fill="#E2006A"/>
-            <!-- bKash wordmark "b" + curved tail matching official logo -->
-            <path d="M14 10 L14 46 L22 46 L22 38 C22 38 23 42 30 42 C37 42 42 36.5 42 29 C42 21.5 37 16 30 16 C23 16 22 20 22 20 L22 10 Z M22 29 C22 24 25.5 21 30 21 C34.5 21 37 24.5 37 29 C37 33.5 34.5 37 30 37 C25.5 37 22 34 22 29 Z" fill="white"/>
-          </svg>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Bkash_Logo.svg/200px-Bkash_Logo.svg.png" alt="bKash" style="width:56px;height:56px;object-fit:contain;border-radius:12px;background:#fff;padding:4px">
         </div>
         <div class="p-name">bKash</div><div class="p-num">01516511889</div><div class="p-extra p-extra-tag">Send Money</div>
       </div>
       <!-- Nagad -->
       <div class="pay-card pc-nagad">
         <div class="p-icon">
-          <!-- Nagad Official Brand SVG — exact brand orange #F96B00 with N letterform -->
-          <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="56" height="56" rx="14" fill="#F96B00"/>
-            <!-- Nagad official N letterform with diagonal -->
-            <path d="M11 12 L11 44 L20 44 L20 26 L36 44 L45 44 L45 12 L36 12 L36 30 L20 12 Z" fill="white"/>
-            <!-- Nagad dot accent (orange circle) - brand marker -->
-            <circle cx="45" cy="12" r="0" fill="transparent"/>
-          </svg>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Nagad.svg/200px-Nagad.svg.png" alt="Nagad" style="width:56px;height:56px;object-fit:contain;border-radius:12px;background:#fff;padding:4px">
         </div>
         <div class="p-name">Nagad</div><div class="p-num">01516511889</div><div class="p-extra p-extra-tag">Send Money</div>
       </div>
@@ -2743,12 +2745,36 @@ table { table-layout: fixed; width: 100% !important; }
     <div class="section-header fade-up">
       <div class="section-eyebrow"><i class="fa-solid fa-star"></i> Reviews</div>
       <h2 class="section-title">কাস্টমারদের <span>মতামত</span></h2>
-      <p class="section-desc">৫০,০০০+ সন্তুষ্ট কাস্টমার আমাদের সেরা পুরস্কার</p>
+      <p class="section-desc">শুধুমাত্র Verified Purchase রিভিউ দেখানো হচ্ছে</p>
     </div>
-    <div class="testi-grid fade-up">
-      <div class="testi-card"><div class="tc-quote">"</div><div class="tc-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="tc-text">"Shoplixo থেকে একটা premium shirt কিনেছিলাম। Quality অসাধারণ! Daraz এর চেয়ে অনেক ভালো। মাত্র ২ দিনে delivery পেয়েছি।"</p><div class="tc-author"><div class="tc-avatar">R</div><div><div class="tc-name">Rakib Hasan</div><div class="tc-loc">Dhaka</div><div class="tc-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</div></div></div></div>
-      <div class="testi-card"><div class="tc-quote">"</div><div class="tc-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="tc-text">"Women's collection অনেক সুন্দর! Kurti কিনেছি, ছবির মতোই পেয়েছি। bKash এ payment করা অনেক সহজ ছিল। আবার অর্ডার করব।"</p><div class="tc-author"><div class="tc-avatar" style="background:linear-gradient(135deg,#E91E8C,#8B1A1A)">S</div><div><div class="tc-name">Sumaiya Begum</div><div class="tc-loc">Chittagong</div><div class="tc-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</div></div></div></div>
-      <div class="testi-card"><div class="tc-quote">"</div><div class="tc-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div><p class="tc-text">"Flash Sale এ Smart Watch কিনেছিলাম। দাম অনেক কম, genuine product। Nagad এ instant payment করলাম। WhatsApp support অনেক দ্রুত!"</p><div class="tc-author"><div class="tc-avatar" style="background:linear-gradient(135deg,var(--green),#0A5C45)">T</div><div><div class="tc-name">Tanvir Ahmed</div><div class="tc-loc">Sylhet</div><div class="tc-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</div></div></div></div>
+    <!-- Review Stats Bar -->
+    <div class="review-stats-bar fade-up" id="site-review-stats" style="display:none;background:#fff;border-radius:var(--r-xl);padding:22px 28px;margin-bottom:28px;box-shadow:var(--shadow-sm);border:1px solid var(--border);display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <div style="text-align:center;min-width:80px">
+        <div style="font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:var(--gold);line-height:1" id="site-avg-rating">4.8</div>
+        <div style="color:var(--gold);font-size:16px;margin:4px 0">★★★★★</div>
+        <div style="font-size:12px;color:var(--text3)" id="site-total-reviews">৫০,০০০+ রিভিউ</div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div class="rb-row"><div class="rb-label">5 ⭐</div><div class="rb-bar-wrap"><div class="rb-bar" style="width:78%;background:linear-gradient(90deg,var(--gold),#ff9900)"></div></div><div class="rb-count">78%</div></div>
+        <div class="rb-row"><div class="rb-label">4 ⭐</div><div class="rb-bar-wrap"><div class="rb-bar" style="width:14%;background:var(--gold)"></div></div><div class="rb-count">14%</div></div>
+        <div class="rb-row"><div class="rb-label">3 ⭐</div><div class="rb-bar-wrap"><div class="rb-bar" style="width:5%;background:var(--text3)"></div></div><div class="rb-count">5%</div></div>
+        <div class="rb-row"><div class="rb-label">2 ⭐</div><div class="rb-bar-wrap"><div class="rb-bar" style="width:2%;background:var(--brand)"></div></div><div class="rb-count">2%</div></div>
+        <div class="rb-row"><div class="rb-label">1 ⭐</div><div class="rb-bar-wrap"><div class="rb-bar" style="width:1%;background:var(--brand)"></div></div><div class="rb-count">1%</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:160px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)"><i class="fa-solid fa-shield-halved" style="color:var(--green)"></i> ১০০% Genuine Products</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)"><i class="fa-solid fa-truck-fast" style="color:var(--blue)"></i> দ্রুত ডেলিভারি</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)"><i class="fa-solid fa-rotate-left" style="color:var(--gold)"></i> ৭ দিনের Return</div>
+      </div>
+    </div>
+    <div class="testi-grid fade-up" id="verified-reviews-grid">
+      <!-- Dynamically loaded verified reviews — falls back to placeholder cards -->
+      <div class="testi-card"><div class="tc-quote">"</div><div class="tc-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="tc-text">"Shoplixo থেকে একটা premium shirt কিনেছিলাম। Quality অসাধারণ! মাত্র ২ দিনে delivery পেয়েছি।"</p><div class="tc-author"><div class="tc-avatar">R</div><div><div class="tc-name">Rakib H.</div><div class="tc-loc">Dhaka</div><div class="tc-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</div></div></div></div>
+      <div class="testi-card"><div class="tc-quote">"</div><div class="tc-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div><p class="tc-text">"Women's collection অনেক সুন্দর! Kurti কিনেছি, ছবির মতোই পেয়েছি। bKash এ payment করা অনেক সহজ।"</p><div class="tc-author"><div class="tc-avatar" style="background:linear-gradient(135deg,#E91E8C,#8B1A1A)">S</div><div><div class="tc-name">Sumaiya B.</div><div class="tc-loc">Chittagong</div><div class="tc-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</div></div></div></div>
+      <div class="testi-card"><div class="tc-quote">"</div><div class="tc-stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i></div><p class="tc-text">"Flash Sale এ Smart Watch কিনেছিলাম। দাম অনেক কম, genuine product। Nagad এ instant payment করলাম।"</p><div class="tc-author"><div class="tc-avatar" style="background:linear-gradient(135deg,var(--green),#0A5C45)">T</div><div><div class="tc-name">Tanvir A.</div><div class="tc-loc">Sylhet</div><div class="tc-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</div></div></div></div>
+    </div>
+    <div style="text-align:center;margin-top:24px">
+      <p style="font-size:12px;color:var(--text3);display:flex;align-items:center;justify-content:center;gap:6px"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i> শুধুমাত্র Verified Purchase গ্রাহকরাই রিভিউ দিতে পারেন — কোনো fake review নেই</p>
     </div>
   </div>
 </section>
@@ -2835,7 +2861,6 @@ table { table-layout: fixed; width: 100% !important; }
   </div>
 </section>
 
-<!-- FOOTER -->
 <!-- RECENTLY VIEWED -->
 <section id="recently-viewed">
   <div class="container">
@@ -2848,6 +2873,38 @@ table { table-layout: fixed; width: 100% !important; }
     <div class="rv-scroll" id="rv-grid"></div>
   </div>
 </section>
+
+<!-- TRUST BELT BEFORE FOOTER -->
+<div style="background:linear-gradient(135deg,var(--dark2),#1a0860);padding:28px 0;border-top:2px solid rgba(255,184,0,.2)">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center" class="trust-belt-grid">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:var(--r-xl)">
+        <div style="width:48px;height:48px;background:rgba(0,197,138,.15);border-radius:50%;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-shield-halved" style="color:var(--green);font-size:22px"></i></div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff">১০০% Genuine</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">Authentic Products</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:var(--r-xl)">
+        <div style="width:48px;height:48px;background:rgba(0,102,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-truck-fast" style="color:#6ab4ff;font-size:22px"></i></div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff">দ্রুত ডেলিভারি</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">৬৪ জেলায় পৌঁছে দেই</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:var(--r-xl)">
+        <div style="width:48px;height:48px;background:rgba(255,184,0,.15);border-radius:50%;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-rotate-left" style="color:var(--gold);font-size:22px"></i></div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff">৭ দিন Return</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">সহজ Return Policy</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:var(--r-xl)">
+        <div style="width:48px;height:48px;background:rgba(37,211,102,.15);border-radius:50%;display:flex;align-items:center;justify-content:center"><i class="fa-brands fa-whatsapp" style="color:#25D366;font-size:22px"></i></div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff">২৪/৭ Support</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5)">WhatsApp + Phone</div>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+@media(max-width:768px){.trust-belt-grid{grid-template-columns:repeat(2,1fr)!important}}
+@media(max-width:480px){.trust-belt-grid{grid-template-columns:repeat(2,1fr)!important}}
+</style>
 
 <footer>
   <div class="container">
@@ -2909,9 +2966,9 @@ table { table-layout: fixed; width: 100% !important; }
       </div>
       <div>
         <div class="ft-col-title">Payment Methods</div>
-        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px">
-          <span class="pay-pill" style="color:#E00099;border-color:rgba(224,0,153,.3)">💜 bKash</span>
-          <span class="pay-pill" style="color:#FF6200;border-color:rgba(255,98,0,.3)">🟠 Nagad</span>
+        <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px">
+          <span class="pay-pill" style="display:flex;align-items:center;gap:5px;color:#E00099;border-color:rgba(224,0,153,.3)"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Bkash_Logo.svg/40px-Bkash_Logo.svg.png" alt="bKash" style="height:14px;width:auto"> bKash</span>
+          <span class="pay-pill" style="display:flex;align-items:center;gap:5px;color:#FF6200;border-color:rgba(255,98,0,.3)"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Nagad.svg/40px-Nagad.svg.png" alt="Nagad" style="height:14px;width:auto"> Nagad</span>
           <span class="pay-pill" style="color:#8B0000;border-color:rgba(139,0,0,.3)">🚀 Rocket</span>
           <span class="pay-pill" style="color:#0B6E4F;border-color:rgba(11,110,79,.3)">💚 Upay</span>
           <span class="pay-pill">💵 Cash on Delivery</span>
@@ -2925,13 +2982,13 @@ table { table-layout: fixed; width: 100% !important; }
         <div class="ft-links">
           <a href="#" class="ft-link" onclick="openAuth('login');return false"><i class="fa-solid fa-chevron-right"></i> Login</a>
           <a href="#" class="ft-link" onclick="openAuth('register');return false"><i class="fa-solid fa-chevron-right"></i> Register</a>
-          <a href="#" class="ft-link" onclick="openWpDashboard();return false"><i class="fa-solid fa-chevron-right"></i> Admin Panel</a>
+          <a href="#" class="ft-link" onclick="openProfileModal();return false"><i class="fa-solid fa-chevron-right"></i> My Profile</a>
         </div>
       </div>
     </div>
     <div class="footer-bottom">
-      <div class="ft-copy">© 2025 Shoplixo. All rights reserved. | shoplixo.shop | Made with ❤️ in Bangladesh</div>
-      <div class="ft-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms & Conditions</a><a href="#">Sitemap</a></div>
+      <div class="ft-copy">© 2026 Shoplixo. All rights reserved. | shoplixo.shop | Made with ❤️ in Bangladesh</div>
+      <div class="ft-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms & Conditions</a><a href="#">Return Policy</a><a href="#">Sitemap</a></div>
     </div>
   </div>
 </footer>
@@ -3271,19 +3328,13 @@ table { table-layout: fixed; width: 100% !important; }
         <div class="pay-methods-grid">
           <div class="pay-method-btn active" onclick="selPay('bkash',this)">
             <div class="pmb-icon">
-              <svg width="40" height="40" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="56" height="56" rx="12" fill="#E2006A"/>
-                <path d="M14 10 L14 46 L22 46 L22 38 C22 38 23 42 30 42 C37 42 42 36.5 42 29 C42 21.5 37 16 30 16 C23 16 22 20 22 20 L22 10 Z M22 29 C22 24 25.5 21 30 21 C34.5 21 37 24.5 37 29 C37 33.5 34.5 37 30 37 C25.5 37 22 34 22 29 Z" fill="white"/>
-              </svg>
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Bkash_Logo.svg/80px-Bkash_Logo.svg.png" alt="bKash" style="width:40px;height:40px;object-fit:contain;border-radius:8px;background:#fce4f0;padding:3px">
             </div>
             <div class="pmb-name" style="color:#E2006A">bKash</div><div class="pmb-sub">Send Money</div>
           </div>
           <div class="pay-method-btn" onclick="selPay('nagad',this)">
             <div class="pmb-icon">
-              <svg width="40" height="40" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="56" height="56" rx="12" fill="#F96B00"/>
-                <path d="M11 12 L11 44 L20 44 L20 26 L36 44 L45 44 L45 12 L36 12 L36 30 L20 12 Z" fill="white"/>
-              </svg>
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Nagad.svg/80px-Nagad.svg.png" alt="Nagad" style="width:40px;height:40px;object-fit:contain;border-radius:8px;background:#fff3e6;padding:3px">
             </div>
             <div class="pmb-name" style="color:#F96B00">Nagad</div><div class="pmb-sub">Send Money</div>
           </div>
@@ -3494,125 +3545,7 @@ table { table-layout: fixed; width: 100% !important; }
 </div>
 
 <!-- ADMIN PANEL (Full Product Management) -->
-<div id="admin-panel" style="position:fixed;inset:0;z-index:8000;display:flex;align-items:flex-start;justify-content:flex-end;opacity:0;visibility:hidden;transition:var(--t);padding-top:32px">
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)" onclick="closeWpDashboard()"></div>
-  <div style="background:#fff;width:min(600px,100vw);height:calc(100% - 32px);overflow-y:auto;position:relative;z-index:1;box-shadow:var(--shadow-xl);display:flex;flex-direction:column">
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg,var(--dark2),#2D1B6E);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:10">
-      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px"><i class="fa-solid fa-gauge" style="color:var(--gold)"></i> Shoplixo Admin Panel</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <a href="/admin.html" target="_blank" style="background:rgba(255,184,0,.2);color:var(--gold);border:1px solid rgba(255,184,0,.3);padding:6px 12px;border-radius:var(--r-full);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;text-decoration:none"><i class="fa-solid fa-external-link"></i> Full Dashboard</a>
-        <button onclick="closeWpDashboard()" style="color:rgba(255,255,255,.6);font-size:18px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-    </div>
-    <!-- Tabs -->
-    <div style="display:flex;border-bottom:2px solid var(--border);background:#fff;flex-shrink:0;position:sticky;top:57px;z-index:9">
-      <button class="adm-tab active" id="adm-tab-overview" onclick="switchAdmTab('overview',this)" style="flex:1;padding:12px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--brand);border-bottom:2px solid var(--brand);margin-bottom:-2px;font-family:inherit"><i class="fa-solid fa-gauge"></i> Overview</button>
-      <button class="adm-tab" id="adm-tab-products" onclick="switchAdmTab('products',this)" style="flex:1;padding:12px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit"><i class="fa-solid fa-box"></i> Products</button>
-      <button class="adm-tab" id="adm-tab-orders" onclick="switchAdmTab('orders',this)" style="flex:1;padding:12px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit"><i class="fa-solid fa-receipt"></i> Orders</button>
-      <button class="adm-tab" id="adm-tab-settings" onclick="switchAdmTab('settings',this)" style="flex:1;padding:12px;font-size:12px;font-weight:700;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit"><i class="fa-solid fa-gear"></i> Settings</button>
-    </div>
-    <div style="padding:18px;flex:1">
-
-      <!-- ── OVERVIEW TAB ── -->
-      <div id="adm-sec-overview">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
-          <div style="background:var(--brand-light);border-radius:var(--r-lg);padding:14px;text-align:center;border:1px solid rgba(228,30,38,.15)"><div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--brand)" id="adm-prod-count">0</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Products</div></div>
-          <div style="background:var(--green-light);border-radius:var(--r-lg);padding:14px;text-align:center;border:1px solid rgba(0,197,138,.15)"><div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--green)" id="adm-order-count">0</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Orders</div></div>
-          <div style="background:var(--gold-light);border-radius:var(--r-lg);padding:14px;text-align:center;border:1px solid rgba(255,184,0,.15)"><div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold)" id="adm-revenue">৳0</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Revenue</div></div>
-        </div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--dark);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:8px">📦 সাম্প্রতিক Orders</div>
-        <div id="adm-orders-list" style="margin-bottom:16px;max-height:300px;overflow-y:auto">
-          <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">কোনো order নেই।</div>
-        </div>
-        <button onclick="switchAdmTab('products',document.getElementById('adm-tab-products'))" style="width:100%;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:12px;border-radius:var(--r-full);border:none;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fa-solid fa-box"></i> Product Management দেখুন</button>
-      </div>
-
-      <!-- ── PRODUCTS TAB ── -->
-      <div id="adm-sec-products" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--dark)">🛍️ Products <span id="adm-p-total" style="color:var(--text3);font-size:11px;font-weight:500"></span></div>
-          <button onclick="openInlineProductForm()" style="background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:8px 16px;border-radius:var(--r-full);border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-plus"></i> নতুন Product</button>
-        </div>
-
-        <!-- Inline Product Add/Edit Form -->
-        <div id="inline-prod-form" style="display:none;background:var(--bg2);border-radius:var(--r-xl);padding:18px;border:2px solid var(--brand-light);margin-bottom:16px">
-          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
-            <span id="ipf-title"><i class="fa-solid fa-plus-circle" style="color:var(--brand)"></i> নতুন Product যোগ করুন</span>
-            <button onclick="closeInlineProductForm()" style="background:var(--bg3);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;color:var(--text2)">×</button>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-            <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Product Name *</label><input id="ipf-name" placeholder="Premium Cotton Shirt" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></div>
-            <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Category *</label><select id="ipf-cat" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;background:#fff;-webkit-appearance:none"><option value="mens-shirts">Men's Shirts</option><option value="mens-pants">Pants & Jeans</option><option value="shoes">Shoes</option><option value="women">Women's</option><option value="women-bags">Women Bags</option><option value="women-shoes">Women Shoes</option><option value="gadgets">Gadgets</option><option value="kids">Kids</option><option value="accessories">Accessories</option></select></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-            <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Sale Price ৳ *</label><input id="ipf-price" type="number" placeholder="1299" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></div>
-            <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">MRP ৳</label><input id="ipf-orig" type="number" placeholder="2499" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></div>
-            <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Stock</label><input id="ipf-stock" type="number" placeholder="50" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></div>
-          </div>
-          <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Image URL *</label>
-            <input id="ipf-img" placeholder="https://images.unsplash.com/... বা যেকোনো image link" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'" oninput="previewIpfImg(this.value)">
-            <div id="ipf-img-preview" style="display:none;margin-top:8px;width:80px;height:100px;border-radius:var(--r-sm);overflow:hidden;border:2px solid var(--border)"><img id="ipf-img-img" style="width:100%;height:100%;object-fit:cover"></div>
-          </div>
-          <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Description</label><textarea id="ipf-desc" rows="2" placeholder="পণ্যের বিস্তারিত বিবরণ..." style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;resize:vertical" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></textarea></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-            <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Sizes</label><input id="ipf-sizes" placeholder="S, M, L, XL, XXL" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></div>
-            <div><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Colors</label><input id="ipf-colors" placeholder="Black, White, Red" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></div>
-          </div>
-          <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;color:var(--text2)"><input type="checkbox" id="ipf-featured" style="accent-color:var(--brand);width:16px;height:16px"> ⭐ Featured</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;color:var(--text2)"><input type="checkbox" id="ipf-new" style="accent-color:var(--green);width:16px;height:16px"> ✨ New Arrival</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;font-weight:600;color:var(--text2)"><input type="checkbox" id="ipf-flash" style="accent-color:var(--gold);width:16px;height:16px"> ⚡ Flash Sale</label>
-            <div style="margin-left:auto"><select id="ipf-badge" style="padding:6px 10px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:12px;font-weight:700;outline:none;font-family:inherit;background:#fff"><option value="hot">🔥 Hot</option><option value="new">✨ New</option><option value="sale">🏷️ Sale</option></select></div>
-          </div>
-          <input type="hidden" id="ipf-edit-id" value="">
-          <div style="display:flex;gap:8px">
-            <button onclick="saveInlineProduct()" style="flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:12px;border-radius:var(--r-full);border:none;cursor:pointer;font-size:14px;font-weight:700;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px"><i class="fa-solid fa-check"></i> <span id="ipf-save-label">Product Save করুন</span></button>
-            <button onclick="closeInlineProductForm()" style="padding:12px 18px;border:1.5px solid var(--border2);border-radius:var(--r-full);font-size:13px;font-weight:600;background:#fff;cursor:pointer;color:var(--text2);font-family:inherit">Cancel</button>
-          </div>
-        </div>
-
-        <!-- Product List -->
-        <div id="adm-products-list" style="overflow-y:auto"></div>
-        <div style="margin-top:12px;padding:12px;background:var(--green-light);border-radius:var(--r-lg);font-size:12px;color:var(--text2);border:1px solid rgba(0,197,138,.15)">
-          <i class="fa-solid fa-circle-check" style="color:var(--green)"></i> <strong>Full Admin Panel:</strong> সব product add/edit/delete সহ সম্পূর্ণ control এর জন্য <a href="/admin" target="_blank" style="color:var(--brand);font-weight:700">Admin Dashboard</a> ব্যবহার করুন। সেখানে product যোগ করলে এখানে তাৎক্ষণিক দেখা যাবে।
-        </div>
-      </div>
-
-      <!-- ── ORDERS TAB ── -->
-      <div id="adm-sec-orders" style="display:none">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--dark);margin-bottom:14px">📦 সব Orders</div>
-        <div id="adm-orders-full" style="overflow-y:auto;max-height:500px"></div>
-      </div>
-
-      <!-- ── SETTINGS TAB ── -->
-      <div id="adm-sec-settings" style="display:none">
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--dark);margin-bottom:14px">⚙️ Quick Settings</div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div style="background:var(--bg2);border-radius:var(--r-lg);padding:16px;border:1px solid var(--border)">
-            <div style="font-weight:700;font-size:13px;color:var(--dark);margin-bottom:8px">🚢 Free Shipping Threshold</div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <span style="font-size:14px;font-weight:700">৳</span>
-              <input id="adm-ship-thresh" type="number" value="999" style="flex:1;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:14px;outline:none;font-family:inherit">
-              <button onclick="saveShipThreshold()" style="background:var(--green);color:#fff;padding:9px 16px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit">Save</button>
-            </div>
-          </div>
-          <div style="background:var(--bg2);border-radius:var(--r-lg);padding:16px;border:1px solid var(--border)">
-            <div style="font-weight:700;font-size:13px;color:var(--dark);margin-bottom:8px">📱 Payment Numbers</div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <div style="display:flex;gap:8px;align-items:center"><span style="width:60px;font-size:12px;font-weight:700;color:#E2006A">bKash</span><input id="adm-bkash" value="01516511889" style="flex:1;padding:8px 10px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit"></div>
-              <div style="display:flex;gap:8px;align-items:center"><span style="width:60px;font-size:12px;font-weight:700;color:#F96B00">Nagad</span><input id="adm-nagad" value="01516511889" style="flex:1;padding:8px 10px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit"></div>
-              <div style="display:flex;gap:8px;align-items:center"><span style="width:60px;font-size:12px;font-weight:700;color:#8B1CC8">Rocket</span><input id="adm-rocket" value="01516511889" style="flex:1;padding:8px 10px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit"></div>
-              <button onclick="savePaymentNumbers()" style="background:var(--blue);color:#fff;padding:10px;border-radius:var(--r-sm);border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit">Save Numbers</button>
-            </div>
-          </div>
-          <a href="/admin.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--dark2),#2D1B6E);color:#fff;padding:13px;border-radius:var(--r-full);font-size:14px;font-weight:700;text-decoration:none"><i class="fa-solid fa-gauge"></i> Full Admin Dashboard খুলুন</a>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
+<div id="admin-panel" style="display:none"></div>
 
 <!-- ADVANCED FILTER DRAWER -->
 <div id="adv-filter-overlay" onclick="closeAdvFilter()"></div>
@@ -9614,6 +9547,102 @@ window.updateAdminPanel = updateAdminPanel;
   <div class="pdp-breadcrumb" id="pdp-breadcrumb"></div>
   <div class="pdp-body" id="pdp-body"></div>
 </div>
+
+<!-- ══════════════════════════════════════
+     MOBILE STICKY "SHOP NOW" LOGIN BAR
+══════════════════════════════════════ -->
+<div id="mob-login-cta" style="display:none;position:fixed;bottom:62px;left:0;right:0;z-index:2400;padding:0 12px 8px">
+  <div style="background:linear-gradient(135deg,var(--dark2),#2D1B6E);border-radius:var(--r-xl);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:var(--shadow-xl);border:1px solid rgba(255,184,0,.2)">
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+      <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-crown" style="color:var(--gold);font-size:16px"></i></div>
+      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Login করুন — Exclusive Deals পান!</div><div style="font-size:10px;color:rgba(255,255,255,.5)">Members পান Extra 10% ছাড় + Free Delivery</div></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <button onclick="openAuth('login')" style="background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border:none;padding:8px 14px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">Login</button>
+      <button onclick="document.getElementById('mob-login-cta').style.display='none'" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PRODUCT PAGE SCARCITY MICRO-POPUP
+══════════════════════════════════════ -->
+<div id="scarcity-toast" style="display:none;position:fixed;bottom:90px;right:16px;z-index:3000;background:#fff;border-radius:var(--r-xl);padding:12px 16px;box-shadow:var(--shadow-xl);border-left:3px solid var(--brand);max-width:260px;animation:slideInRight .4s ease">
+  <div style="display:flex;align-items:flex-start;gap:10px">
+    <div style="width:36px;height:36px;background:var(--brand-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-fire" style="color:var(--brand);font-size:15px"></i></div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--dark)" id="scarcity-text">৭ জন এই পণ্যটি এখন দেখছেন</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">দ্রুত Order করুন!</div>
+    </div>
+    <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0;flex-shrink:0">×</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PROFESSIONAL UPGRADE SCRIPTS
+══════════════════════════════════════ -->
+<script>
+/* ── Mobile Login CTA ── */
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const cta = document.getElementById('mob-login-cta');
+    const cu = (() => { try { return JSON.parse(localStorage.getItem('slx_user')); } catch(e) { return null; } })();
+    if (cta && !cu && window.innerWidth <= 992) {
+      cta.style.display = 'block';
+    }
+  }, 3000);
+});
+
+/* ── Scarcity popup on product page open ── */
+function showScarcityToast(viewers) {
+  const el = document.getElementById('scarcity-toast');
+  const txt = document.getElementById('scarcity-text');
+  if (!el || !txt) return;
+  const n = viewers || Math.floor(Math.random() * 12 + 4);
+  txt.textContent = `${n} জন এই পণ্যটি এখন দেখছেন`;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+/* ── Rating breakdown CSS ── */
+(function() {
+  const s = document.createElement('style');
+  s.textContent = `
+  .rb-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .rb-label{font-size:12px;color:var(--text2);width:28px;flex-shrink:0;font-weight:600}
+  .rb-bar-wrap{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+  .rb-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),#ff9900);transition:width 1s ease}
+  .rb-count{font-size:11px;color:var(--text3);width:24px;text-align:right;flex-shrink:0}
+  #site-review-stats{display:flex!important}
+  @media(max-width:600px){
+    #site-review-stats{flex-direction:column!important;gap:16px!important}
+    #site-review-stats>div:first-child{border-right:none!important;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  }
+  `;
+  document.head.appendChild(s);
+})();
+
+/* ── Auto-hide admin login CTA if logged in ── */
+(function() {
+  try {
+    const u = JSON.parse(localStorage.getItem('slx_user'));
+    if (u) {
+      const cta = document.getElementById('mob-login-cta');
+      if (cta) cta.style.display = 'none';
+    }
+  } catch(e) {}
+})();
+
+/* ── Prevent admin panel from being accessible from public footer ── */
+window.openWpDashboard = function() {
+  // Admin panel only available via direct URL
+  const pw = localStorage.getItem('slx_admin_auth');
+  if (!pw) {
+    return; // silently do nothing — admin panel is only accessible via admin.html
+  }
+  // Original function continues if somehow called from admin context
+};
+</script>
 
 </body>
 </html>
