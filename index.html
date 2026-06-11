@@ -2011,6 +2011,91 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .pdp-sticky-btn-cart{flex:0 0 auto;background:var(--dark2);color:#fff;padding:14px 18px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
 .pdp-sticky-btn-buy{flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:14px;border-radius:var(--r-full);font-size:15px;font-weight:800;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 15px rgba(228,30,38,.3);-webkit-tap-highlight-color:transparent}
 
+/* ===== ULTRA PRO PDP FOOTER ===== */
+.pdp-pro-footer{margin-top:10px;background:var(--dark2);overflow:hidden}
+.pdpf-section-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.5);margin-bottom:16px}
+.pdpf-section-label i{color:var(--brand);font-size:13px}
+
+/* Why Buy */
+.pdpf-why-buy{padding:24px 20px 0}
+.pdpf-trust-grid{display:flex;flex-direction:column;gap:0;border-radius:var(--r-lg);overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.pdpf-trust-card{display:flex;align-items:center;gap:14px;padding:13px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.05);transition:background .2s}
+.pdpf-trust-card:last-child{border-bottom:none}
+.pdpf-trust-card:hover{background:rgba(255,255,255,.06)}
+.pdpf-tc-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.pdpf-green{background:rgba(0,197,138,.15)}.pdpf-green i{color:var(--green)}
+.pdpf-gold{background:rgba(255,184,0,.15)}.pdpf-gold i{color:var(--gold)}
+.pdpf-blue{background:rgba(0,102,255,.15)}.pdpf-blue i{color:#5B9FFF}
+.pdpf-brand{background:rgba(228,30,38,.15)}.pdpf-brand i{color:var(--brand)}
+.pdpf-purple{background:rgba(124,58,237,.15)}.pdpf-purple i{color:#a78bfa}
+.pdpf-orange{background:rgba(255,107,53,.15)}.pdpf-orange i{color:#ff8c5f}
+.pdpf-tc-text{flex:1;min-width:0}
+.pdpf-tc-title{font-size:13px;font-weight:700;color:#fff;line-height:1.3}
+.pdpf-tc-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;line-height:1.4}
+.pdpf-tc-badge{width:22px;height:22px;border-radius:50%;background:rgba(0,197,138,.2);color:var(--green);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Delivery Visual */
+.pdpf-delivery-visual{padding:24px 20px 0}
+.pdpf-steps{display:flex;align-items:center;gap:0;margin-bottom:14px}
+.pdpf-step{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;text-align:center}
+.pdpf-step-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid rgba(255,255,255,.08)}
+.pdpf-step-title{font-size:11px;font-weight:700;color:#fff;line-height:1.2}
+.pdpf-step-sub{font-size:10px;color:rgba(255,255,255,.4)}
+.pdpf-step-line{flex:1;height:2px;background:linear-gradient(90deg,rgba(255,255,255,.1),rgba(255,255,255,.2),rgba(255,255,255,.1));margin-bottom:30px;min-width:8px}
+.pdpf-delivery-note{background:rgba(0,197,138,.08);border:1px solid rgba(0,197,138,.15);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:rgba(255,255,255,.6);display:flex;align-items:flex-start;gap:8px;line-height:1.6}
+.pdpf-delivery-note i{color:var(--green);flex-shrink:0;margin-top:1px}
+
+/* Payment */
+.pdpf-payment-section{padding:24px 20px 0}
+.pdpf-payment-methods{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pdpf-pay-method{display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:var(--r-sm);font-size:12px;font-weight:700;border:1px solid transparent;transition:var(--t)}
+.pdpf-pay-method i{font-size:14px}
+.pdpf-bkash{background:rgba(230,0,100,.12);color:#f472b6;border-color:rgba(230,0,100,.2)}
+.pdpf-nagad{background:rgba(255,107,0,.12);color:#fb923c;border-color:rgba(255,107,0,.2)}
+.pdpf-rocket{background:rgba(124,58,237,.12);color:#a78bfa;border-color:rgba(124,58,237,.2)}
+.pdpf-upay{background:rgba(0,102,255,.12);color:#60a5fa;border-color:rgba(0,102,255,.2)}
+.pdpf-cod{background:rgba(0,197,138,.12);color:#34d399;border-color:rgba(0,197,138,.2)}
+.pdpf-cod-highlight{display:flex;align-items:flex-start;gap:12px;background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.15);border-radius:var(--r-lg);padding:14px 16px}
+.pdpf-cod-highlight>i{font-size:22px;color:var(--gold);flex-shrink:0;margin-top:2px}
+.pdpf-cod-highlight>div{display:flex;flex-direction:column;gap:3px}
+.pdpf-cod-highlight strong{font-size:13px;font-weight:700;color:#fff}
+.pdpf-cod-highlight span{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5}
+
+/* Support */
+.pdpf-support-section{padding:24px 20px 0}
+.pdpf-contact-cards{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.pdpf-contact-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--r-lg);border:1px solid transparent;text-decoration:none;transition:var(--t)}
+.pdpf-wa{background:rgba(37,211,102,.08);border-color:rgba(37,211,102,.18)}
+.pdpf-wa:hover{background:rgba(37,211,102,.15);transform:translateX(3px)}
+.pdpf-fb{background:rgba(0,120,255,.08);border-color:rgba(0,120,255,.18)}
+.pdpf-fb:hover{background:rgba(0,120,255,.15);transform:translateX(3px)}
+.pdpf-cc-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.pdpf-wa .pdpf-cc-icon{background:rgba(37,211,102,.15);color:#25D366}
+.pdpf-fb .pdpf-cc-icon{background:rgba(0,120,255,.15);color:#60a5fa}
+.pdpf-cc-info{flex:1}
+.pdpf-cc-title{font-size:14px;font-weight:700;color:#fff}
+.pdpf-cc-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.pdpf-cc-arrow{font-size:12px;color:rgba(255,255,255,.25);transition:var(--t)}
+.pdpf-contact-card:hover .pdpf-cc-arrow{color:rgba(255,255,255,.6);transform:translateX(3px)}
+.pdpf-support-hours{font-size:12px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:7px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:var(--r-sm)}
+.pdpf-support-hours i{color:var(--gold)}
+.pdpf-support-hours strong{color:rgba(255,255,255,.7)}
+
+/* Brand Strip */
+.pdpf-brand-strip{margin-top:24px;padding:20px;border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;align-items:center;gap:6px}
+.pdpf-brand-logo{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
+.pdpf-brand-tagline{font-size:11px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.3px}
+.pdpf-brand-copy{font-size:10px;color:rgba(255,255,255,.2);margin-top:2px}
+
+@media(max-width:768px){
+  .pdpf-steps{gap:0}
+  .pdpf-step-icon{width:38px;height:38px;font-size:14px}
+  .pdpf-payment-methods{gap:6px}
+  .pdpf-pay-method{padding:7px 11px;font-size:11px}
+  .pdpf-why-buy,.pdpf-delivery-visual,.pdpf-payment-section,.pdpf-support-section{padding:20px 16px 0}
+  .pdpf-brand-strip{padding:18px 16px}
+}
+
 /* ── PRODUCT CARD ENHANCEMENTS ── */
 .pc-actions-row{display:flex;align-items:center;gap:10px;margin-top:8px}
 .pc-size-btn{font-size:10px;color:var(--blue);font-weight:700;cursor:pointer;background:var(--blue-light);border:none;padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:3px;transition:var(--t);font-family:inherit}
@@ -4457,7 +4542,7 @@ function renderProductDetailPage(p) {
   </div>
 
   <!-- Tabs: Description + Reviews -->
-  <div style="background:#fff;margin-top:8px">
+  <div style="background:#fff;margin-top:8px;border-top:3px solid var(--brand)">
     <div class="pdp-tabs" id="pdp-tabs">
       <div class="pdp-tab active" onclick="pdpSwitchTab('desc',this)">📋 বিবরণ</div>
       <div class="pdp-tab" onclick="pdpSwitchTab('specs',this)">📦 বিস্তারিত</div>
@@ -4501,54 +4586,194 @@ function renderProductDetailPage(p) {
 
   <!-- Related Products -->
   ${related.length ? `<div class="pdp-related" style="background:#fff;margin-top:8px">
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:8px"><i class="fa-solid fa-link" style="color:var(--brand)"></i> Related Products</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--dark);display:flex;align-items:center;gap:8px">
+        <span style="width:32px;height:32px;background:var(--brand-light);border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center"><i class="fa-solid fa-layer-group" style="color:var(--brand);font-size:13px"></i></span>
+        একই ক্যাটাগরির পণ্য
+      </div>
+      <span style="font-size:11px;color:var(--text3);background:var(--bg2);padding:4px 10px;border-radius:var(--r-full);font-weight:600">${related.length}টি পণ্য</span>
+    </div>
     <div class="related-scroll">
       ${related.map(r=>`<div class="related-card" onclick="openProductPage('${r.id}')">
-        <img class="related-img" src="${r.img}" alt="${r.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${r.id}r/200/200'">
+        <div style="position:relative">
+          <img class="related-img" src="${r.img}" alt="${r.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${r.id}r/200/200'">
+          ${r.orig > r.price ? `<span style="position:absolute;top:6px;left:6px;background:var(--brand);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px">-${Math.round((1-r.price/r.orig)*100)}%</span>` : ''}
+        </div>
         <div class="related-body">
           <div class="related-name">${r.name}</div>
-          <div class="related-price">${fmt(r.price)}</div>
-          ${r.orig > r.price ? `<div style="font-size:11px;color:var(--text3);text-decoration:line-through">${fmt(r.orig)}</div>` : ''}
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <div class="related-price">${fmt(r.price)}</div>
+            ${r.orig > r.price ? `<div style="font-size:10px;color:var(--text3);text-decoration:line-through">${fmt(r.orig)}</div>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:3px;margin-top:5px">
+            ${r.rating > 0 ? `<i class="fa-solid fa-star" style="color:var(--gold);font-size:10px"></i><span style="font-size:10px;color:var(--text3);font-weight:600">${r.rating}</span>` : ''}
+          </div>
         </div>
       </div>`).join('')}
     </div>
   </div>` : ''}
 
-  <!-- Product Page Mini Footer -->
-  <div style="background:var(--dark2);margin-top:10px;padding:20px 16px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,197,138,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-shield-halved" style="color:var(--green);font-size:15px"></i></div>
-        <div><div style="font-size:12px;font-weight:700;color:#fff">১০০% অরিজিনাল</div><div style="font-size:10px;color:rgba(255,255,255,.5)">নকল হলে ফেরত</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,184,0,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-rotate-left" style="color:var(--gold);font-size:15px"></i></div>
-        <div><div style="font-size:12px;font-weight:700;color:#fff">৭ দিন রিটার্ন</div><div style="font-size:10px;color:rgba(255,255,255,.5)">ঝামেলামুক্ত</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,102,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-truck-fast" style="color:var(--blue);font-size:15px"></i></div>
-        <div><div style="font-size:12px;font-weight:700;color:#fff">৩-৫ দিনে ডেলিভারি</div><div style="font-size:10px;color:rgba(255,255,255,.5)">সারা বাংলাদেশ</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:50%;background:rgba(228,30,38,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-headset" style="color:var(--brand);font-size:15px"></i></div>
-        <div><div style="font-size:12px;font-weight:700;color:#fff">২৪/৭ সাপোর্ট</div><div style="font-size:10px;color:rgba(255,255,255,.5)">WhatsApp / Messenger</div></div>
+  <!-- ===== ULTRA PRO PDP FOOTER ===== -->
+  <div class="pdp-pro-footer">
+
+    <!-- Why Buy Section -->
+    <div class="pdpf-why-buy">
+      <div class="pdpf-section-label"><i class="fa-solid fa-award"></i> কেন Shoplixo বেছে নেবেন?</div>
+      <div class="pdpf-trust-grid">
+        <div class="pdpf-trust-card">
+          <div class="pdpf-tc-icon pdpf-green"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="pdpf-tc-text">
+            <div class="pdpf-tc-title">১০০% অরিজিনাল</div>
+            <div class="pdpf-tc-sub">নকল হলে সম্পূর্ণ ফেরত দেওয়া হবে</div>
+          </div>
+          <div class="pdpf-tc-badge">✓</div>
+        </div>
+        <div class="pdpf-trust-card">
+          <div class="pdpf-tc-icon pdpf-gold"><i class="fa-solid fa-rotate-left"></i></div>
+          <div class="pdpf-tc-text">
+            <div class="pdpf-tc-title">৭ দিন ফ্রি রিটার্ন</div>
+            <div class="pdpf-tc-sub">কোনো প্রশ্ন ছাড়াই সহজ রিটার্ন</div>
+          </div>
+          <div class="pdpf-tc-badge">✓</div>
+        </div>
+        <div class="pdpf-trust-card">
+          <div class="pdpf-tc-icon pdpf-blue"><i class="fa-solid fa-truck-fast"></i></div>
+          <div class="pdpf-tc-text">
+            <div class="pdpf-tc-title">৩-৫ দিনে ডেলিভারি</div>
+            <div class="pdpf-tc-sub">সারা বাংলাদেশে দ্রুত পৌঁছে দিই</div>
+          </div>
+          <div class="pdpf-tc-badge">✓</div>
+        </div>
+        <div class="pdpf-trust-card">
+          <div class="pdpf-tc-icon pdpf-brand"><i class="fa-solid fa-headset"></i></div>
+          <div class="pdpf-tc-text">
+            <div class="pdpf-tc-title">২৪/৭ কাস্টমার সাপোর্ট</div>
+            <div class="pdpf-tc-sub">WhatsApp বা Messenger এ সবসময়</div>
+          </div>
+          <div class="pdpf-tc-badge">✓</div>
+        </div>
+        <div class="pdpf-trust-card">
+          <div class="pdpf-tc-icon pdpf-purple"><i class="fa-solid fa-lock"></i></div>
+          <div class="pdpf-tc-text">
+            <div class="pdpf-tc-title">নিরাপদ পেমেন্ট</div>
+            <div class="pdpf-tc-sub">SSL এনক্রিপ্টেড, ১০০% সুরক্ষিত</div>
+          </div>
+          <div class="pdpf-tc-badge">✓</div>
+        </div>
+        <div class="pdpf-trust-card">
+          <div class="pdpf-tc-icon pdpf-orange"><i class="fa-solid fa-tags"></i></div>
+          <div class="pdpf-tc-text">
+            <div class="pdpf-tc-title">সেরা মূল্য গ্যারান্টি</div>
+            <div class="pdpf-tc-sub">বাজারের সেরা দামে পণ্য পাচ্ছেন</div>
+          </div>
+          <div class="pdpf-tc-badge">✓</div>
+        </div>
       </div>
     </div>
-    <div style="border-top:1px solid rgba(255,255,255,.07);padding-top:14px">
-      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;text-align:center;text-transform:uppercase;letter-spacing:.5px">পেমেন্ট গ্রহণযোগ্য</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Bkash_Logo.svg/120px-Bkash_Logo.svg.png" alt="bKash" style="height:22px;width:auto;filter:brightness(0) invert(1);opacity:.7" loading="lazy">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Nagad.svg/120px-Nagad.svg.png" alt="Nagad" style="height:22px;width:auto;filter:brightness(0) invert(1);opacity:.7" loading="lazy">
-        <span style="color:rgba(255,255,255,.5);font-size:11px;font-weight:600">Rocket</span>
-        <span style="color:rgba(255,255,255,.5);font-size:11px;font-weight:600">Upay</span>
-        <span style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:10px;font-weight:700;padding:3px 10px;border-radius:var(--r-full)">Cash on Delivery</span>
+
+    <!-- Delivery Info Visual -->
+    <div class="pdpf-delivery-visual">
+      <div class="pdpf-section-label" style="margin-bottom:14px"><i class="fa-solid fa-route"></i> ডেলিভারি প্রক্রিয়া</div>
+      <div class="pdpf-steps">
+        <div class="pdpf-step">
+          <div class="pdpf-step-icon" style="background:rgba(228,30,38,.15)"><i class="fa-solid fa-cart-plus" style="color:var(--brand)"></i></div>
+          <div class="pdpf-step-title">অর্ডার করুন</div>
+          <div class="pdpf-step-sub">আজকেই</div>
+        </div>
+        <div class="pdpf-step-line"></div>
+        <div class="pdpf-step">
+          <div class="pdpf-step-icon" style="background:rgba(255,184,0,.15)"><i class="fa-solid fa-box" style="color:var(--gold)"></i></div>
+          <div class="pdpf-step-title">প্যাকেজিং</div>
+          <div class="pdpf-step-sub">২৪ ঘণ্টায়</div>
+        </div>
+        <div class="pdpf-step-line"></div>
+        <div class="pdpf-step">
+          <div class="pdpf-step-icon" style="background:rgba(0,102,255,.15)"><i class="fa-solid fa-truck" style="color:var(--blue)"></i></div>
+          <div class="pdpf-step-title">শিপমেন্ট</div>
+          <div class="pdpf-step-sub">১-২ দিনে</div>
+        </div>
+        <div class="pdpf-step-line"></div>
+        <div class="pdpf-step">
+          <div class="pdpf-step-icon" style="background:rgba(0,197,138,.15)"><i class="fa-solid fa-house-chimney" style="color:var(--green)"></i></div>
+          <div class="pdpf-step-title">ডেলিভারি</div>
+          <div class="pdpf-step-sub">আপনার দোরগোড়ায়</div>
+        </div>
+      </div>
+      <div class="pdpf-delivery-note">
+        <i class="fa-solid fa-circle-info"></i> ঢাকার ভেতরে ১-২ দিন · ঢাকার বাইরে ৩-৫ কার্যদিবস · ৳৯৯৯+ অর্ডারে <strong style="color:var(--green)">ফ্রি ডেলিভারি</strong>
       </div>
     </div>
-    <div style="margin-top:14px;display:flex;gap:10px;justify-content:center">
-      <a href="https://wa.me/8801516511889" target="_blank" style="display:flex;align-items:center;gap:6px;background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.25);padding:8px 14px;border-radius:var(--r-full);font-size:12px;font-weight:700;text-decoration:none"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-      <a href="https://m.me/Shoplixo.shop" target="_blank" style="display:flex;align-items:center;gap:6px;background:rgba(0,120,255,.15);color:#5B9FFF;border:1px solid rgba(0,120,255,.25);padding:8px 14px;border-radius:var(--r-full);font-size:12px;font-weight:700;text-decoration:none"><i class="fa-brands fa-facebook-messenger"></i> Messenger</a>
+
+    <!-- Payment Methods -->
+    <div class="pdpf-payment-section">
+      <div class="pdpf-section-label"><i class="fa-solid fa-credit-card"></i> পেমেন্ট পদ্ধতি</div>
+      <div class="pdpf-payment-methods">
+        <div class="pdpf-pay-method pdpf-bkash">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+          <span>bKash</span>
+        </div>
+        <div class="pdpf-pay-method pdpf-nagad">
+          <i class="fa-solid fa-wallet"></i>
+          <span>Nagad</span>
+        </div>
+        <div class="pdpf-pay-method pdpf-rocket">
+          <i class="fa-solid fa-rocket"></i>
+          <span>Rocket</span>
+        </div>
+        <div class="pdpf-pay-method pdpf-upay">
+          <i class="fa-solid fa-circle-dollar-to-slot"></i>
+          <span>Upay</span>
+        </div>
+        <div class="pdpf-pay-method pdpf-cod">
+          <i class="fa-solid fa-money-bill-wave"></i>
+          <span>Cash on Delivery</span>
+        </div>
+      </div>
+      <div class="pdpf-cod-highlight">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <div>
+          <strong>Cash on Delivery উপলব্ধ!</strong>
+          <span>পণ্য হাতে পেয়ে তারপর টাকা দিন — কোনো অগ্রিম পেমেন্ট নেই</span>
+        </div>
+      </div>
     </div>
-    <div style="text-align:center;margin-top:14px;font-size:10px;color:rgba(255,255,255,.25)">© 2025 Shoplixo · shoplixo.shop · Made with ❤️ in Bangladesh</div>
+
+    <!-- Support / Contact -->
+    <div class="pdpf-support-section">
+      <div class="pdpf-section-label"><i class="fa-solid fa-comments"></i> সরাসরি কথা বলুন</div>
+      <div class="pdpf-contact-cards">
+        <a href="https://wa.me/8801516511889" target="_blank" class="pdpf-contact-card pdpf-wa">
+          <div class="pdpf-cc-icon"><i class="fa-brands fa-whatsapp"></i></div>
+          <div class="pdpf-cc-info">
+            <div class="pdpf-cc-title">WhatsApp</div>
+            <div class="pdpf-cc-sub">সরাসরি chat করুন</div>
+          </div>
+          <i class="fa-solid fa-arrow-right pdpf-cc-arrow"></i>
+        </a>
+        <a href="https://m.me/Shoplixo.shop" target="_blank" class="pdpf-contact-card pdpf-fb">
+          <div class="pdpf-cc-icon"><i class="fa-brands fa-facebook-messenger"></i></div>
+          <div class="pdpf-cc-info">
+            <div class="pdpf-cc-title">Messenger</div>
+            <div class="pdpf-cc-sub">Facebook এ যোগাযোগ</div>
+          </div>
+          <i class="fa-solid fa-arrow-right pdpf-cc-arrow"></i>
+        </a>
+      </div>
+      <div class="pdpf-support-hours">
+        <i class="fa-regular fa-clock"></i> সাপোর্ট সময়: <strong>সকাল ৯টা — রাত ৯টা</strong> (প্রতিদিন)
+      </div>
+    </div>
+
+    <!-- Footer Brand Strip -->
+    <div class="pdpf-brand-strip">
+      <div class="pdpf-brand-logo">
+        <svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="7" fill="#E41E26"/><text x="16" y="23" font-family="Arial Black,sans-serif" font-size="20" font-weight="900" fill="white" text-anchor="middle">S</text></svg>
+        <span>Shoplixo</span>
+      </div>
+      <div class="pdpf-brand-tagline">বাংলাদেশের #১ অনলাইন শপ</div>
+      <div class="pdpf-brand-copy">© 2025 Shoplixo · shoplixo.shop · Made with ❤️ in Bangladesh</div>
+    </div>
+
   </div>
 
   <!-- Sticky bottom CTA (mobile) -->
