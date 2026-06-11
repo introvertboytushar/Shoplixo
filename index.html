@@ -2368,31 +2368,7 @@ table { table-layout: fixed; width: 100% !important; }
   <button class="ann-close" onclick="this.closest('#ann-bar').remove()"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
-<!-- ===== FLASH SALE URGENCY BAR ===== -->
-<div id="flash-urgency-bar" style="background:linear-gradient(90deg,#1A1A2E,#2D1B6E,#1A1A2E);color:#fff;padding:8px 0;text-align:center;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">
-  <span style="display:flex;align-items:center;gap:6px">
-    <span style="display:inline-block;width:8px;height:8px;background:var(--brand);border-radius:50%;animation:pulse-dot 1.2s infinite"></span>
-    Flash Sale শেষ হবে:
-  </span>
-  <span style="display:flex;align-items:center;gap:4px;font-family:'Syne',sans-serif">
-    <span style="background:rgba(255,255,255,.12);padding:3px 8px;border-radius:5px;font-size:16px;font-weight:800" id="fu-h">00</span>:
-    <span style="background:rgba(255,255,255,.12);padding:3px 8px;border-radius:5px;font-size:16px;font-weight:800" id="fu-m">00</span>:
-    <span style="background:rgba(255,255,255,.12);padding:3px 8px;border-radius:5px;font-size:16px;font-weight:800" id="fu-s">00</span>
-  </span>
-  <a href="#flash-sale" style="background:var(--gold);color:var(--dark);padding:4px 14px;border-radius:var(--r-full);font-size:12px;font-weight:800;white-space:nowrap">অফার দেখুন →</a>
-</div>
 
-<!-- LOYALTY BAR (shown when logged in) -->
-<div id="loyalty-bar" style="display:none" class="loyalty-bar">
-  <div class="container">
-    <div class="lb-inner">
-      <div class="lb-item"><i class="fa-solid fa-crown"></i> <span id="lb-tier-badge" class="lb-tier-badge lb-bronze">Bronze</span></div>
-      <div class="lb-item"><i class="fa-solid fa-star"></i> আপনার Points: <span class="lb-pts" id="lb-points">0</span></div>
-      <div class="lb-item" style="cursor:pointer" onclick="openLoyaltyModal()"><i class="fa-solid fa-gift"></i> Rewards দেখুন & Redeem করুন</div>
-      <div class="lb-item" style="cursor:pointer" onclick="openReferralModal()"><i class="fa-solid fa-users"></i> বন্ধুকে Refer করুন — <strong style="color:var(--gold)">৳200 পাবেন!</strong></div>
-    </div>
-  </div>
-</div>
 
 <!-- REFERRAL STRIP (always visible) -->
 <div class="ref-strip" id="ref-strip">
