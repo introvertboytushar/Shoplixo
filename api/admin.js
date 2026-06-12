@@ -134,6 +134,14 @@ async function batchSetSettings(entries) {
   );
 }
 
+/**
+ * Escape regex special characters to prevent ReDoS and injection.
+ * Wrap every user-supplied string before passing it to $regex or RegExp().
+ */
+function escapeRegex(str) {
+  return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    MAIN HANDLER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -284,10 +292,10 @@ module.exports = async (req, res) => {
       if (stock === 'out') query.stock = 0;
       if (search) {
         query.$or = [
-          { name:      { $regex: search, $options: 'i' } },
-          { productId: { $regex: search, $options: 'i' } },
-          { sku:       { $regex: search, $options: 'i' } },
-          { tags:      { $in: [new RegExp(search, 'i')] } },
+          { name:      { $regex: escapeRegex(search), $options: 'i' } },
+          { productId: { $regex: escapeRegex(search), $options: 'i' } },
+          { sku:       { $regex: escapeRegex(search), $options: 'i' } },
+          { tags:      { $in: [new RegExp(escapeRegex(search), 'i')] } },
         ];
       }
 
@@ -518,9 +526,9 @@ module.exports = async (req, res) => {
       }
       if (search) {
         query.$or = [
-          { orderId:          { $regex: search, $options: 'i' } },
-          { 'customer.name':  { $regex: search, $options: 'i' } },
-          { 'customer.phone': { $regex: search, $options: 'i' } },
+          { orderId:          { $regex: escapeRegex(search), $options: 'i' } },
+          { 'customer.name':  { $regex: escapeRegex(search), $options: 'i' } },
+          { 'customer.phone': { $regex: escapeRegex(search), $options: 'i' } },
         ];
       }
 
@@ -803,9 +811,9 @@ module.exports = async (req, res) => {
 
       if (search) {
         query.$or = [
-          { name:  { $regex: search, $options: 'i' } },
-          { phone: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
+          { name:  { $regex: escapeRegex(search), $options: 'i' } },
+          { phone: { $regex: escapeRegex(search), $options: 'i' } },
+          { email: { $regex: escapeRegex(search), $options: 'i' } },
         ];
       }
 
@@ -1168,7 +1176,7 @@ module.exports = async (req, res) => {
       const search = sanitize(req.query?.search || '', 100);
       const skip   = (page - 1) * limit;
       const query  = search
-        ? { $or: [{ name: { $regex: search, $options: 'i' } }, { phone: { $regex: search, $options: 'i' } }] }
+        ? { $or: [{ name: { $regex: escapeRegex(search), $options: 'i' } }, { phone: { $regex: escapeRegex(search), $options: 'i' } }] }
         : {};
       const [suppliers, total] = await Promise.all([
         Supplier.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),

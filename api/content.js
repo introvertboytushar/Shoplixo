@@ -70,6 +70,14 @@ const REVIEW_MIN_WORDS = 3;
    HELPERS
 ───────────────────────────────────────────────────────────────────────── */
 
+/**
+ * Escape regex special characters to prevent ReDoS and injection.
+ * Wrap every user-supplied string before passing it to $regex or RegExp().
+ */
+function escapeRegex(str) {
+  return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /** Detect spam in review text. Returns { isSpam, reason } */
 function detectSpam(text = '') {
   for (const pattern of SPAM_PATTERNS) {
@@ -204,23 +212,23 @@ module.exports = async (req, res) => {
 
       /* ── Autocomplete Suggestions ─────────────────────── */
       if (action === 'suggest') {
-        const q = String(req.query.q || '').trim();
+        const q = sanitize(String(req.query.q || '').trim(), 100);
         if (q.length < 2) return res.json({ ok: true, suggestions: [] });
 
         const [products, cats] = await Promise.all([
           Product.find({
             isActive: true,
             $or: [
-              { name:  { $regex: q, $options: 'i' } },
-              { tags:  { $in: [new RegExp(q, 'i')] } },
+              { name:  { $regex: escapeRegex(q), $options: 'i' } },
+              { tags:  { $in: [new RegExp(escapeRegex(q), 'i')] } },
             ],
           }).limit(6).select('name cat price img productId badge').lean(),
 
           Category.find({
             isActive: true,
             $or: [
-              { name:   { $regex: q, $options: 'i' } },
-              { nameBn: { $regex: q, $options: 'i' } },
+              { name:   { $regex: escapeRegex(q), $options: 'i' } },
+              { nameBn: { $regex: escapeRegex(q), $options: 'i' } },
             ],
           }).limit(3).select('name nameBn slug icon').lean(),
         ]);
@@ -338,13 +346,13 @@ module.exports = async (req, res) => {
       const hasText = q && String(q).trim().length > 0;
 
       if (hasText) {
-        const term = String(q).trim();
+        const term = sanitize(String(q).trim(), 100);
         query.$or  = [
-          { name:  { $regex: term, $options: 'i' } },
-          { tags:  { $in: [new RegExp(term, 'i')] } },
-          { desc:  { $regex: term, $options: 'i' } },
-          { sku:   { $regex: term, $options: 'i' } },
-          { brand: { $regex: term, $options: 'i' } },
+          { name:  { $regex: escapeRegex(term), $options: 'i' } },
+          { tags:  { $in: [new RegExp(escapeRegex(term), 'i')] } },
+          { desc:  { $regex: escapeRegex(term), $options: 'i' } },
+          { sku:   { $regex: escapeRegex(term), $options: 'i' } },
+          { brand: { $regex: escapeRegex(term), $options: 'i' } },
         ];
         await persistSearchTerm(term);
 
