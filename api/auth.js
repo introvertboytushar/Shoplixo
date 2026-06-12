@@ -159,10 +159,23 @@ module.exports = async (req, res) => {
       }
 
       const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      const { lat, lng, accuracy } = b.gpsLocation || {};
       const user   = await User.create({
         name, phone,
         email:    email || undefined,
         password: hashed,
+        ipAddress: ip,
+        location: (lat && lng) ? {
+          lat, lng, accuracy: accuracy || null,
+          updatedAt: new Date(),
+        } : undefined,
+        loginHistory: [{
+          ip,
+          device:    req.headers['user-agent']?.substring(0, 200) || '',
+          location:  (lat && lng) ? { lat, lng } : undefined,
+          method:    'email',
+          timestamp: new Date(),
+        }],
       });
 
       /* Reward referrer (fire-and-forget) */
@@ -205,6 +218,7 @@ module.exports = async (req, res) => {
     const b          = req.body || {};
     const identifier = sanitize(b.identifier || b.phone || b.email || '', 150).trim();
     const password   = String(b.password || '');
+    const { lat, lng, accuracy } = b.gpsLocation || {};
 
     if (!identifier || !password)
       return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'Phone/Email এবং Password দিন!' });
@@ -239,6 +253,22 @@ module.exports = async (req, res) => {
         loginMethod:    b.method || 'email',  // 'google' | 'facebook' | 'email'
         deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
         forceLoggedOut: false,
+        ipAddress:      ip,
+        ...((lat && lng) ? {
+          location: { lat, lng, accuracy: accuracy || null, updatedAt: new Date() }
+        } : {}),
+        $push: {
+          loginHistory: {
+            $each: [{
+              ip,
+              device:    req.headers['user-agent']?.substring(0, 200) || '',
+              location:  (lat && lng) ? { lat, lng } : undefined,
+              method:    b.method || 'email',
+              timestamp: new Date(),
+            }],
+            $slice: -20,
+          }
+        }
       });
 
       const payload      = { id: user._id, phone: user.phone };
@@ -593,6 +623,7 @@ module.exports = async (req, res) => {
       return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
 
     const b = req.body || {};
+    const { lat, lng, accuracy } = b.gpsLocation || {};
     /* ── Google OAuth token verification ─────────────────────
      *  Client থেকে Google ID token পাঠানো হয়।
      *  এখানে আপনার Google token verification logic বসান।
@@ -640,6 +671,22 @@ module.exports = async (req, res) => {
         lastSeen:       new Date(),
         forceLoggedOut: false,
         deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
+        ipAddress:      ip,
+        ...((lat && lng) ? {
+          location: { lat, lng, accuracy: accuracy || null, updatedAt: new Date() }
+        } : {}),
+        $push: {
+          loginHistory: {
+            $each: [{
+              ip,
+              device:    req.headers['user-agent']?.substring(0, 200) || '',
+              location:  (lat && lng) ? { lat, lng } : undefined,
+              method:    'google',
+              timestamp: new Date(),
+            }],
+            $slice: -20,
+          }
+        }
       });
 
       const payload      = { id: user._id, phone: user.phone || '' };
@@ -665,6 +712,7 @@ module.exports = async (req, res) => {
       return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
 
     const b = req.body || {};
+    const { lat, lng, accuracy } = b.gpsLocation || {};
     /* ── Facebook OAuth token verification ────────────────────
      *  Client থেকে Facebook access token পাঠানো হয়।
      *  এখানে আপনার Facebook token verification logic বসান।
@@ -712,6 +760,22 @@ module.exports = async (req, res) => {
         lastSeen:       new Date(),
         forceLoggedOut: false,
         deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
+        ipAddress:      ip,
+        ...((lat && lng) ? {
+          location: { lat, lng, accuracy: accuracy || null, updatedAt: new Date() }
+        } : {}),
+        $push: {
+          loginHistory: {
+            $each: [{
+              ip,
+              device:    req.headers['user-agent']?.substring(0, 200) || '',
+              location:  (lat && lng) ? { lat, lng } : undefined,
+              method:    'facebook',
+              timestamp: new Date(),
+            }],
+            $slice: -20,
+          }
+        }
       });
 
       const payload      = { id: user._id, phone: user.phone || '' };

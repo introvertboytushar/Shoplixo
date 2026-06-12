@@ -1,6 +1,6 @@
 /**
  * ══════════════════════════════════════════════════════════════════════
- *  SHOPLIXO — MongoDB Connection + ALL Schemas  (Ultra Pro v4)
+ *  SHOPLIXO — MongoDB Connection + ALL Schemas  (Ultra Pro v5)
  *
  *  ✅ NEW  v4 additions:
  *    • AdminConfig   — server-side admin password & multi-key management
@@ -10,6 +10,12 @@
  *    • PushToken     — web-push / FCM device token storage
  *    • AuditLog      — admin action trail (change-password, bulk ops…)
  *    • WishlistSync  — cross-device wishlist per user (UPGRADE-I6)
+ *
+ *  ✅ NEW  v5 additions:
+ *    • Order.status enum: 'archived' added (fixes 500 on order-delete)
+ *    • Order: `archivedAt` field (set when status → 'archived')
+ *    • Order.customer: `ipAddress`, `gpsLocation`, `deviceInfo` fields
+ *    • User: `ipAddress`, `location` (GPS), `loginHistory` fields
  *
  *  ✅ FIXED  v4 improvements:
  *    • AdminConfig with bcrypt-ready password hash storage  (BUG-5 / SEC-2)
@@ -81,6 +87,14 @@ const orderSchema = new mongoose.Schema({
     district: String,
     area:     { type: String, default: '' },
     note:     { type: String, default: '' },
+    // ✅ NEW v5: Location & device tracking
+    ipAddress: { type: String, default: '' },
+    gpsLocation: {
+      lat:      { type: Number, default: null },
+      lng:      { type: Number, default: null },
+      accuracy: { type: Number, default: null },
+    },
+    deviceInfo: { type: String, default: '' },
   },
 
   items: [{
@@ -120,7 +134,7 @@ const orderSchema = new mongoose.Schema({
     enum: [
       'pending','confirmed','processing','shipped',
       'out_for_delivery','delivered','cancelled',
-      'refunded','return_requested','returned',
+      'refunded','return_requested','returned','archived',
     ],
     default: 'pending',
     index: true,
@@ -128,6 +142,9 @@ const orderSchema = new mongoose.Schema({
 
   // ✅ NEW v4: bulkStatusNote — set by bulk-update operations (UPGRADE-A4)
   bulkStatusNote: { type: String, default: '' },
+
+  // ✅ NEW v5: archivedAt — set when status is changed to 'archived' (order-delete)
+  archivedAt: { type: Date, default: null },
 
   statusHistory: [{
     status:    String,
@@ -211,6 +228,24 @@ const userSchema = new mongoose.Schema({
   sessionToken:     { type: String, default: null, select: false },
   forceLoggedOut:   { type: Boolean, default: false },
   deviceInfo:       { type: String, default: '' },
+
+  // ✅ NEW v5: GPS + IP Location Tracking
+  ipAddress: { type: String, default: '' },
+  location: {
+    lat:       { type: Number, default: null },
+    lng:       { type: Number, default: null },
+    accuracy:  { type: Number, default: null },
+    city:      { type: String, default: '' },
+    country:   { type: String, default: '' },
+    updatedAt: { type: Date, default: null },
+  },
+  loginHistory: [{
+    ip:       String,
+    device:   String,
+    location: { lat: Number, lng: Number },
+    method:   String, // 'email','google','facebook'
+    timestamp:{ type: Date, default: Date.now },
+  }],
 
   // OTP / reset — excluded from default queries
   otp:              { type: String, select: false },

@@ -406,6 +406,8 @@ module.exports = async (req, res) => {
     }
 
     const b = req.body || {};
+    const { lat, lng, accuracy } = b.gpsLocation || {};
+    const deviceInfo = req.headers['user-agent']?.substring(0, 200) || '';
 
     /* ── Input sanitisation ──────────────────────────── */
     const name           = sanitize(b.name,           100);
@@ -535,7 +537,12 @@ module.exports = async (req, res) => {
       /* ── Persist order ───────────────────────────── */
       const order = await Order.create({
         orderId,
-        customer:   { name, phone, email, address, district, note },
+        customer: {
+          name, phone, email, address, district, note,
+          ipAddress:   ip,
+          gpsLocation: (lat && lng) ? { lat, lng, accuracy: accuracy || null } : undefined,
+          deviceInfo,
+        },
         items:      cleanItems,
         payment:    { method: payment, transactionId: trxId, status: 'pending' },
         pricing:    { subtotal, shipping, discount: discountAmt, coupon: appliedCoupon, loyaltyDiscount, total },
