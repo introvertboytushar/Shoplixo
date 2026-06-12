@@ -1693,12 +1693,23 @@ async function deleteOrder(orderId) {
   if (!orderId) { toast('Order ID পাওয়া যায়নি', 'warning'); return; }
   if (!adminKey) { toast('Admin key নেই — আবার login করুন', 'warning'); return; }
 
-  // Step 1: archive or permanent?
-  const choice = confirm(`Order ${esc(orderId)} কী করবেন?\n\nOK = Archive (ফিরিয়ে আনা যাবে)\nCancel = বাতিল`);
-  if (!choice) return;
+  // Step 1: নিশ্চিত করো — delete করতে চায় কিনা
+  const confirmed = confirm(
+    `⚠️ Order ${esc(orderId)} delete করবেন?\n\n` +
+    `• OK চাপলে পরের step এ permanent / archive বেছে নিতে পারবেন\n` +
+    `• Cancel চাপলে কিছুই হবে না`
+  );
+  if (!confirmed) return;
 
-  // Step 2: confirm permanent deletion
-  const permanent = confirm('Permanently delete করবেন? (এটি undo করা যাবে না)');
+  // Step 2: Permanent নাকি Archive?
+  const isPermanent = confirm(
+    `Order ${esc(orderId)} কীভাবে delete করবেন?\n\n` +
+    `✅ OK = Permanently Delete (DB থেকে সম্পূর্ণ মুছে যাবে, undo সম্ভব না)\n` +
+    `❌ Cancel = Archive করুন (hidden থাকবে, পরে ফিরিয়ে আনা যাবে)`
+  );
+
+  const btn = document.querySelector(`button[onclick="deleteOrder('${esc(orderId)}')"]`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> মুছছি...'; }
 
   try {
     const resp = await fetch('/api/admin?action=order-delete', {
@@ -1706,19 +1717,26 @@ async function deleteOrder(orderId) {
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         orderId: String(orderId).trim(),
-        permanent: !!permanent
-      })
+        permanent: !!isPermanent,
+      }),
     });
     const data = await resp.json();
     if (data.ok) {
-      toast(permanent ? '🗑️ Order permanently deleted!' : '📦 Order archived!', 'success');
+      toast(
+        isPermanent
+          ? `🗑️ Order ${esc(orderId)} permanently deleted!`
+          : `📦 Order ${esc(orderId)} archived! (Orders list এ দেখাবে না)`,
+        'success'
+      );
       closeOrderModal();
       loadOrders(currentPage || 1);
     } else {
-      toast(data.error || 'Delete হয়নি', 'warning');
+      toast(data.error || 'Delete হয়নি — আবার চেষ্টা করুন', 'warning');
     }
   } catch (e) {
     toast('❌ Network error: ' + e.message, 'warning');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-trash"></i> Delete Order'; }
   }
 }
 
@@ -1914,6 +1932,8 @@ async function loadNewsletter() {
         <td><button onclick="deleteSubscriber('${esc(s.email)}')" style="background:#fdf0f0;color:var(--brand);border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer"><i class="fa-solid fa-trash"></i></button></td>
       </tr>`).join('')
     : '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">কোনো subscriber নেই</td></tr>';
+  const totalEl = $('nl-total-count');
+  if (totalEl) totalEl.textContent = data.total || subs.length;
 }
 
 async function deleteSubscriber(email) {

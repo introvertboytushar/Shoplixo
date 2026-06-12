@@ -1175,8 +1175,8 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 @media(max-width:768px){#sticky-buy{display:block}}
 
 /* ===== WHATSAPP ORDER BUTTON ===== */
-.btn-wa-order{width:100%;background:#25D366;color:#fff;padding:9px;border-radius:var(--r-sm);font-size:12px;font-weight:700;margin-top:6px;transition:var(--t);display:flex;align-items:center;justify-content:center;gap:6px;border:none;cursor:pointer}
-.btn-wa-order:hover,.btn-wa-order:active{background:#1DA851}
+.btn-wa-order,.btn-direct-order{width:100%;background:var(--dark2);color:#fff;padding:9px;border-radius:var(--r-sm);font-size:12px;font-weight:700;margin-top:6px;transition:var(--t);display:flex;align-items:center;justify-content:center;gap:6px;border:none;cursor:pointer;font-family:inherit}
+.btn-wa-order:hover,.btn-wa-order:active,.btn-direct-order:hover,.btn-direct-order:active{background:var(--brand);transform:translateY(-1px)}
 
 /* ===== RECENTLY VIEWED ===== */
 #recently-viewed{background:var(--bg2);padding:40px 0;display:none}
@@ -2093,9 +2093,9 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 /* Lightbox animation */
 @keyframes scaleIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.pdp-sticky-btn-cart{flex:0 0 auto;background:rgba(255,255,255,.12);color:#fff;padding:14px 20px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:1.5px solid rgba(255,255,255,.2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;-webkit-tap-highlight-color:transparent;transition:var(--t)}
-.pdp-sticky-btn-cart:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35)}
-.pdp-sticky-btn-cart:active{transform:scale(.97)}
+.pdp-sticky-btn-cart{flex:0 0 auto;background:#2a2a4a;color:#fff;padding:14px 22px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:2px solid rgba(255,255,255,.35);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;-webkit-tap-highlight-color:transparent;transition:var(--t)}
+.pdp-sticky-btn-cart:hover{background:#3a3a6a;border-color:rgba(255,255,255,.6)}
+.pdp-sticky-btn-cart:active{transform:scale(.97);background:#2a2a4a}
 .pdp-sticky-btn-buy{flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:14px;border-radius:var(--r-full);font-size:15px;font-weight:800;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 18px rgba(228,30,38,.4);-webkit-tap-highlight-color:transparent;transition:var(--t);position:relative;overflow:hidden}
 .pdp-sticky-btn-buy::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.2),transparent 60%)}
 .pdp-sticky-btn-buy:hover{box-shadow:0 6px 24px rgba(228,30,38,.55)}
@@ -4469,7 +4469,7 @@ function pCard(p) {
         <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments('${p.id}','${p.name.replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
         <button class="pc-compare-btn ${inCompare?'in-compare':''}" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-scale-balanced"></i> ${inCompare?'✓ Added':'Compare'}</button>
       </div>
-      <a href="https://wa.me/8801516511889?text=${waMsg}" target="_blank" class="btn-wa-order" onclick="event.stopPropagation()"><i class="fa-brands fa-whatsapp"></i> WhatsApp এ Order করুন</a>
+      <button class="btn-direct-order" onclick="event.stopPropagation();quickOrderNow('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই অর্ডার করুন</button>
     </div>
   </div>`;
 }
@@ -5271,6 +5271,14 @@ function pdpBuyNow() {
   if (!window._pdpPid) return;
   addToCart(window._pdpPid, window._pdpQty||1, window._pdpSize||'M', window._pdpColor||'');
   setTimeout(()=>openCheckout(), 200);
+}
+// Direct Order from product card — cart এ add করে সাথে সাথে checkout খোলে
+function quickOrderNow(pid) {
+  const P = window.PRODUCTS || PRODUCTS;
+  const p = P.find(x => String(x.id) === String(pid));
+  if (!p) return;
+  addToCart(pid, 1, (p.sizes && p.sizes[0]) || 'M', (p.colors && p.colors[0]) || '');
+  setTimeout(() => openCheckout(), 150);
 }
 
 /* ===== UPGRADE 9: PDP Skeleton ===== */
@@ -6547,8 +6555,8 @@ async function subscribeNL(){
       body: JSON.stringify({ email, name, source: 'website' })
     }).then(r => r.json());
     if (res.ok) {
-      if (res.couponCode) {
-        showToast(`Subscribe সফল! কোড <strong>${res.couponCode}</strong> পেয়েছেন — আপনার email check করুন।`, 'envelope');
+      if (res.coupon) {
+        showToast(`Subscribe সফল! কোড <strong>${res.coupon}</strong> পেয়েছেন — আপনার email check করুন।`, 'envelope');
       } else {
         showToast('✅ Subscribe সফল হয়েছে! ধন্যবাদ।', 'envelope');
       }
@@ -10853,8 +10861,8 @@ window.updateAdminPanel = updateAdminPanel;
 </div>
 
   <div class="pdp-sticky-actions" id="pdp-sticky-actions-bar">
-    <button class="pdp-sticky-btn-cart" onclick="pdpAddToCart()"><i class="fa-solid fa-cart-plus"></i> Cart</button>
-    <button class="pdp-sticky-btn-buy" onclick="pdpBuyNow()"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
+    <button class="pdp-sticky-btn-cart" onclick="pdpAddToCart()"><i class="fa-solid fa-cart-plus"></i> Cart এ Add</button>
+    <button class="pdp-sticky-btn-buy" onclick="pdpBuyNow()"><i class="fa-solid fa-bolt"></i> এখনই অর্ডার করুন</button>
   </div>
 </div>
 <!-- ===== EXIT INTENT OFFER BAR ===== -->
