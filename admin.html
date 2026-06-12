@@ -1306,6 +1306,7 @@ let currentPage = 1;
 let searchTimer = null;
 let revenueChart = null;
 let statusChart = null;
+let allCustomers = [];   // UPGRADE-B2: Login History তে ব্যবহার হবে
 
 /* ─── HELPERS ─── */
 const $ = id => document.getElementById(id);
@@ -1567,6 +1568,32 @@ async function viewOrder(id) {
       <div class="om-field"><label>Status</label><span class="status-badge sb-${o.status}">${statusLabel(o.status)}</span></div>
       ${o.payment?.transactionId ? `<div class="om-field"><label>Trx ID</label><span>${esc(o.payment.transactionId)}</span></div>` : ''}
       ${o.customer?.note ? `<div class="om-field"><label>Note</label><span>${esc(o.customer.note)}</span></div>` : ''}
+      ${(() => {
+        // UPGRADE-B3: Order GPS Location — parseFloat দিয়ে validate করো (inject-safe)
+        const gps = o.customer?.gpsLocation;
+        const oLat = parseFloat(gps?.lat);
+        const oLng = parseFloat(gps?.lng);
+        const acc  = gps?.accuracy ? Math.round(Number(gps.accuracy)) : null;
+        if (!isNaN(oLat) && !isNaN(oLng)) {
+          return `<div class="om-field"><label><i class="fa-solid fa-location-dot" style="color:var(--blue)"></i> Order Location</label>
+            <span>
+              <a href="https://www.google.com/maps?q=${oLat},${oLng}" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">
+                <i class="fa-solid fa-location-dot"></i> Map এ দেখুন
+              </a>
+              ${acc && !isNaN(acc) ? `<span style="color:var(--text3);font-size:10px;margin-left:4px">(±${acc}m)</span>` : ''}
+            </span></div>`;
+        }
+        return '';
+      })()}
+      ${(() => {
+        // UPGRADE-B3: Order IP Address — esc() দিয়ে sanitize করো
+        const ip = o.customer?.ipAddress;
+        if (ip) {
+          return `<div class="om-field"><label><i class="fa-solid fa-network-wired" style="color:var(--text3)"></i> IP Address</label>
+            <span style="font-family:monospace;font-size:12px">${esc(ip)}</span></div>`;
+        }
+        return '';
+      })()}
     </div>
     <div class="om-items">
       ${(o.items || []).map(i => `<div class="om-item">
@@ -1785,6 +1812,7 @@ async function loadCustomers() {
     return;
   }
   const users = data.users || [];
+  allCustomers = users;   // UPGRADE-B2: viewLoginHistory() এর জন্য cache
 
   const loginMethodBadge = {
     google:   '<span style="background:#ea4335;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">G Google</span>',
@@ -1799,6 +1827,13 @@ async function loadCustomers() {
           : `<span style="display:inline-block;width:8px;height:8px;background:#9ca3af;border-radius:50%;margin-right:4px"></span><span style="color:#9ca3af;font-size:11px">Last seen: ${c.lastSeen ? timeAgo(c.lastSeen) : 'Never'}</span>`;
         const safeId   = esc(c._id || '');
         const safeName = esc(c.name || 'Unknown');
+        // UPGRADE-B1: IP + GPS Location — parse করো, তারপর template এ ব্যবহার করো
+        const _cLat = parseFloat(c.location?.lat);
+        const _cLng = parseFloat(c.location?.lng);
+        const _custLocLink = (!isNaN(_cLat) && !isNaN(_cLng))
+          ? `<a href="https://www.google.com/maps?q=${_cLat},${_cLng}" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:none"><i class="fa-solid fa-location-dot"></i> Map দেখুন</a>`
+          : '<span style="color:var(--text3)">—</span>';
+        const _custIp = esc(c.ipAddress || '—');
         return `
 <div style="background:#fff;border-radius:var(--r-xl);padding:20px;box-shadow:var(--sh);border:1.5px solid var(--border)">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
@@ -1823,12 +1858,18 @@ async function loadCustomers() {
     <div><span style="color:var(--text3)">Logins:</span> <strong>${c.loginCount || 0}</strong></div>
     <div><span style="color:var(--text3)">Joined:</span> <strong>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD') : '—'}</strong></div>
     <div><span style="color:var(--text3)">Device:</span> <strong style="font-size:10px">${(c.deviceInfo || '').includes('Mobile') ? '📱 Mobile' : '💻 Desktop'}</strong></div>
+    <div><span style="color:var(--text3)">IP:</span> <strong style="font-family:monospace;font-size:11px">${_custIp}</strong></div>
+    <div><span style="color:var(--text3)">Location:</span> ${_custLocLink}</div>
   </div>
 
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button onclick="viewCustomerOrders('${safeId}','${safeName}')"
       style="flex:1;background:var(--blue);color:#fff;padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:none;cursor:pointer">
       <i class="fa-solid fa-list"></i> Orders
+    </button>
+    <button onclick="viewLoginHistory('${safeId}','${safeName}')"
+      style="flex:1;background:var(--bg2,#fff);color:var(--text2);padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:1.5px solid var(--border);cursor:pointer">
+      <i class="fa-solid fa-clock-rotate-left"></i> Login History
     </button>
     ${c.isOnline ? `
     <button onclick="forceLogoutCustomer('${safeId}','${safeName}')"
@@ -1844,6 +1885,78 @@ async function loadCustomers() {
       }).join('')
     : '<div style="text-align:center;padding:40px;color:var(--text3);grid-column:1/-1">কোনো customer নেই</div>';
 }
+
+/* ─── UPGRADE-B2: Login History Modal ─── */
+function viewLoginHistory(userId, name) {
+  // allCustomers এ already-loaded data থেকে নাও
+  const customer = allCustomers.find(c => String(c._id) === String(userId));
+  const history  = Array.isArray(customer?.loginHistory) ? customer.loginHistory : [];
+
+  const rows = history.slice().reverse().slice(0, 20).map(h => {
+    // Coordinates: parseFloat দিয়ে validate করো — inject-safe
+    const hLat = parseFloat(h.location?.lat);
+    const hLng = parseFloat(h.location?.lng);
+    const locLink = (!isNaN(hLat) && !isNaN(hLng))
+      ? `<a href="https://www.google.com/maps?q=${hLat},${hLng}" target="_blank" rel="noopener noreferrer" style="color:var(--blue)"><i class="fa-solid fa-location-dot"></i> দেখুন</a>`
+      : '—';
+
+    const methodBadge = h.method === 'google'
+      ? '<span style="color:#ea4335">G Google</span>'
+      : h.method === 'facebook'
+        ? '<span style="color:#1877f2">f Facebook</span>'
+        : '<span style="color:var(--text3)">✉ Email</span>';
+
+    // timestamp — invalid হলে graceful fallback
+    let timeStr = '—';
+    try {
+      const d = new Date(h.timestamp);
+      if (!isNaN(d.getTime())) timeStr = d.toLocaleString('bn-BD');
+    } catch (_) {}
+
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:7px 6px;font-size:11px;color:var(--text3);white-space:nowrap">${timeStr}</td>
+      <td style="padding:7px 6px;font-size:11px;font-family:monospace">${esc(h.ip || '—')}</td>
+      <td style="padding:7px 6px;font-size:11px">${methodBadge}</td>
+      <td style="padding:7px 6px;font-size:11px">${locLink}</td>
+      <td style="padding:7px 6px;font-size:10px;color:var(--text3);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((h.device || '').substring(0, 40))}</td>
+    </tr>`;
+  }).join('');
+
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)';
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:var(--r-xl);width:100%;max-width:740px;max-height:88vh;overflow-y:auto;position:relative;box-shadow:var(--sh-lg)">
+      <div style="background:var(--dark2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff">
+          <i class="fa-solid fa-clock-rotate-left"></i> ${esc(name)} — Login History
+          ${history.length ? `<span style="font-size:12px;font-weight:400;opacity:.6;margin-left:8px">(Last ${Math.min(history.length,20)} entries)</span>` : ''}
+        </div>
+        <button onclick="this.closest('[style*=fixed]').remove()"
+          style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:15px">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div style="padding:16px;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;min-width:500px">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);background:var(--bg)">
+              <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">সময়</th>
+              <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">IP</th>
+              <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">মাধ্যম</th>
+              <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Location</th>
+              <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Device</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)"><i class="fa-solid fa-inbox" style="display:block;font-size:24px;opacity:.3;margin-bottom:8px"></i>কোনো login history নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  el.addEventListener('click', e => { if (e.target === el) el.remove(); });
+  document.body.appendChild(el);
+}
+window.viewLoginHistory = viewLoginHistory;
 
 /* banUser — maps both isBanned (new) and isActive (legacy) fields */
 async function banUser(userId, currentlyBanned) {

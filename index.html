@@ -1175,8 +1175,16 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 @media(max-width:768px){#sticky-buy{display:block}}
 
 /* ===== WHATSAPP ORDER BUTTON ===== */
+/* ── PRODUCT CARD ORDER BUTTONS (Upgrade 1) ── */
 .btn-wa-order,.btn-direct-order{width:100%;background:var(--dark2);color:#fff;padding:9px;border-radius:var(--r-sm);font-size:12px;font-weight:700;margin-top:6px;transition:var(--t);display:flex;align-items:center;justify-content:center;gap:6px;border:none;cursor:pointer;font-family:inherit}
 .btn-wa-order:hover,.btn-wa-order:active,.btn-direct-order:hover,.btn-direct-order:active{background:var(--brand);transform:translateY(-1px)}
+/* NEW: Primary order button row */
+.pc-order-row{display:flex;gap:8px;margin-top:8px}
+.btn-order-now{flex:1;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:11px 14px;border-radius:var(--r-full);font-size:13px;font-weight:800;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 4px 14px rgba(228,30,38,.3);transition:var(--t);-webkit-tap-highlight-color:transparent}
+.btn-order-now:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(228,30,38,.4)}
+.btn-order-now:active{transform:scale(.97)}
+.btn-wa-icon{flex-shrink:0;width:42px;height:42px;background:#25d366;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;text-decoration:none;transition:var(--t);-webkit-tap-highlight-color:transparent}
+.btn-wa-icon:hover{transform:scale(1.08);box-shadow:0 4px 12px rgba(37,211,102,.4)}
 
 /* ===== RECENTLY VIEWED ===== */
 #recently-viewed{background:var(--bg2);padding:40px 0;display:none}
@@ -1970,9 +1978,9 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .sfb-result-count{font-size:12px;color:var(--text3);flex-shrink:0}
 
 /* ── INLINE PRODUCT DETAIL PAGE ── */
-#product-detail-page{display:none;position:fixed;inset:0;z-index:4500;background:#0D0D1A;overflow:hidden;animation:slideInRight .35s ease;flex-direction:column}
+#product-detail-page{display:none;position:fixed;inset:0;z-index:4500;background:#0D0D1A;overflow:hidden;animation:slideInRight .35s ease;flex-direction:column;height:100vh;height:100dvh}
 #product-detail-page.open{display:flex}
-#pdp-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#pdp-body{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
 /* When PDP open, hide global sticky bar on main page */
 #product-detail-page.open ~ #sticky-buy{display:none!important}
 @keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
@@ -2066,9 +2074,10 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .pdp-rbar-track{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .pdp-rbar-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .8s ease}
 .pdp-related{padding:20px}
-.pdp-sticky-actions{display:none;position:relative;width:100%;background:rgba(13,13,26,.97);padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom,10px));box-shadow:0 -4px 24px rgba(0,0,0,.5);flex-shrink:0;gap:10px;border-top:1.5px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:10}
+.pdp-sticky-actions{display:none;position:relative;width:100%;background:rgba(13,13,26,.97);padding:10px 14px;padding-bottom:max(10px,env(safe-area-inset-bottom,10px));box-shadow:0 -4px 24px rgba(0,0,0,.5);flex-shrink:0;gap:10px;border-top:1.5px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:20}
 @media(max-width:768px){
-  .pdp-sticky-actions{display:flex}
+  .pdp-sticky-actions{display:flex!important;position:fixed!important;bottom:0;left:0;right:0;width:100%}
+  #pdp-body{padding-bottom:78px!important}
   .pdp-cta-row{display:none}
   .pdp-product-name{font-size:18px}
   .pdp-price-main{font-size:26px}
@@ -4469,7 +4478,10 @@ function pCard(p) {
         <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments('${p.id}','${p.name.replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
         <button class="pc-compare-btn ${inCompare?'in-compare':''}" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-scale-balanced"></i> ${inCompare?'✓ Added':'Compare'}</button>
       </div>
-      <button class="btn-direct-order" onclick="event.stopPropagation();quickOrderNow('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই অর্ডার করুন</button>
+      <div class="pc-order-row">
+        <button class="btn-order-now" onclick="event.stopPropagation();quickBuyNow('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই অর্ডার করুন</button>
+        <a href="https://wa.me/8801516511889?text=${waMsg}" target="_blank" class="btn-wa-icon" onclick="event.stopPropagation()" title="WhatsApp এ জিজ্ঞাসা করুন"><i class="fa-brands fa-whatsapp"></i></a>
+      </div>
     </div>
   </div>`;
 }
@@ -4576,6 +4588,15 @@ function openProductPage(pid) {
   renderProductDetailPage(p);
   // pdp already open (opened before skeleton)
   window.scrollTo(0, 0);
+  // UPGRADE 2: Mobile sticky bar visibility নিশ্চিত করো
+  setTimeout(() => {
+    const stickyBar = document.getElementById('pdp-sticky-actions-bar');
+    if (stickyBar && window.innerWidth <= 768) {
+      stickyBar.style.display = 'flex';
+      stickyBar.style.visibility = 'visible';
+      stickyBar.style.opacity = '1';
+    }
+  }, 120);
   })); // end rAF wrapper
 }
 
@@ -5281,6 +5302,16 @@ function quickOrderNow(pid) {
   setTimeout(() => openCheckout(), 150);
 }
 
+// UPGRADE 1: quickBuyNow — PDP খুলে সাথে সাথে Buy Now flow শুরু করে
+function quickBuyNow(pid) {
+  openProductPage(pid);
+  setTimeout(() => {
+    if (typeof pdpBuyNow === 'function') {
+      pdpBuyNow();
+    }
+  }, 400);
+}
+
 /* ===== UPGRADE 9: PDP Skeleton ===== */
 function showPDPSkeleton() {
   const body = document.getElementById('pdp-body');
@@ -5753,6 +5784,42 @@ async function applyCoupon(){
    ════════════════════════════════════════════ */
 const API_BASE = window.location.origin; // Same domain on Vercel
 
+/* ════════════════════════════════════════════
+   ORDER CONTEXT — Browser / Device Info
+   Helps admin understand customer's device for
+   support purposes. IP is logged server-side.
+   ════════════════════════════════════════════ */
+function collectClientMeta() {
+  const ua = navigator.userAgent;
+
+  let os = 'Unknown';
+  if      (ua.includes('Windows')) os = 'Windows';
+  else if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+  else if (ua.includes('Mac OS')) os = 'macOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+
+  let browser = 'Unknown';
+  if      (ua.includes('Edg'))                            browser = 'Edge';
+  else if (ua.includes('Chrome') && !ua.includes('Edg')) browser = 'Chrome';
+  else if (ua.includes('Firefox'))                        browser = 'Firefox';
+  else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+
+  let deviceType = 'Desktop';
+  if (/Android|iPhone|iPod/.test(ua))   deviceType = 'Mobile';
+  else if (/iPad|Tablet/.test(ua))      deviceType = 'Tablet';
+
+  return {
+    os,
+    browser,
+    deviceType,
+    screen    : `${screen.width}×${screen.height}`,
+    language  : navigator.language || 'Unknown',
+    referrer  : document.referrer  || 'Direct',
+    orderedAt : new Date().toISOString(),
+  };
+}
+
 // ── Security: HTML escape utility to prevent XSS ──
 function escHtml(str){
   if(str == null) return '';
@@ -5828,6 +5895,13 @@ async function placeOrder(){
   const origText=btn?.innerHTML||'';
   if(btn){btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Order দেওয়া হচ্ছে...';}
 
+  // Collect order context (device/browser info for admin support)
+  let clientMeta = {};
+  try { clientMeta = collectClientMeta(); } catch(e) {}
+
+  // UPGRADE 3: GPS location capture
+  const gpsLocation = cachedGPSLocation || await requestGPSLocation();
+
   const t=total(),thresh=CFG.freeShippingMin||999,ship=t>=thresh?0:60;
   const discAmt=Math.round(t*discount/100),fin=t+ship-discAmt;
 
@@ -5876,6 +5950,8 @@ async function placeOrder(){
     items: cart.map(i=>({id:i.id,name:i.name,price:i.price,orig:i.orig,img:i.img,qty:i.qty,size:i.size||'',color:i.color||'',cat:i.cat||''})),
     discountPct: discount,
     couponCode: $('ck-coupon')?.value||'',
+    gpsLocation,
+    clientMeta,
   };
 
   try {
@@ -6071,7 +6147,8 @@ async function doLogin(){
   const btn=$('btn-login');
   if(btn){btn.disabled=true;btn.textContent='Login হচ্ছে...';}
   try{
-    const r=await apiPost('auth?action=login',{identifier:id,password:pw});
+    const gpsLocation = cachedGPSLocation || await requestGPSLocation();
+    const r=await apiPost('auth?action=login',{identifier:id,password:pw,gpsLocation});
     if(r.ok){
       currentUser=r.user;
       localStorage.setItem('slx_user',JSON.stringify(r.user));
@@ -6108,7 +6185,8 @@ async function doRegister(){
   const email=$('r-email')?.value||'';
 
   try{
-    const r=await apiPost('auth?action=register',{name,phone,email,password:pw});
+    const gpsLocation = cachedGPSLocation || await requestGPSLocation();
+    const r=await apiPost('auth?action=register',{name,phone,email,password:pw,gpsLocation});
     if(r.ok){
       currentUser=r.user;
       localStorage.setItem('slx_user',JSON.stringify(r.user));
@@ -10863,6 +10941,38 @@ window.updateAdminPanel = updateAdminPanel;
   <span class="eib-code" onclick="copyExitCode()" title="Click to copy">SAVE10</span>
   <button class="eib-close" onclick="document.getElementById('exit-intent-bar').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
 </div>
+
+<script>
+/* ===== UPGRADE 3: GPS LOCATION CAPTURE (Privacy-friendly, non-blocking) ===== */
+let cachedGPSLocation = null;
+
+function requestGPSLocation() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    const timeoutId = setTimeout(() => resolve(null), 5000);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timeoutId);
+        const loc = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        };
+        cachedGPSLocation = loc;
+        resolve(loc);
+      },
+      () => { clearTimeout(timeoutId); resolve(null); },
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 }
+    );
+  });
+}
+
+// Page load এর ২ সেকেন্ড পরে silent background request
+// (browser cached permission থাকলে popup দেখাবে না)
+window.addEventListener('load', () => {
+  setTimeout(() => { requestGPSLocation(); }, 2000);
+});
+</script>
 
 <script>
 /* ===== SHURJOPAY CONFIG ===== */
