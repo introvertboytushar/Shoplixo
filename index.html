@@ -5326,16 +5326,8 @@ function setupPDPFloatingBar(p) {
   const fp = document.getElementById('pdp-float-price');
   if (fi) fi.src = p.img;
   if (fn) fn.textContent = p.name;
-  if (fp) fp.textContent = `৳${p.price.toLocaleString()}`;
+  if (fp) fp.textContent = `৳${(p.price || 0).toLocaleString()}`;
   bar.style.display = 'flex';
-
-  const pdpBody = document.getElementById('pdp-body');
-  if (!pdpBody) return;
-  // Remove previous listener by cloning
-  const newBody = pdpBody.cloneNode(false);
-  pdpBody.parentNode.replaceChild(newBody, pdpBody);
-  // Re-set content
-  const origBody = document.getElementById('pdp-body');
 
   // Use scroll on the PDP overlay container instead
   const overlay = document.getElementById('product-detail-page');
@@ -5374,8 +5366,8 @@ function renderFrequentlyBoughtTogether(p) {
           ${i > 0 ? '<div style="flex-shrink:0;width:24px;height:24px;background:var(--bg);border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-plus" style="color:var(--text3);font-size:9px"></i></div>' : ''}
           <div style="flex-shrink:0;text-align:center;width:76px;cursor:pointer" onclick="openProductPage('${item.id}')">
             <img src="${item.img}" style="width:68px;height:68px;border-radius:var(--r-sm);object-fit:cover;border:2px solid ${i===0?'var(--brand)':'var(--border)'};transition:var(--t)" loading="lazy" onerror="this.src='https://picsum.photos/seed/${item.id}fbt/80/80'">
-            <div style="font-size:10px;margin-top:5px;color:var(--text3);font-weight:600">৳${item.price.toLocaleString()}</div>
-            <div style="font-size:9px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:76px">${item.name.slice(0,12)}…</div>
+            <div style="font-size:10px;margin-top:5px;color:var(--text3);font-weight:600">৳${(item.price || 0).toLocaleString()}</div>
+            <div style="font-size:9px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:76px">${(item.name || '').slice(0,12)}…</div>
           </div>
         `).join('')}
       </div>
