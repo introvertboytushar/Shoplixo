@@ -292,6 +292,13 @@ function getMailer() {
   return _transporter;
 }
 
+// ✅ FIX (SECTION 7): Check whether email/SMTP credentials are configured.
+// Used by newsletter-campaign so admin gets a clear error instead of a
+// false "sent" message when EMAIL_USER/EMAIL_PASS are missing.
+function isEmailConfigured() {
+  return !!(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+}
+
 async function sendEmail(to, subject, html) {
   try {
     const mailer = getMailer();
@@ -964,7 +971,7 @@ module.exports = {
   hashPassword, verifyAdminPassword, isStrongPassword,   // ✅ NEW v4
 
   // Email
-  sendEmail,
+  sendEmail, isEmailConfigured,
   emailBase,
   orderConfirmationEmail, orderStatusEmail, welcomeEmail,
   abandonedCartEmail, lowStockAlertEmail, invoiceEmail, returnApprovedEmail,

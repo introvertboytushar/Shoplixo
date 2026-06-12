@@ -104,7 +104,7 @@ const {
   Referral, SiteSettings, getSetting, setSetting, getSettings,
 } = require('./_db');
 const {
-  handleCors, isAdmin, sanitize, sendEmail, sendSMS,
+  handleCors, isAdmin, sanitize, sendEmail, sendSMS, isEmailConfigured,
   orderStatusEmail, orderShippedSMS,
 } = require('./_helpers');
 
@@ -693,6 +693,60 @@ module.exports = async (req, res) => {
   }
 
   /* ═══════════════════════════════════════════════════════════
+     ── BULK ORDER DELETE / ARCHIVE (NEW — SECTION 2 FIX) ────
+     POST ?action=order-bulk-delete
+     Body: { orderIds: [...], permanent?: boolean }
+     • প্রতিটি orderId এর জন্য আলাদাভাবে delete/archive করা হয় —
+       একটি fail হলেও বাকিগুলো চলবে। শুধু selected order গুলোই
+       affected হবে, অন্য কোনো order এ effect পড়বে না।
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'order-bulk-delete' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+      const orderIds = Array.isArray(b.orderIds)
+        ? [...new Set(b.orderIds.map(id => sanitize(String(id || ''), 30).toUpperCase()).filter(Boolean))]
+        : [];
+      const isPermanent = b.permanent === true || b.permanent === 'true';
+
+      if (!orderIds.length) return res.status(400).json({ ok: false, error: 'কমপক্ষে একটি Order ID দিন' });
+      if (orderIds.length > 200) return res.status(400).json({ ok: false, error: 'একসাথে সর্বোচ্চ ২০০টি order delete করা যাবে' });
+
+      let deleted = 0, failed = 0;
+      const failedIds = [];
+
+      if (isPermanent) {
+        const result = await Order.deleteMany({ orderId: { $in: orderIds } });
+        deleted = result.deletedCount || 0;
+        failed = orderIds.length - deleted;
+      } else {
+        for (const orderId of orderIds) {
+          try {
+            const archived = await Order.findOneAndUpdate(
+              { orderId },
+              { $set: { status: 'archived', archivedAt: new Date() } },
+              { new: true }
+            );
+            if (archived) deleted++; else { failed++; failedIds.push(orderId); }
+          } catch (e) {
+            failed++; failedIds.push(orderId);
+          }
+        }
+      }
+
+      return res.json({
+        ok: true,
+        deleted,
+        failed,
+        failedIds,
+        message: `${deleted}টি order ${isPermanent ? 'permanently delete' : 'archive'} হয়েছে${failed ? `, ${failed}টি fail হয়েছে` : ''}`,
+      });
+    } catch (err) {
+      console.error('Bulk order delete error:', err);
+      return res.status(500).json({ ok: false, error: 'Bulk delete হয়নি: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
      ── ORDER DELETE / ARCHIVE (NEW — UPGRADE 1) ─────────────
      POST ?action=order-delete
      Body: { orderId, permanent?: boolean }
@@ -1143,9 +1197,24 @@ module.exports = async (req, res) => {
   }
 
   if (action === 'newsletter-del' && req.method === 'POST') {
-    const { email } = req.body || {};
-    await Newsletter.findOneAndUpdate({ email }, { isActive: false });
-    return res.json({ ok: true, message: 'Subscriber remove হয়েছে' });
+    try {
+      const b = req.body || {};
+      const email = String(b.email || '').trim().toLowerCase();
+      if (!email) return res.status(400).json({ ok: false, error: 'email required' });
+
+      // Case-insensitive exact match using a safe regex (escape special chars to avoid ReDoS/injection)
+      const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const sub = await Newsletter.findOneAndUpdate(
+        { email: new RegExp(`^${escapedEmail}$`, 'i') },
+        { isActive: false },
+        { new: true }
+      );
+      if (!sub) return res.status(404).json({ ok: false, error: 'Subscriber পাওয়া যায়নি' });
+      return res.json({ ok: true, message: 'Subscriber remove হয়েছে' });
+    } catch (err) {
+      console.error('Newsletter delete error:', err);
+      return res.status(500).json({ ok: false, error: 'Subscriber remove হয়নি: ' + err.message });
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -1640,6 +1709,15 @@ module.exports = async (req, res) => {
       if (!subject) return res.status(400).json({ ok: false, error: 'subject required' });
       if (!html)    return res.status(400).json({ ok: false, error: 'html required' });
 
+      // ✅ FIX (SECTION 7): Email service configured আছে কিনা প্রথমে চেক করো —
+      // না থাকলে admin কে স্পষ্টভাবে জানাও, false-positive "sent" message দেখাবে না
+      if (!isEmailConfigured()) {
+        return res.status(500).json({
+          ok: false,
+          error: 'Email service configured না। .env (বা Vercel Environment Variables) এ EMAIL_USER ও EMAIL_PASS যোগ করুন। (ঐচ্ছিক: EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE, EMAIL_FROM)',
+        });
+      }
+
       // Basic email format guard
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -1647,8 +1725,11 @@ module.exports = async (req, res) => {
       if (testEmail) {
         if (!emailRegex.test(testEmail))
           return res.status(400).json({ ok: false, error: 'Invalid testEmail format' });
-        await sendEmail(testEmail, subject, html);
-        return res.json({ ok: true, message: `Test email sent to ${testEmail}` });
+        const success = await sendEmail(testEmail, subject, html);
+        if (!success) {
+          return res.status(500).json({ ok: false, error: `Test email পাঠানো যায়নি (${testEmail})। SMTP credentials/connection চেক করুন।` });
+        }
+        return res.json({ ok: true, message: `✅ Test email sent to ${testEmail}` });
       }
 
       // ── Campaign mode: send to all active subscribers ────
@@ -1678,8 +1759,10 @@ module.exports = async (req, res) => {
       }
 
       return res.json({
-        ok: true,
-        message: `Campaign sent! ${sent} জন কে পাঠানো হয়েছে।`,
+        ok: sent > 0,
+        message: sent > 0
+          ? `✅ Campaign sent! ${sent} জন কে পাঠানো হয়েছে${failed ? `, ${failed} জনের কাছে fail হয়েছে` : ''}।`
+          : `❌ কোনো email পাঠানো যায়নি (${failed} জনের কাছে fail)। SMTP credentials/connection চেক করুন।`,
         sent,
         failed,
         total: subscribers.length,
@@ -1699,7 +1782,7 @@ module.exports = async (req, res) => {
       'products', 'product', 'products-export',
       'product-add', 'product-edit', 'product-delete', 'product-bulk',
       'orders', 'order', 'status', 'order-bulk-status', 'payment-verify',
-      'order-delete',
+      'order-delete', 'order-bulk-delete',
       'returns', 'return-update',
       'customers', 'customer-ban', 'customer-adjust-points', 'customer-force-logout',
       'reviews', 'review-approve', 'review-delete', 'review-reply',
