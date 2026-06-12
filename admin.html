@@ -538,6 +538,45 @@ tr:hover td{background:var(--bg)}
 
       <!-- ── NEWSLETTER ── -->
       <div class="section" id="sec-newsletter">
+
+        <!-- Campaign Composer -->
+        <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh);margin-bottom:20px">
+          <h3 style="font-family:'Syne',sans-serif;font-size:15px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+            <i class="fa-solid fa-paper-plane" style="color:var(--blue)"></i>
+            Email Campaign পাঠান
+          </h3>
+
+          <div style="display:grid;gap:12px">
+            <div>
+              <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Subject</label>
+              <input id="campaign-subject" placeholder="Email এর subject লিখুন..."
+                style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none">
+            </div>
+
+            <div>
+              <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Message (HTML বা Plain Text)</label>
+              <textarea id="campaign-body" rows="6" placeholder="Email এর content লিখুন... HTML ব্যবহার করতে পারেন।"
+                style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;resize:vertical;font-family:monospace"></textarea>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input id="campaign-test-email" placeholder="Test email (optional)..."
+                type="email"
+                style="flex:1;min-width:180px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none">
+              <button onclick="sendCampaignTest()"
+                style="background:var(--dark2);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap">
+                <i class="fa-solid fa-vial"></i> Test পাঠান
+              </button>
+              <button onclick="sendCampaignAll()"
+                style="background:var(--blue);color:#fff;padding:10px 20px;border-radius:var(--r);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap">
+                <i class="fa-solid fa-paper-plane"></i> সবাইকে পাঠান
+              </button>
+            </div>
+
+            <div id="campaign-result" style="display:none;padding:12px;border-radius:var(--r);font-size:13px"></div>
+          </div>
+        </div>
+
         <div class="table-card">
           <div class="tc-head">
             <div class="tc-title"><i class="fa-solid fa-envelope" style="color:var(--brand)"></i> Newsletter Subscribers</div>
@@ -1557,6 +1596,7 @@ async function viewOrder(id) {
         <button class="btn-update" style="background:var(--blue)" onclick="verifyPayment('${o.orderId}')"><i class="fa-solid fa-circle-check"></i> Payment Verify</button>
         <button class="btn-update" style="background:var(--brand)" onclick="cancelOrder('${o.orderId}')"><i class="fa-solid fa-xmark"></i> Cancel</button>
         <button class="btn-update" style="background:var(--dark2)" onclick="printInvoice('${o.orderId}')"><i class="fa-solid fa-print"></i> Print Invoice</button>
+        <button onclick="deleteOrder('${o.orderId}')" style="background:#fff0f0;color:#e53e3e;border:1.5px solid #fed7d7;padding:9px 16px;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-trash"></i> Delete Order</button>
       </div>
     </div>`;
 }
@@ -1644,6 +1684,40 @@ async function cancelOrder(orderId) {
 }
 
 
+/* ─── DELETE ORDER ─── */
+async function deleteOrder(orderId) {
+  if (!orderId) { toast('Order ID পাওয়া যায়নি', 'warning'); return; }
+  if (!adminKey) { toast('Admin key নেই — আবার login করুন', 'warning'); return; }
+
+  // Step 1: archive or permanent?
+  const choice = confirm(`Order ${esc(orderId)} কী করবেন?\n\nOK = Archive (ফিরিয়ে আনা যাবে)\nCancel = বাতিল`);
+  if (!choice) return;
+
+  // Step 2: confirm permanent deletion
+  const permanent = confirm('Permanently delete করবেন? (এটি undo করা যাবে না)');
+
+  try {
+    const resp = await fetch('/api/admin?action=order-delete', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: String(orderId).trim(),
+        permanent: !!permanent
+      })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      toast(permanent ? '🗑️ Order permanently deleted!' : '📦 Order archived!', 'success');
+      closeOrderModal();
+      loadOrders(currentPage || 1);
+    } else {
+      toast(data.error || 'Delete হয়নি', 'warning');
+    }
+  } catch (e) {
+    toast('❌ Network error: ' + e.message, 'warning');
+  }
+}
+
 async function verifyPayment(orderId) {
   if (!confirm(`"${orderId}" এর payment verify করবেন?`)) return;
   try {
@@ -1668,25 +1742,97 @@ function statusLabel(s) {
 /* ═══════════════════════════════════════════
    CUSTOMERS
 ═══════════════════════════════════════════ */
+function timeAgo(dateStr) {
+  if (!dateStr) return 'Never';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)   return 'Just now';
+  if (mins < 60)  return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)   return hrs + 'h ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 30)  return days + 'd ago';
+  return new Date(dateStr).toLocaleDateString('en-BD');
+}
+
 async function loadCustomers() {
   if ($('cust-grid')) $('cust-grid').innerHTML = `<div style="text-align:center;padding:40px;grid-column:1/-1"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
   const data = await adminFetch('action=customers');
-  if (!data.ok) { if($('cust-grid')) $('cust-grid').innerHTML = `<p style="color:var(--brand);padding:20px">${data.error}</p>`; return; }
+  if (!data.ok) {
+    if ($('cust-grid')) $('cust-grid').innerHTML = `<p style="color:var(--brand);padding:20px">${esc(data.error)}</p>`;
+    return;
+  }
   const users = data.users || [];
+
+  const loginMethodBadge = {
+    google:   '<span style="background:#ea4335;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">G Google</span>',
+    facebook: '<span style="background:#1877f2;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">f Facebook</span>',
+    email:    '<span style="background:#6c757d;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">✉ Email</span>',
+  };
+
   $('cust-grid').innerHTML = users.length
-    ? users.map(u => `<div class="cust-card">
-        <div class="cc-ava">${(u.name || '?')[0].toUpperCase()}</div>
-        <div style="flex:1;min-width:0">
-          <div class="cc-name">${esc(u.name)}</div>
-          <div class="cc-phone">${esc(u.phone || u.email || '—')}</div>
-          <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
-            <span style="background:var(--bg);border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600">Orders: ${u.totalOrders || 0}</span>
-            <span style="background:var(--bg);border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600">Pts: ${u.loyaltyPoints || 0}</span>
-            <button onclick="banCustomer('${u._id}',${u.isActive !== false})" style="background:${u.isActive !== false ? '#fdf0f0' : '#e6faf4'};color:${u.isActive !== false ? 'var(--brand)' : 'var(--green)'};border:none;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer">${u.isActive !== false ? 'Ban' : 'Unban'}</button>
-          </div>
-        </div>
-      </div>`).join('')
+    ? users.map(c => {
+        const onlineBadge = c.isOnline
+          ? '<span style="display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:4px"></span><span style="color:#22c55e;font-size:11px;font-weight:700">Online</span>'
+          : `<span style="display:inline-block;width:8px;height:8px;background:#9ca3af;border-radius:50%;margin-right:4px"></span><span style="color:#9ca3af;font-size:11px">Last seen: ${c.lastSeen ? timeAgo(c.lastSeen) : 'Never'}</span>`;
+        const safeId   = esc(c._id || '');
+        const safeName = esc(c.name || 'Unknown');
+        return `
+<div style="background:#fff;border-radius:var(--r-xl);padding:20px;box-shadow:var(--sh);border:1.5px solid var(--border)">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+    <div style="width:48px;height:48px;border-radius:50%;background:var(--brand-l);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--brand)">
+      ${(c.name || '?').charAt(0).toUpperCase()}
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:14px">${safeName}</div>
+      <div style="font-size:12px;color:var(--text3)">${esc(c.email || c.phone || '')}</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+    ${loginMethodBadge[c.loginMethod] || loginMethodBadge.email}
+    ${onlineBadge}
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:12px">
+    <div><span style="color:var(--text3)">Orders:</span> <strong>${c.totalOrders || 0}</strong></div>
+    <div><span style="color:var(--text3)">Spent:</span> <strong>৳${Number(c.totalSpent || 0).toLocaleString()}</strong></div>
+    <div><span style="color:var(--text3)">Points:</span> <strong>${c.loyaltyPoints || 0}</strong></div>
+    <div><span style="color:var(--text3)">Logins:</span> <strong>${c.loginCount || 0}</strong></div>
+    <div><span style="color:var(--text3)">Joined:</span> <strong>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD') : '—'}</strong></div>
+    <div><span style="color:var(--text3)">Device:</span> <strong style="font-size:10px">${(c.deviceInfo || '').includes('Mobile') ? '📱 Mobile' : '💻 Desktop'}</strong></div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button onclick="viewCustomerOrders('${safeId}','${safeName}')"
+      style="flex:1;background:var(--blue);color:#fff;padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:none;cursor:pointer">
+      <i class="fa-solid fa-list"></i> Orders
+    </button>
+    ${c.isOnline ? `
+    <button onclick="forceLogoutCustomer('${safeId}','${safeName}')"
+      style="flex:1;background:#fff3cd;color:#856404;padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:none;cursor:pointer">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </button>` : ''}
+    <button onclick="banUser('${safeId}', ${!!c.isBanned})"
+      style="flex:1;background:${c.isBanned ? '#e6f4ea' : '#fff0f0'};color:${c.isBanned ? 'var(--green)' : 'var(--brand)'};padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:none;cursor:pointer">
+      ${c.isBanned ? '<i class="fa-solid fa-unlock"></i> Unban' : '<i class="fa-solid fa-ban"></i> Ban'}
+    </button>
+  </div>
+</div>`;
+      }).join('')
     : '<div style="text-align:center;padding:40px;color:var(--text3);grid-column:1/-1">কোনো customer নেই</div>';
+}
+
+/* banUser — maps both isBanned (new) and isActive (legacy) fields */
+async function banUser(userId, currentlyBanned) {
+  if (!confirm(currentlyBanned ? 'User unban করবেন?' : 'User ban করবেন?')) return;
+  const data = await fetch('/api/admin?action=customer-ban', {
+    method: 'POST',
+    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: String(userId).trim(), ban: !currentlyBanned }),
+  }).then(r => r.json());
+  if (data.ok) { toast('✅ ' + (data.message || 'Done!'), 'success'); loadCustomers(); }
+  else toast(data.error || 'Error', 'warning');
 }
 
 async function banCustomer(userId, currentActive) {
@@ -1694,10 +1840,57 @@ async function banCustomer(userId, currentActive) {
   const data = await fetch('/api/admin?action=customer-ban', {
     method: 'POST',
     headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, ban: currentActive }),
+    body: JSON.stringify({ userId: String(userId).trim(), ban: currentActive }),
   }).then(r => r.json());
   if (data.ok) { toast('✅ ' + data.message, 'success'); loadCustomers(); }
   else toast(data.error || 'Error', 'warning');
+}
+
+async function forceLogoutCustomer(userId, name) {
+  if (!confirm(`${esc(name)} কে force logout করবেন?`)) return;
+  const data = await fetch('/api/admin?action=customer-force-logout', {
+    method: 'POST',
+    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: String(userId).trim() }),
+  }).then(r => r.json());
+  if (data.ok) {
+    toast(`✅ ${esc(name)} কে logout করা হয়েছে!`, 'success');
+    loadCustomers();
+  } else toast(data.error || 'Error', 'warning');
+}
+
+async function viewCustomerOrders(userId, name) {
+  toast(`⏳ ${esc(name)} এর orders লোড হচ্ছে...`, 'default');
+  try {
+    const data = await adminFetch(`action=orders&userId=${encodeURIComponent(userId)}&limit=50`);
+    if (!data.ok) { toast(data.error || 'Orders পাওয়া যায়নি', 'warning'); return; }
+    const orders = data.orders || [];
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)';
+    el.innerHTML = `
+      <div style="background:#fff;border-radius:var(--r-xl);width:100%;max-width:640px;max-height:85vh;overflow-y:auto;position:relative;box-shadow:var(--sh-lg)">
+        <div style="background:var(--dark2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1">
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff"><i class="fa-solid fa-list"></i> ${esc(name)} এর Orders (${orders.length})</div>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:15px"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:16px">
+          ${orders.length ? orders.map(o => `
+          <div style="border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="this.closest('[style*=fixed]').remove();viewOrder('${esc(o.orderId)}')">
+            <div style="flex:1">
+              <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--brand)">${esc(o.orderId)}</div>
+              <div style="font-size:11px;color:var(--text3)">${fmtDate(o.createdAt)}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-weight:700">${fmt(o.total)}</div>
+              <span class="status-badge sb-${o.status}" style="font-size:10px">${statusLabel(o.status)}</span>
+            </div>
+          </div>`).join('')
+          : '<div style="text-align:center;padding:30px;color:var(--text3)">কোনো order নেই</div>'}
+        </div>
+      </div>`;
+    el.addEventListener('click', e => { if (e.target === el) el.remove(); });
+    document.body.appendChild(el);
+  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
 /* ═══════════════════════════════════════════
@@ -1728,6 +1921,64 @@ async function deleteSubscriber(email) {
   }).then(r => r.json());
   if (data.ok) { toast('✅ Removed!', 'success'); loadNewsletter(); }
   else toast(data.error || 'Error', 'warning');
+}
+
+/* ─── NEWSLETTER CAMPAIGNS ─── */
+async function sendCampaignTest() {
+  const subject   = $('campaign-subject')?.value?.trim();
+  const html      = $('campaign-body')?.value?.trim();
+  const testEmail = $('campaign-test-email')?.value?.trim();
+
+  if (!subject || !html) { toast('Subject এবং message দিন!', 'warning'); return; }
+  if (!testEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail)) {
+    toast('Valid test email দিন!', 'warning'); return;
+  }
+
+  try {
+    const data = await fetch('/api/admin?action=newsletter-campaign', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, html, testEmail })
+    }).then(r => r.json());
+
+    const result = $('campaign-result');
+    if (result) {
+      result.style.display = 'block';
+      result.style.background = data.ok ? '#e6faf4' : '#fff0f0';
+      result.style.color      = data.ok ? 'var(--green)' : 'var(--brand)';
+      result.textContent      = data.message || data.error || (data.ok ? 'Test sent!' : 'Error');
+    }
+    if (data.ok) toast('✅ Test email পাঠানো হয়েছে!', 'success');
+    else toast(data.error || 'Error', 'warning');
+  } catch (e) { toast('❌ Server error: ' + e.message, 'warning'); }
+}
+
+async function sendCampaignAll() {
+  const subject = $('campaign-subject')?.value?.trim();
+  const html    = $('campaign-body')?.value?.trim();
+
+  if (!subject || !html) { toast('Subject এবং message দিন!', 'warning'); return; }
+  if (!confirm(`সব subscribers কে email পাঠাবেন?\n\nSubject: ${subject}`)) return;
+
+  toast('পাঠানো হচ্ছে...', 'default');
+
+  try {
+    const data = await fetch('/api/admin?action=newsletter-campaign', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, html })
+    }).then(r => r.json());
+
+    const result = $('campaign-result');
+    if (result) {
+      result.style.display = 'block';
+      result.style.background = data.ok ? '#e6faf4' : '#fff0f0';
+      result.style.color      = data.ok ? 'var(--green)' : 'var(--brand)';
+      result.textContent      = data.message || data.error || (data.ok ? 'Sent!' : 'Error');
+    }
+    if (data.ok) toast(`✅ ${data.sent || 0} জন কে email পাঠানো হয়েছে!`, 'success');
+    else toast(data.error || 'Error', 'warning');
+  } catch (e) { toast('❌ Server error: ' + e.message, 'warning'); }
 }
 
 /* ─── CSV EXPORTS ─── */
@@ -1966,17 +2217,25 @@ async function loadReviews() {
 async function reviewAction(id, action) {
   if (action === 'delete' && !confirm('এই review permanently delete করবেন?')) return;
   let apiAction, body = { id };
-  if (action === 'approve') { apiAction = 'review-approve'; body = { id, hide: false }; }
-  else if (action === 'hide') { apiAction = 'review-approve'; body = { id, hide: true }; }
-  else if (action === 'delete') { apiAction = 'review-delete'; body = { id }; }
+  if (action === 'approve')      { apiAction = 'review-approve'; body = { id, hide: false }; }
+  else if (action === 'hide')    { apiAction = 'review-approve'; body = { id, hide: true }; }
+  else if (action === 'delete')  { apiAction = 'review-delete';  body = { id }; }
   try {
     const resp = await fetch('/api/admin?action=' + apiAction, {
-      method: 'POST', headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     const data = await resp.json();
-    if (data.ok) { toast('✅ Done!', 'success'); loadReviews(); }
-    else toast(data.error || 'Error', 'warning');
+    if (data.ok) {
+      toast(
+        action === 'approve' ? '✅ Review approve হয়েছে — এখনই live!' :
+        action === 'hide'    ? '🙈 Review hidden' :
+                               '🗑️ Review deleted',
+        'success'
+      );
+      loadReviews(); // ← always reload to keep UI in sync
+    } else toast(data.error || 'Error', 'warning');
   } catch (e) { toast('Server error: ' + e.message, 'warning'); }
 }
 
@@ -2366,26 +2625,77 @@ function showImgPreview(urls) {
 
 function removePreviewImg(i) { uploadedImages.splice(i, 1); showImgPreview(uploadedImages); }
 
-function handleImgUpload(files) {
+async function handleImgUpload(files) {
   const progress = $('upload-progress'), bar = $('upload-bar');
   if (progress) progress.style.display = 'block';
+  if (bar) bar.style.width = '0%';
+
   let loaded = 0;
-  [...files].forEach(file => {
-    if (file.size > 5 * 1024 * 1024) { toast('Image 5MB এর বেশি হতে পারবে না!', 'warning'); return; }
-    const reader = new FileReader();
-    reader.onload = e => {
-      uploadedImages.push(e.target.result);
-      if (uploadedImages.length === 1) $('pm-img').value = 'uploaded';
+  const results = [];
+
+  for (const file of [...files]) {
+    if (!file.type.startsWith('image/')) {
+      toast(`${esc(file.name)}: Image file দিন!`, 'warning');
+      continue;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast(`${esc(file.name)}: 5MB এর বেশি হতে পারবে না!`, 'warning');
+      continue;
+    }
+
+    try {
+      // Convert file to base64
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload  = e => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('File read failed'));
+        reader.readAsDataURL(file);
+      });
+
+      // Upload to server (Cloudinary via backend)
+      const resp = await fetch('/api/admin?action=upload-image', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64,
+          filename: file.name.replace(/[^a-z0-9._-]/gi, '_')  // sanitize filename
+        })
+      }).then(r => r.json());
+
       loaded++;
       if (bar) bar.style.width = (loaded / files.length * 100) + '%';
-      if (loaded === files.length) {
-        setTimeout(() => { if (progress) progress.style.display = 'none'; }, 600);
-        showImgPreview(uploadedImages);
-        toast(`${loaded}টি ছবি upload হয়েছে! ✅`, 'success');
+
+      if (resp.ok && resp.url && resp.url.startsWith('http')) {
+        results.push(resp.url);
+        uploadedImages.push(resp.url);
+        toast(`✅ ${esc(file.name)} upload হয়েছে!`, 'success');
+      } else {
+        // Cloudinary not configured — show warning, use base64 for preview only
+        if (resp.error && resp.error.includes('not configured')) {
+          toast('⚠️ Cloudinary setup নেই। .env এ keys যোগ করুন। এখন URL দিন।', 'warning');
+        } else {
+          toast(`❌ ${esc(file.name)}: ${esc(resp.error || 'Upload failed')}`, 'warning');
+        }
+        // Preview locally — do not persist base64 to uploadedImages for save
+        showImgPreview([base64]);
       }
-    };
-    reader.readAsDataURL(file);
-  });
+    } catch (e) {
+      loaded++;
+      if (bar) bar.style.width = (loaded / files.length * 100) + '%';
+      toast(`❌ ${esc(file.name)} upload error: ${e.message}`, 'warning');
+    }
+  }
+
+  if (results.length > 0) {
+    // Set first Cloudinary URL as main image if field is empty
+    if (!$('pm-img')?.value || $('pm-img')?.value === 'uploaded') {
+      $('pm-img').value = results[0];
+      previewImgUrl(results[0]);
+    }
+    showImgPreview(results);
+  }
+
+  setTimeout(() => { if (progress) progress.style.display = 'none'; }, 600);
 }
 
 function handleImgDrop(e) {
@@ -2427,20 +2737,16 @@ async function saveProduct() {
   if (!cat) { toast('Category দিন!', 'warning'); return; }
   if (!price || isNaN(price) || price <= 0) { toast('সঠিক Price দিন!', 'warning'); $('pm-price').focus(); return; }
 
-  // FIX: Don't send base64 to API (server sanitize() truncates to 500 chars)
-  // Use only HTTP/HTTPS URLs for image storage
-  if (img === 'uploaded' || img.startsWith('data:')) {
-    toast('⚠️ Image URL দিন (Unsplash/Imgur link)। Base64 upload সরাসরি সমর্থিত নয়।', 'warning');
-    $('pm-img').focus();
-    return;
+  // UPGRADE 4: Use Cloudinary URLs from uploadedImages; reject raw base64
+  const cloudinaryImages = uploadedImages.filter(u => u.startsWith('http'));
+  if (cloudinaryImages.length > 0 && (img === 'uploaded' || !img)) {
+    img = cloudinaryImages[0];
   }
-  if (!img) {
+  if (!img || img === 'uploaded') {
     img = `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=500&fit=crop&q=80`;
   }
-
-  // Only send URL-based images, filter out any base64
-  const urlImages = uploadedImages.filter(u => u.startsWith('http') || u.startsWith('//'));
-  const allImages = urlImages.length > 0 ? urlImages : [img];
+  // Strip any accidental base64 from allImages
+  const allImages = cloudinaryImages.length > 0 ? cloudinaryImages : [img];
 
   const productData = {
     name, cat, price, orig, stock, rating, reviews, badge,
@@ -3015,6 +3321,13 @@ window.verifyPayment = verifyPayment;
 window.closeOrderModal = closeOrderModal;
 window.loadCustomers = loadCustomers;
 window.banCustomer = banCustomer;
+window.banUser = banUser;
+window.forceLogoutCustomer = forceLogoutCustomer;
+window.viewCustomerOrders = viewCustomerOrders;
+window.timeAgo = timeAgo;
+window.deleteOrder = deleteOrder;
+window.sendCampaignTest = sendCampaignTest;
+window.sendCampaignAll = sendCampaignAll;
 window.loadNewsletter = loadNewsletter;
 window.deleteSubscriber = deleteSubscriber;
 window.exportOrders = exportOrders;
@@ -3387,6 +3700,7 @@ window.loadOrders = async function(page = 1) {
           <button class="ab-btn ab-view" onclick="viewOrder('${o.orderId}')" title="View"><i class="fa-solid fa-eye"></i></button>
           <button class="ab-btn ab-edit" onclick="quickStatus('${o.orderId}','${o.status}')" title="Quick Update"><i class="fa-solid fa-pen"></i></button>
           <button class="ab-btn ab-del" onclick="cancelOrder('${o.orderId}')" title="Cancel"><i class="fa-solid fa-xmark"></i></button>
+          <button class="ab-btn" onclick="deleteOrder('${o.orderId}')" title="Delete" style="background:var(--bg);color:var(--text2)" onmouseover="this.style.background='#e53e3e';this.style.color='#fff'" onmouseout="this.style.background='var(--bg)';this.style.color='var(--text2)'"><i class="fa-solid fa-trash"></i></button>
         </div></td>
       </tr>`).join('');
     const { total, pages } = pagination;

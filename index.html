@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,minimum-scale=1,viewport-fit=cover">
@@ -270,9 +270,12 @@
 [data-theme="dark"] .pdp-related{background:var(--card-bg)!important}
 [data-theme="dark"] .pdp-info,[data-theme="dark"] .pdp-specs-table td,[data-theme="dark"] .pdp-specs-table th{background:var(--card-bg);color:var(--text)}
 /* ===== DARK MODE TOGGLE BUTTON ===== */
-#dark-mode-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);cursor:pointer;transition:var(--t);color:var(--text2);font-size:15px;flex-shrink:0}
-#dark-mode-toggle:hover{background:var(--dark2);color:var(--gold);border-color:var(--dark2)}
-[data-theme="dark"] #dark-mode-toggle{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:var(--gold)}
+#dark-mode-toggle,#theme-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);cursor:pointer;transition:var(--t);color:var(--text2);font-size:15px;flex-shrink:0}
+#dark-mode-toggle:hover,#theme-toggle:hover{background:var(--dark2);color:var(--gold);border-color:var(--dark2)}
+[data-theme="dark"] #dark-mode-toggle,[data-theme="dark"] #theme-toggle{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:var(--gold)}
+/* Mobile bottom nav theme button */
+#mbn-theme-btn{color:var(--text3);transition:var(--t)}
+#mbn-theme-btn:hover,[data-theme="dark"] #mbn-theme-btn{color:var(--gold)}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:hidden!important;max-width:100vw;width:100%}
 body{font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden!important;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;max-width:100vw;width:100%;min-width:0;position:relative}
 /* Nuclear overflow prevention — no element escapes the viewport */
@@ -703,7 +706,7 @@ section{padding:52px 0}
 
 /* ===== MOBILE BOTTOM NAV ===== */
 #mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--header-bg);border-top:1px solid var(--border);z-index:2500;height:60px;padding-bottom:env(safe-area-inset-bottom,0)}
-.mbn-inner{display:grid;grid-template-columns:repeat(5,1fr);height:100%}
+.mbn-inner{display:grid;grid-template-columns:repeat(6,1fr);height:100%}
 .mbn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;transition:var(--t);position:relative;border:none;background:none;font-family:inherit;padding:0;text-decoration:none}
 .mbn-item.active,.mbn-item:hover{color:var(--brand)}
 .mbn-item i{font-size:20px;transition:var(--t)}
@@ -1136,7 +1139,7 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 
 /* ===== MOBILE BOTTOM NAV ===== */
 #mob-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--header-bg);border-top:1.5px solid var(--border);z-index:2500;height:62px;padding-bottom:env(safe-area-inset-bottom,0)}
-.mbn-inner{display:grid;grid-template-columns:repeat(5,1fr);height:100%}
+.mbn-inner{display:grid;grid-template-columns:repeat(6,1fr);height:100%}
 .mbn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--text3);font-size:10px;font-weight:600;cursor:pointer;position:relative;border:none;background:none;font-family:inherit;padding:0;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .2s}
 .mbn-item.active,.mbn-item:active{color:var(--brand)}
 .mbn-item i{font-size:21px;transition:transform .15s}
@@ -2685,7 +2688,12 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         <button class="hamburger" onclick="openMobileMenu()"><span></span><span></span><span></span></button>
         <div id="header-user-btn"><button class="btn-login-header" onclick="openAuth('login')"><i class="fa-solid fa-right-to-bracket"></i> Login</button></div>
         <div class="h-pts-chip" id="hdr-pts-chip" style="display:none" onclick="openLoyaltyModal()"><i class="fa-solid fa-crown"></i><span id="hdr-pts-val">0</span> pts</div>
-        <button id="dark-mode-toggle" title="Dark Mode Toggle" onclick="toggleDarkMode()"><i class="fa-solid fa-moon" id="dm-icon"></i></button>
+        <button id="theme-toggle" onclick="toggleTheme()" title="Dark/Light Mode টগল করুন"
+          style="width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;transition:var(--t);flex-shrink:0"
+          aria-label="Toggle Dark Mode">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+          <i class="fa-solid fa-moon" id="dm-icon" style="display:none"></i>
+        </button>
         <button class="h-btn" onclick="openWishlistPanel()"><i class="fa-regular fa-heart"></i><span>Wishlist</span><span class="badge" id="wish-count" style="display:none">0</span></button>
         <button class="h-btn" onclick="openNotifPanel()" style="position:relative"><i class="fa-regular fa-bell"></i><span>Alerts</span><span class="notif-dot" id="notif-dot"></span></button>
         <button class="h-btn" onclick="openCart()"><i class="fa-solid fa-bag-shopping"></i><span>Cart</span><span class="badge" id="cart-count">0</span></button>
@@ -4251,6 +4259,9 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
       </div>
       <span>Cart</span>
     </button>
+    <button class="mbn-item" onclick="toggleTheme()" id="mbn-theme-btn" title="Dark/Light Mode">
+      <i class="fa-solid fa-moon" id="mbn-theme-icon"></i><span>Theme</span>
+    </button>
     <button class="mbn-item" onclick="window.location.href='/track-order.html'">
       <i class="fa-solid fa-truck-fast"></i><span>Track</span>
     </button>
@@ -4473,6 +4484,59 @@ function toSlug(name, id) {
     + '-' + String(id).toLowerCase();
 }
 
+// ══════════════════════════════════════
+// SEO META UPDATER (Upgrade 4)
+// ══════════════════════════════════════
+function updateSEOMeta(p) {
+  // Sanitize: strip HTML tags and dangerous chars for meta content
+  const safeText = (str) => String(str || '').replace(/<[^>]*>/g, '').replace(/["'`]/g, '').slice(0, 200);
+
+  // Title
+  document.title = safeText(p.name) + ' — ৳' + p.price + ' | Shoplixo';
+
+  // Description (max 160 chars)
+  const desc = (safeText(p.name) + ' মাত্র ৳' + p.price + ' এ পান। ' + safeText(p.desc) + ' বাংলাদেশে Free Delivery ৳999 এর উপরে।').slice(0, 160);
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc) metaDesc.setAttribute('content', desc);
+
+  // OG tags
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if(ogTitle) ogTitle.setAttribute('content', safeText(p.name) + ' | Shoplixo');
+  const ogDesc = document.querySelector('meta[property="og:description"]');
+  if(ogDesc) ogDesc.setAttribute('content', desc);
+  const ogImg = document.querySelector('meta[property="og:image"]');
+  if(ogImg) ogImg.setAttribute('content', p.img || '');
+  else {
+    const m = document.createElement('meta');
+    m.setAttribute('property', 'og:image');
+    m.setAttribute('content', p.img || '');
+    document.head.appendChild(m);
+  }
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  if(ogUrl) ogUrl.setAttribute('content', window.location.href);
+
+  // Canonical
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if(!canonical) {
+    canonical = document.createElement('link');
+    canonical.rel = 'canonical';
+    document.head.appendChild(canonical);
+  }
+  canonical.href = window.location.href;
+}
+
+function resetSEOMeta() {
+  document.title = "Shoplixo — Bangladesh's #1 Online Shopping";
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if(metaDesc) metaDesc.setAttribute('content', "Shoplixo — Bangladesh's most trusted online store. Buy authentic shirts, pants, shoes, gadgets & women's fashion. Free delivery above ৳999. 7-day easy returns.");
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if(ogTitle) ogTitle.setAttribute('content', "Shoplixo — Bangladesh's #1 Online Shopping | Shirts, Shoes, Gadgets");
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  if(ogUrl) ogUrl.setAttribute('content', 'https://shoplixo.shop/');
+  const canonical = document.querySelector('link[rel="canonical"]');
+  if(canonical) canonical.href = 'https://shoplixo.shop/';
+}
+
 function openProductPage(pid) {
   const P = window.PRODUCTS || PRODUCTS;
   const p = P.find(x => String(x.id) === String(pid));
@@ -4480,18 +4544,8 @@ function openProductPage(pid) {
   trackView(pid);
   const slug = toSlug(p.name, p.productId || p.id);
   history.pushState({productId: pid, type:'pdp'}, p.name, '/product/' + slug);
-  document.title = p.name + ' | Shoplixo — Bangladesh';
-  const metaDesc = document.querySelector('meta[name="description"]');
-  if (metaDesc) metaDesc.setAttribute('content', (p.desc||p.name) + ' — মাত্র ৳' + p.price.toLocaleString('bn-BD') + ' | Shoplixo Bangladesh। Free delivery above ৳999.');
-  // Update OG tags for sharing
-  const ogTitle = document.querySelector('meta[property="og:title"]');
-  if (ogTitle) ogTitle.setAttribute('content', p.name + ' — ৳' + p.price + ' | Shoplixo');
-  const ogDesc = document.querySelector('meta[property="og:description"]');
-  if (ogDesc) ogDesc.setAttribute('content', (p.desc||p.name).slice(0,150) + '। বাংলাদেশে ফ্রি ডেলিভারি ৳৯৯৯+ অর্ডারে।');
-  const ogImg = document.querySelector('meta[property="og:image"]');
-  if (!ogImg) {
-    const m = document.createElement('meta'); m.setAttribute('property','og:image'); m.setAttribute('content', p.img); document.head.appendChild(m);
-  } else { ogImg.setAttribute('content', p.img); }
+  // SEO meta update via dedicated function
+  updateSEOMeta(p);
   // Structured data for product
   let sd = document.getElementById('pdp-json-ld');
   if (!sd) { sd = document.createElement('script'); sd.id='pdp-json-ld'; sd.type='application/ld+json'; document.head.appendChild(sd); }
@@ -4507,9 +4561,7 @@ function closeProductPage() {
   if (pdp) { pdp.classList.remove('open'); }
   document.body.style.overflow = '';
   if (history.state && history.state.type === 'pdp') history.back();
-  document.title = "Shoplixo — Bangladesh's #1 Online Shopping";
-  const metaDesc = document.querySelector('meta[name="description"]');
-  if (metaDesc) metaDesc.setAttribute('content', "Shoplixo — Bangladesh's most trusted online store. Buy authentic shirts, pants, shoes, gadgets & women's fashion. Free delivery above ৳999. 7-day easy returns.");
+  resetSEOMeta(); // Upgrade 4: reset all meta tags to homepage values
 }
 
 function renderProductDetailPage(p) {
@@ -4637,12 +4689,62 @@ function renderProductDetailPage(p) {
       </a>
     </div>
 
-    <!-- Delivery -->
-    <div class="pdp-delivery-box">
-      <div class="drow"><i class="fa-solid fa-truck-fast"></i> <span>Standard Delivery — ৳60 (3-5 দিন)</span></div>
-      <div class="drow"><i class="fa-solid fa-gift"></i> <span>৳999+ অর্ডারে বিনামূল্যে ডেলিভারি!</span></div>
-      <div class="drow"><i class="fa-solid fa-location-dot"></i> <span>সারা বাংলাদেশে ডেলিভারি</span></div>
+    <!-- Social Share Buttons -->
+    <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:4px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text3);font-weight:600">শেয়ার করুন:</span>
+      <button onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),'_blank','noopener,noreferrer')"
+        style="background:#1877f2;color:#fff;border:none;padding:7px 14px;border-radius:var(--r);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600"
+        title="Facebook এ শেয়ার করুন">
+        <i class="fa-brands fa-facebook-f"></i> Facebook
+      </button>
+      <button onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title+' — '+location.href),'_blank','noopener,noreferrer')"
+        style="background:#25d366;color:#fff;border:none;padding:7px 14px;border-radius:var(--r);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600"
+        title="WhatsApp এ শেয়ার করুন">
+        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+      </button>
+      <button onclick="(async()=>{try{await navigator.clipboard.writeText(location.href);showToast('Link copied! ✅','check');}catch(e){showToast('Copy করতে পারেনি','exclamation');}})()"
+        style="background:var(--bg2);color:var(--text);border:1.5px solid var(--border);padding:7px 14px;border-radius:var(--r);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:600"
+        title="লিংক কপি করুন">
+        <i class="fa-solid fa-link"></i> Copy Link
+      </button>
     </div>
+
+    <!-- Delivery Estimator (Dynamic) -->
+    ${(function(){
+      const today = new Date();
+      const d3 = new Date(today.getTime() + 3*24*60*60*1000);
+      const d5 = new Date(today.getTime() + 5*24*60*60*1000);
+      const fmt = d => d.toLocaleDateString('bn-BD', {weekday:'short', month:'short', day:'numeric'});
+      const isFreeDelivery = p.price >= 999;
+      return `<div class="pdp-delivery-box">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <i class="fa-solid fa-truck-fast" style="color:var(--green)"></i> Delivery Information
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+            <span>🚚 Standard Delivery</span>
+            <span style="color:var(--green);font-weight:600">${isFreeDelivery ? 'FREE' : '৳60'} · ${fmt(d3)}–${fmt(d5)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+            <span>💳 Payment</span>
+            <span>bKash · Nagad · Rocket · COD</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+            <span>↩️ Return Policy</span>
+            <span style="color:var(--blue)">৭ দিন Easy Return</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+            <span>📍 Delivery Area</span>
+            <span>সারা বাংলাদেশ</span>
+          </div>
+          ${!isFreeDelivery ? `<div style="background:rgba(0,197,138,.08);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--green);font-weight:600">
+            💡 আর মাত্র ৳${(999 - p.price).toLocaleString()} যোগ করলে Free Delivery পাবেন!
+          </div>` : `<div style="background:rgba(0,197,138,.08);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--green);font-weight:600">
+            🎉 আপনার অর্ডারে Free Delivery প্রযোজ্য!
+          </div>`}
+        </div>
+      </div>`;
+    })()}
 
     <!-- Payment -->
     <div class="pdp-payment-row">
@@ -5363,9 +5465,30 @@ async function applyCoupon(){
    ════════════════════════════════════════════ */
 const API_BASE = window.location.origin; // Same domain on Vercel
 
+// ── Security: HTML escape utility to prevent XSS ──
+function escHtml(str){
+  if(str == null) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+// ── Security: Validate allowed API endpoints (block path traversal) ──
+function _safeEndpoint(ep){
+  if(typeof ep !== 'string') ep = String(ep);
+  // Remove control chars and prevent path traversal
+  ep = ep.replace(/[\x00-\x1f\x7f]/g, '');
+  ep = ep.replace(/\.\./g, '');
+  ep = ep.replace(/^[/]+/, '');
+  return ep;
+}
+
 async function apiPost(endpoint, data) {
   const token = localStorage.getItem('slx_token') || '';
-  const r = await fetch(`${API_BASE}/api/${endpoint}`, {
+  const safeEp = _safeEndpoint(endpoint);
+  const r = await fetch(`${API_BASE}/api/${safeEp}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -5373,13 +5496,18 @@ async function apiPost(endpoint, data) {
     },
     body: JSON.stringify(data),
   });
+  if(!r.ok && r.status === 401){
+    // Token expired — clear stale session silently
+    localStorage.removeItem('slx_token');
+  }
   return r.json();
 }
 
 async function apiGet(endpoint, params = {}) {
   const token = localStorage.getItem('slx_token') || '';
+  const safeEp = _safeEndpoint(endpoint);
   const qs = new URLSearchParams(params).toString();
-  const r = await fetch(`${API_BASE}/api/${endpoint}${qs ? '?' + qs : ''}`, {
+  const r = await fetch(`${API_BASE}/api/${safeEp}${qs ? '?' + qs : ''}`, {
     headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
   });
   return r.json();
@@ -5660,7 +5788,7 @@ async function doLogin(){
       currentUser=r.user;
       localStorage.setItem('slx_user',JSON.stringify(r.user));
       localStorage.setItem('slx_token',r.token);
-      closeAuth();updateUserUI();
+      closeAuth();updateUserUI();startHeartbeat();
       showToast(`স্বাগতম ${r.user.name}! 🎉`,'user');
     } else {
       showToast(r.error||'ভুল ID বা Password!','exclamation');
@@ -5669,7 +5797,7 @@ async function doLogin(){
     // Offline fallback
     const users=JSON.parse(localStorage.getItem('slx_users')||'[]');
     const u=users.find(x=>(x.phone===id||x.email===id)&&x.password===pw);
-    if(u){currentUser=u;localStorage.setItem('slx_user',JSON.stringify(u));closeAuth();updateUserUI();showToast(`স্বাগতম ${u.name}! 🎉`,'user');}
+    if(u){currentUser=u;localStorage.setItem('slx_user',JSON.stringify(u));closeAuth();updateUserUI();startHeartbeat();showToast(`স্বাগতম ${u.name}! 🎉`,'user');}
     else showToast('ভুল ID বা Password!','exclamation');
   } finally {
     if(btn){btn.disabled=false;btn.textContent='Login';}
@@ -5701,7 +5829,7 @@ async function doRegister(){
       const users=JSON.parse(localStorage.getItem('slx_users')||'[]');
       users.push({name,phone,email,password:pw,provider:'local',joined:new Date().toISOString()});
       localStorage.setItem('slx_users',JSON.stringify(users));
-      closeAuth();updateUserUI();
+      closeAuth();updateUserUI();startHeartbeat();
       showToast(`Account তৈরি! স্বাগতম ${name} 🎉`,'user-plus');
       ['r-name','r-phone','r-email','r-pw','r-pw2'].forEach(id=>{const el=$(id);if(el)el.value='';});
       if($('r-terms'))$('r-terms').checked=false;
@@ -5996,9 +6124,47 @@ function openEditProfile(){
   }
 }
 
+// ══════════════════════════════════════════════════
+// UPGRADE 5: USER HEARTBEAT — Online Status Tracking
+// ══════════════════════════════════════════════════
+let _heartbeatInterval = null;
+
+function startHeartbeat(){
+  // Clear any existing interval to avoid duplicates
+  if(_heartbeatInterval) clearInterval(_heartbeatInterval);
+  if(!currentUser || !currentUser._id) return;
+
+  const sendHeartbeat = async () => {
+    if(!currentUser || !currentUser._id) { clearInterval(_heartbeatInterval); return; }
+    try {
+      const res = await fetch('/api/auth?action=heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: String(currentUser._id).replace(/[^a-zA-Z0-9_-]/g,'') })
+      });
+      if(!res.ok) return; // Network error — silently skip
+      const data = await res.json();
+      // Admin force-logout signal
+      if(data && data.forceLoggedOut){
+        clearInterval(_heartbeatInterval);
+        _heartbeatInterval = null;
+        showToast('আপনাকে logout করা হয়েছে।','exclamation');
+        setTimeout(() => { doLogout(); }, 2000);
+      }
+    } catch(e) {
+      // Network/parse error — silently ignore, do not crash
+    }
+  };
+
+  sendHeartbeat(); // Immediate first call
+  _heartbeatInterval = setInterval(sendHeartbeat, 3 * 60 * 1000); // Every 3 minutes
+}
+
 /* ── LOGOUT ── */
 function doLogout(){
   if(!confirm('Logout করবেন?')) return;
+  // Stop heartbeat
+  if(_heartbeatInterval){ clearInterval(_heartbeatInterval); _heartbeatInterval = null; }
   currentUser = null;
   localStorage.removeItem('slx_user');
   localStorage.removeItem('slx_token');
@@ -6235,6 +6401,8 @@ async function syncProductsFromAPI(silent = false) {
 document.addEventListener('DOMContentLoaded',()=>{
   // ── Step 1: UI setup (cart, user, animations — no product render yet)
   updateCartUI();animFadeIn();initCountUp();startCD();updateUserUI();
+  // ── Upgrade 5: Start heartbeat if user already logged in
+  if(currentUser && currentUser._id) startHeartbeat();
   // ── Load dynamic settings from DB (shipping cost, payment numbers etc.)
   loadPublicSettings();
   // Mobile login CTA — show if not logged in
@@ -6352,13 +6520,24 @@ function fbLogin(){
 
 /* ===== RECENTLY VIEWED ===== */
 function renderRecentlyViewed(){
-  const rv=JSON.parse(localStorage.getItem('slx_rv')||'[]');
-  const el=$('rv-grid'); const sec=$('recently-viewed');
-  if(!el||!sec||rv.length<2) return;
-  const items=rv.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean).slice(0,4);
-  if(items.length<2){sec.classList.remove('show');return;}
+  const rv = JSON.parse(localStorage.getItem('slx_rv') || '[]');
+  const el = $('rv-grid');
+  const sec = $('recently-viewed');
+  if(!el || !sec) return;
+  const P = window.PRODUCTS || (typeof PRODUCTS !== 'undefined' ? PRODUCTS : []);
+  // Support both id and productId fields, deduplicate
+  const seen = new Set();
+  const items = rv.slice().reverse()
+    .map(id => P.find(p => String(p.id) === String(id) || String(p.productId) === String(id)))
+    .filter(p => {
+      if(!p || seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    })
+    .slice(0, 6);
+  if(items.length < 2){ sec.classList.remove('show'); return; }
   sec.classList.add('show');
-  renderGrid('rv-grid',items,4);
+  el.innerHTML = items.map(p => pCard(p)).join('');
 }
 
 /* ===== MOBILE SEARCH TOGGLE ===== */
@@ -10467,26 +10646,41 @@ function copyPayNumber(){
   showToast && showToast('নম্বর <strong>' + txt + '</strong> কপি হয়েছে! এখন Send Money করুন।','check');
   if(num){ num.style.background='rgba(0,197,138,.15)'; num.style.borderColor='var(--green)'; setTimeout(()=>{num.style.background='';num.style.borderColor='';},1500); }
 }
-function toggleDarkMode(){
-  const html = document.documentElement;
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  localStorage.setItem('slx_theme', isDark ? 'light' : 'dark');
-  const icon = document.getElementById('dm-icon');
-  if(icon){ icon.className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun'; }
-  // Update meta theme-color
-  const themeColor = document.querySelector('meta[name="theme-color"]');
-  if(themeColor) themeColor.setAttribute('content', isDark ? '#E41E26' : '#0D0D1A');
-}
-// Apply saved theme on load
-(function(){
+// ══════════════════════════════════════════════════
+// THEME SYSTEM — Light/Dark Mode (Upgrade 1 & 2)
+// ══════════════════════════════════════════════════
+function initTheme(){
   const saved = localStorage.getItem('slx_theme');
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = saved || (prefersDark ? 'dark' : 'light');
+  // Default: light. User explicitly 'dark' choose করলেই dark।
+  const theme = saved || 'light';
   document.documentElement.setAttribute('data-theme', theme);
-  const icon = document.getElementById('dm-icon');
+  updateThemeToggleIcon(theme);
+}
+function updateThemeToggleIcon(theme){
+  // Primary navbar icon (theme-toggle)
+  const icon = document.getElementById('theme-icon');
   if(icon) icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-})();
+  // Legacy icon (dm-icon) backward compat
+  const dm = document.getElementById('dm-icon');
+  if(dm) dm.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  // Mobile bottom nav icon
+  const mbnIcon = document.getElementById('mbn-theme-icon');
+  if(mbnIcon) mbnIcon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  // meta theme-color
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if(themeColor) themeColor.setAttribute('content', theme === 'dark' ? '#0D0D1A' : '#E41E26');
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('slx_theme', next);
+  updateThemeToggleIcon(next);
+}
+// Backward-compat alias — existing onclick="toggleDarkMode()" calls still work
+function toggleDarkMode(){ toggleTheme(); }
+// Apply saved theme immediately (before DOMContentLoaded)
+(function(){ initTheme(); })();
 </script>
 
 </body>
