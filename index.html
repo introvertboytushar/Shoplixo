@@ -4479,7 +4479,7 @@ function pCard(p) {
         <button class="pc-compare-btn ${inCompare?'in-compare':''}" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-scale-balanced"></i> ${inCompare?'✓ Added':'Compare'}</button>
       </div>
       <div class="pc-order-row">
-        <button class="btn-order-now" onclick="event.stopPropagation();quickBuyNow('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই অর্ডার করুন</button>
+        <button class="btn-order-now" onclick="event.stopPropagation();quickOrderNow('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই অর্ডার করুন</button>
         <a href="https://wa.me/8801516511889?text=${waMsg}" target="_blank" class="btn-wa-icon" onclick="event.stopPropagation()" title="WhatsApp এ জিজ্ঞাসা করুন"><i class="fa-brands fa-whatsapp"></i></a>
       </div>
     </div>
@@ -5571,7 +5571,7 @@ function renderFlash() {
         <div class="fc-prices"><span class="fc-price">${fmt(p.price)}</span><span class="fc-orig">${fmt(p.orig)}</span></div>
         <div class="fc-bar-wrap"><div class="fc-bar" style="width:${bar}%"></div></div>
         <div class="fc-sold">বিক্রি: ${sold}/${total}</div>
-        <button class="btn-fc" onclick="addToCart('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
+        <button class="btn-fc" onclick="quickOrderNow('${p.id}')"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
       </div>
     </div>`;
   }).join('');
@@ -10949,7 +10949,7 @@ let cachedGPSLocation = null;
 function requestGPSLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) { resolve(null); return; }
-    const timeoutId = setTimeout(() => resolve(null), 5000);
+    const timeoutId = setTimeout(() => resolve(null), 1500);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         clearTimeout(timeoutId);
@@ -10962,16 +10962,16 @@ function requestGPSLocation() {
         resolve(loc);
       },
       () => { clearTimeout(timeoutId); resolve(null); },
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 }
+      { enableHighAccuracy: false, timeout: 1500, maximumAge: 600000 }
     );
   });
 }
 
-// Page load এর ২ সেকেন্ড পরে silent background request
-// (browser cached permission থাকলে popup দেখাবে না)
-window.addEventListener('load', () => {
-  setTimeout(() => { requestGPSLocation(); }, 2000);
-});
+// NOTE (FIX - SECTION 1): আগে page load হওয়ার ২ সেকেন্ড পরে স্বয়ংক্রিয়ভাবে
+// GPS permission popup দেখানো হতো — যা প্রতিটি visitor কে বিরক্ত করছিল।
+// এই auto-request সম্পূর্ণভাবে remove করা হয়েছে। এখন GPS location শুধুমাত্র
+// checkout/order placement এর সময় (নিচের checkout flow এ requestGPSLocation()
+// কল করার মাধ্যমে), silently ও non-blocking ভাবে চাওয়া হবে।
 </script>
 
 <script>

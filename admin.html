@@ -501,6 +501,8 @@ tr:hover td{background:var(--bg)}
               <option value="cancelled">Cancelled</option>
             </select>
             <button onclick="bulkUpdateOrders()" style="background:var(--brand);color:#fff;padding:7px 16px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-check"></i> Apply</button>
+            <button onclick="bulkDeleteOrders(false)" style="background:#fff;color:#e53e3e;padding:7px 16px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:1.5px solid #fed7d7;cursor:pointer"><i class="fa-solid fa-box-archive"></i> Archive করুন</button>
+            <button onclick="bulkDeleteOrders(true)" style="background:#e53e3e;color:#fff;padding:7px 16px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-trash"></i> Selected গুলো Delete করুন</button>
             <button onclick="clearBulkSelection()" style="background:#fff;color:var(--text2);padding:7px 16px;border-radius:var(--r-full);font-size:13px;font-weight:600;border:1.5px solid var(--border);cursor:pointer">Cancel</button>
           </div>
           <div style="overflow-x:auto">
@@ -2042,7 +2044,7 @@ async function loadNewsletter() {
         <td>${esc(s.name || '—')}</td>
         <td style="font-size:12px;color:var(--text3)">${fmtDate(s.createdAt)}</td>
         <td><span style="padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;background:${s.isActive ? '#e6faf4' : '#f5f5f5'};color:${s.isActive ? 'var(--green)' : 'var(--text3)'}">${s.isActive ? 'Active' : 'Unsubscribed'}</span></td>
-        <td><button onclick="deleteSubscriber('${esc(s.email)}')" style="background:#fdf0f0;color:var(--brand);border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer"><i class="fa-solid fa-trash"></i></button></td>
+        <td><button class="nl-del-btn" data-email="${esc(s.email)}" onclick="deleteSubscriber(this.dataset.email)" style="background:#fdf0f0;color:var(--brand);border:none;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer"><i class="fa-solid fa-trash"></i></button></td>
       </tr>`).join('')
     : '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">কোনো subscriber নেই</td></tr>';
   const totalEl = $('nl-total-count');
@@ -2050,14 +2052,25 @@ async function loadNewsletter() {
 }
 
 async function deleteSubscriber(email) {
+  if (!email) { toast('Email পাওয়া যায়নি', 'warning'); return; }
   if (!confirm(`"${email}" remove করবেন?`)) return;
-  const data = await fetch('/api/admin?action=newsletter-del', {
-    method: 'POST',
-    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  }).then(r => r.json());
-  if (data.ok) { toast('✅ Removed!', 'success'); loadNewsletter(); }
-  else toast(data.error || 'Error', 'warning');
+  const btn = document.querySelector(`.nl-del-btn[data-email="${email.replace(/"/g, '&quot;')}"]`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+  try {
+    const data = await fetch('/api/admin?action=newsletter-del', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }).then(r => r.json());
+    if (data.ok) { toast('✅ Removed!', 'success'); loadNewsletter(); }
+    else {
+      toast(data.error || 'Remove করা যায়নি', 'warning');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-trash"></i>'; }
+    }
+  } catch (e) {
+    toast('❌ Network error: ' + e.message, 'warning');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-trash"></i>'; }
+  }
 }
 
 /* ─── NEWSLETTER CAMPAIGNS ─── */
@@ -3827,6 +3840,58 @@ window.toggleSelectAllOrders = toggleSelectAllOrders;
 window.toggleOrderSelect = toggleOrderSelect;
 window.clearBulkSelection = clearBulkSelection;
 window.bulkUpdateOrders = bulkUpdateOrders;
+
+/* ──────────────────────────────────────────────
+   SECTION 2 FIX: Bulk Delete / Archive Orders
+   permanent=true  → DB থেকে সম্পূর্ণ মুছে যাবে
+   permanent=false → Archive হবে (hidden, restore সম্ভব)
+   শুধুমাত্র selected order গুলোই affected হবে।
+────────────────────────────────────────────── */
+async function bulkDeleteOrders(permanent) {
+  if (!selectedOrderIds.size) { toast('কোনো order select করা হয়নি', 'warning'); return; }
+  if (!adminKey) { toast('Admin key নেই — আবার login করুন', 'warning'); return; }
+
+  const ids = [...selectedOrderIds];
+  const confirmMsg = permanent
+    ? `⚠️ নির্বাচিত ${ids.length}টি order স্থায়ীভাবে DELETE করবেন?\n\nএটি আর ফিরিয়ে আনা যাবে না (undo সম্ভব না)।`
+    : `নির্বাচিত ${ids.length}টি order Archive করবেন? (পরে ফিরিয়ে আনা যাবে)`;
+  if (!confirm(confirmMsg)) return;
+
+  // Find a button to show loading state on (the clicked one)
+  const btns = document.querySelectorAll('#bulk-actions-bar button');
+  btns.forEach(b => { b.disabled = true; });
+  const activeBtn = [...btns].find(b => b.onclick && b.getAttribute('onclick')?.includes(`bulkDeleteOrders(${permanent})`));
+  const origHtml = activeBtn ? activeBtn.innerHTML : '';
+  if (activeBtn) activeBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> মুছছি...';
+
+  try {
+    const resp = await fetch('/api/admin?action=order-bulk-delete', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderIds: ids, permanent: !!permanent }),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      const okCount = data.deleted ?? 0;
+      const failCount = data.failed ?? 0;
+      toast(
+        `✅ ${okCount}টি order ${permanent ? 'permanently delete' : 'archive'} হয়েছে` +
+        (failCount ? `, ❌ ${failCount}টি fail হয়েছে` : ''),
+        failCount ? 'warning' : 'success'
+      );
+    } else {
+      toast('❌ ' + (data.error || 'Bulk delete হয়নি'), 'warning');
+    }
+  } catch (e) {
+    toast('❌ Network error: ' + e.message, 'warning');
+  } finally {
+    btns.forEach(b => { b.disabled = false; });
+    if (activeBtn) activeBtn.innerHTML = origHtml;
+    clearBulkSelection();
+    loadOrders(currentPage || 1);
+  }
+}
+window.bulkDeleteOrders = bulkDeleteOrders;
 
 /* ══════════════════════════════════════════════
    UPGRADE-A5: Date Range Filter — patch loadOrders
