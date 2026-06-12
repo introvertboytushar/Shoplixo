@@ -1252,6 +1252,10 @@ tr:hover td{background:var(--bg)}
         <div style="font-size:11px;color:var(--text3);margin-top:4px"><i class="fa-solid fa-info-circle"></i> Unsplash, Imgur, বা যেকোনো image URL দিন। অথবা নিচে drag & drop করুন।</div>
       </div>
       <!-- Image Upload Zone -->
+      <label id="pm-keep-old-label" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:8px;cursor:pointer">
+        <input type="checkbox" id="pm-keep-old-images" style="width:16px;height:16px;accent-color:var(--brand)">
+        পুরনো ছবিও রাখুন (নতুন যোগ করুন, replace না করে)
+      </label>
       <div class="img-upload-zone" id="img-upload-zone" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleImgDrop(event)">
         <input type="file" accept="image/*" multiple onchange="handleImgUpload(this.files)">
         <span class="img-upload-icon">📸</span>
@@ -2593,6 +2597,11 @@ function openProductModal(prod = null) {
     $('pm-new').checked = !!prod.isNew;
     $('pm-flash').checked = !!prod.isFlash;
     if (prod.img) { uploadedImages = [prod.img]; showImgPreview(uploadedImages); }
+    // Edit mode: "পুরনো ছবিও রাখুন" checkbox দেখাও, default unchecked
+    const keepOldLabel = $('pm-keep-old-label');
+    if (keepOldLabel) keepOldLabel.style.display = 'flex';
+    const keepOldChk = $('pm-keep-old-images');
+    if (keepOldChk) keepOldChk.checked = false;
   } else {
     ['pm-name', 'pm-price', 'pm-orig', 'pm-stock', 'pm-reviews', 'pm-sizes', 'pm-colors', 'pm-material', 'pm-desc', 'pm-img'].forEach(id => { const el = $(id); if (el) el.value = ''; });
     if ($('pm-warranty')) $('pm-warranty').value = '';
@@ -2601,6 +2610,11 @@ function openProductModal(prod = null) {
     $('pm-rating').value = '4.5'; $('pm-viewers').value = '12';
     $('pm-featured').checked = false; $('pm-new').checked = true; $('pm-flash').checked = false;
     $('img-preview-grid').innerHTML = '';
+    // Add mode: checkbox লুকাও ও reset করো
+    const keepOldLabel = $('pm-keep-old-label');
+    if (keepOldLabel) keepOldLabel.style.display = 'none';
+    const keepOldChk = $('pm-keep-old-images');
+    if (keepOldChk) keepOldChk.checked = false;
   }
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -2687,12 +2701,30 @@ async function handleImgUpload(files) {
   }
 
   if (results.length > 0) {
-    // Set first Cloudinary URL as main image if field is empty
-    if (!$('pm-img')?.value || $('pm-img')?.value === 'uploaded') {
-      $('pm-img').value = results[0];
-      previewImgUrl(results[0]);
+    // ✅ FIX: পুরনো uploadedImages (edit mode এর আগের images) replace করো
+    // তবে "পুরনো ছবিও রাখুন" checkbox চেক থাকলে দুটো একসাথে রাখো
+    const keepOld = $('pm-keep-old-images')?.checked;
+
+    if (keepOld) {
+      // পুরনো + নতুন একসাথে রাখো (পুরনোগুলো আগে, নতুনগুলো পরে)
+      const oldValid = uploadedImages.filter(u => u && u.startsWith('http') && !results.includes(u));
+      uploadedImages = [...oldValid, ...results];
+    } else {
+      // শুধু নতুন images রাখো (replace) — এটাই default & bug fix
+      uploadedImages = [...results];
     }
-    showImgPreview(results);
+
+    // pm-img field এ সবসময় প্রথম image set করো (force update — পুরনো value থাকলেও)
+    $('pm-img').value = uploadedImages[0];
+    previewImgUrl(uploadedImages[0]);
+
+    // Preview সব uploadedImages দেখাবে
+    showImgPreview(uploadedImages);
+
+    const totalMsg = keepOld && uploadedImages.length > results.length
+      ? `✅ ${results.length}টি image যুক্ত হয়েছে! মোট ${uploadedImages.length}টি।`
+      : `✅ ${results.length}টি নতুন image সংরক্ষণের জন্য প্রস্তুত!`;
+    toast(totalMsg, 'success');
   }
 
   setTimeout(() => { if (progress) progress.style.display = 'none'; }, 600);
@@ -2737,15 +2769,21 @@ async function saveProduct() {
   if (!cat) { toast('Category দিন!', 'warning'); return; }
   if (!price || isNaN(price) || price <= 0) { toast('সঠিক Price দিন!', 'warning'); $('pm-price').focus(); return; }
 
-  // UPGRADE 4: Use Cloudinary URLs from uploadedImages; reject raw base64
-  const cloudinaryImages = uploadedImages.filter(u => u.startsWith('http'));
-  if (cloudinaryImages.length > 0 && (img === 'uploaded' || !img)) {
+  // ✅ FIX: uploadedImages কেই single source of truth ধরো
+  // base64 reject করো — শুধু http URL গুলো নাও
+  const cloudinaryImages = uploadedImages.filter(u => u && u.startsWith('http'));
+
+  if (cloudinaryImages.length > 0) {
+    // নতুন/updated image আছে — uploadedImages[0] ই main image
     img = cloudinaryImages[0];
+  } else {
+    // Cloudinary image নেই — pm-img field এর URL ব্যবহার করো
+    img = $('pm-img')?.value?.trim() || '';
+    if (!img || img === 'uploaded') {
+      img = `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=500&fit=crop&q=80`;
+    }
   }
-  if (!img || img === 'uploaded') {
-    img = `https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&h=500&fit=crop&q=80`;
-  }
-  // Strip any accidental base64 from allImages
+
   const allImages = cloudinaryImages.length > 0 ? cloudinaryImages : [img];
 
   const productData = {

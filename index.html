@@ -2073,9 +2073,26 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
   .pdp-product-name{font-size:18px}
   .pdp-price-main{font-size:26px}
   .pdp-body{padding:0 0 0}
-  .pdp-main-img-wrap{max-height:min(70vw,400px);aspect-ratio:unset;height:min(70vw,400px)}
+  .pdp-main-img-wrap{max-height:min(85vw,450px)!important;aspect-ratio:unset;height:min(85vw,450px)}
   .pdp-size-btn,.pdp-color-btn{min-height:44px}
 }
+/* UPGRADE 8: Mobile PDP optimizations */
+@media(max-width:480px){
+  .pdp-trust-badges-grid{grid-template-columns:repeat(2,1fr)!important}
+  .pdp-fbt{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .pdp-urgency{padding:0 4px}
+  .faq-q{padding:14px 16px!important}
+  .pdp-main-img-wrap{height:min(85vw,450px)!important}
+}
+/* UPGRADE 8: Desktop 2-column PDP layout */
+@media(min-width:1024px){
+  .pdp-content-wrapper{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;padding:20px}
+  .pdp-gallery-col{position:sticky;top:80px}
+  #pdp-floating-bar{padding:12px 32px}
+}
+/* Lightbox animation */
+@keyframes scaleIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .pdp-sticky-btn-cart{flex:0 0 auto;background:rgba(255,255,255,.12);color:#fff;padding:14px 20px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:1.5px solid rgba(255,255,255,.2);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;-webkit-tap-highlight-color:transparent;transition:var(--t)}
 .pdp-sticky-btn-cart:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35)}
 .pdp-sticky-btn-cart:active{transform:scale(.97)}
@@ -4541,6 +4558,12 @@ function openProductPage(pid) {
   const P = window.PRODUCTS || PRODUCTS;
   const p = P.find(x => String(x.id) === String(pid));
   if (!p) return;
+  // UPGRADE 9: Show skeleton immediately
+  const pdp = document.getElementById('product-detail-page');
+  if (pdp) { pdp.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  showPDPSkeleton();
+  // Small delay so skeleton renders before heavy innerHTML build
+  requestAnimationFrame(() => requestAnimationFrame(() => {
   trackView(pid);
   const slug = toSlug(p.name, p.productId || p.id);
   history.pushState({productId: pid, type:'pdp'}, p.name, '/product/' + slug);
@@ -4551,9 +4574,9 @@ function openProductPage(pid) {
   if (!sd) { sd = document.createElement('script'); sd.id='pdp-json-ld'; sd.type='application/ld+json'; document.head.appendChild(sd); }
   sd.textContent = JSON.stringify({"@context":"https://schema.org","@type":"Product","name":p.name,"description":p.desc||p.name,"image":p.img,"sku":p.productId||p.id,"brand":{"@type":"Brand","name":"Shoplixo"},"offers":{"@type":"Offer","priceCurrency":"BDT","price":p.price,"availability":"https://schema.org/"+(p.stock>0?"InStock":"OutOfStock"),"seller":{"@type":"Organization","name":"Shoplixo"}}});
   renderProductDetailPage(p);
-  const pdp = document.getElementById('product-detail-page');
-  if (pdp) { pdp.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  // pdp already open (opened before skeleton)
   window.scrollTo(0, 0);
+  })); // end rAF wrapper
 }
 
 function closeProductPage() {
@@ -4617,7 +4640,6 @@ function renderProductDetailPage(p) {
 
   <!-- Info -->
   <div class="pdp-info">
-    ${p.isFlash ? `<div class="pdp-flash-badge"><i class="fa-solid fa-bolt"></i> FLASH SALE — সীমিত সময়!</div>` : ''}
     <div class="pdp-product-name">${p.name}</div>
     <div class="pdp-meta-row">
       <div class="stars">${starsHTML(p.rating)}</div>
@@ -4625,12 +4647,61 @@ function renderProductDetailPage(p) {
       <span class="pdp-verified"><i class="fa-solid fa-circle-check"></i> Verified Brand</span>
     </div>
 
+    ${p.isFlash ? `<div class="pdp-flash-timer" style="background:linear-gradient(135deg,#ff4757,#ff6348);color:#fff;padding:10px 16px;border-radius:var(--r-lg);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 14px rgba(255,71,87,.35)">
+      <span style="font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-bolt"></i> ফ্ল্যাশ সেল চলছে!</span>
+      <span id="pdp-countdown" style="font-weight:800;font-size:14px;font-family:monospace;letter-spacing:1px;background:rgba(0,0,0,.2);padding:4px 10px;border-radius:var(--r-sm)">লোড হচ্ছে...</span>
+    </div>` : ''}
+
     <div class="pdp-price-block">
       <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:4px">
         <span class="pdp-price-main">${fmt(p.price)}</span>
         ${p.orig > p.price ? `<span class="pdp-price-orig">${fmt(p.orig)}</span><span class="pdp-disc-badge">-${d}% OFF</span>` : ''}
       </div>
       ${saved > 0 ? `<div class="pdp-saved-text"><i class="fa-solid fa-tag"></i> আপনি ৳${saved.toLocaleString()} সাশ্রয় করছেন!</div>` : ''}
+    </div>
+
+    <!-- UPGRADE 1: Urgency & Scarcity -->
+    <div class="pdp-urgency" style="margin:12px 0">
+      ${p.stock <= 10 ? `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <i class="fa-solid fa-fire" style="color:#ff4757;font-size:13px"></i>
+        <span style="font-size:13px;font-weight:700;color:#ff4757">মাত্র ${p.stock}টি বাকি আছে — দ্রুত অর্ডার করুন!</span>
+      </div>
+      <div style="height:6px;background:var(--bg2);border-radius:10px;overflow:hidden">
+        <div style="height:100%;width:${Math.min(100,(p.stock/50)*100)}%;background:linear-gradient(90deg,#ff4757,#ff6b81);border-radius:10px;transition:width 1s ease"></div>
+      </div>` : ''}
+    </div>
+
+    <!-- Live viewers + recent sales -->
+    <div style="display:flex;gap:16px;margin:10px 0;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);background:var(--bg2);padding:5px 12px;border-radius:var(--r-full);border:1px solid var(--border)">
+        <i class="fa-solid fa-eye" style="color:var(--blue)"></i>
+        <span><strong style="color:var(--text)">${viewers}</strong> জন এখন দেখছেন</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);background:var(--bg2);padding:5px 12px;border-radius:var(--r-full);border:1px solid var(--border)">
+        <i class="fa-solid fa-bag-shopping" style="color:var(--green)"></i>
+        <span>আজ <strong style="color:var(--text)">${soldToday}টি</strong> বিক্রি হয়েছে</span>
+      </div>
+    </div>
+
+    <!-- UPGRADE 3: Trust Badges Grid -->
+    <div class="pdp-trust-badges-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0;text-align:center">
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px 6px;border:1px solid var(--border);transition:var(--t)" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+        <i class="fa-solid fa-shield-halved" style="color:var(--green);font-size:18px;display:block;margin-bottom:4px"></i>
+        <span style="font-size:10px;color:var(--text2);font-weight:600">১০০% আসল</span>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px 6px;border:1px solid var(--border);transition:var(--t)" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+        <i class="fa-solid fa-truck-fast" style="color:var(--blue);font-size:18px;display:block;margin-bottom:4px"></i>
+        <span style="font-size:10px;color:var(--text2);font-weight:600">দ্রুত ডেলিভারি</span>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px 6px;border:1px solid var(--border);transition:var(--t)" onmouseover="this.style.borderColor='#ff9f43'" onmouseout="this.style.borderColor='var(--border)'">
+        <i class="fa-solid fa-rotate-left" style="color:#ff9f43;font-size:18px;display:block;margin-bottom:4px"></i>
+        <span style="font-size:10px;color:var(--text2);font-weight:600">৭ দিন রিটার্ন</span>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px 6px;border:1px solid var(--border);transition:var(--t)" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+        <i class="fa-solid fa-money-bill-wave" style="color:var(--green);font-size:18px;display:block;margin-bottom:4px"></i>
+        <span style="font-size:10px;color:var(--text2);font-weight:600">COD সুবিধা</span>
+      </div>
     </div>
 
     <div class="pdp-social-proof">
@@ -4802,12 +4873,91 @@ function renderProductDetailPage(p) {
           <div style="font-size:14px;font-weight:600;color:var(--text2);margin-top:10px">এখনো কোনো রিভিউ নেই</div>
           <div style="font-size:12px;color:var(--text3);margin-top:6px">প্রথম রিভিউ দিয়ে অন্যদের সাহায্য করুন!</div>
         </div>
+        ${p.customerReviews && p.customerReviews.length ? p.customerReviews.map(review => `
+        <div style="padding:14px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--dark2));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px;flex-shrink:0">${(review.author||'?')[0].toUpperCase()}</div>
+            <div>
+              <div style="font-weight:700;font-size:13px;color:var(--text)">${review.author || 'Customer'}</div>
+              <div style="display:flex;gap:2px">${starsHTML(review.rating||5)}</div>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:8px">${review.text || ''}</p>
+          ${review.images && review.images.length > 0 ? `
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+            ${review.images.map(img => `
+              <img src="${img}" onclick="openImageLightbox('${img}')"
+                style="width:64px;height:64px;border-radius:var(--r-sm);object-fit:cover;cursor:pointer;border:1.5px solid var(--border);transition:var(--t)"
+                onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border)'"
+                loading="lazy">
+            `).join('')}
+          </div>` : ''}
+        </div>`).join('') : ''}
       </div>
       <button onclick="currentUser?showToast('Review feature শীঘ্রই আসছে!','star'):openAuth('login')" style="width:100%;margin-top:14px;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:12px;border-radius:var(--r-full);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
         <i class="fa-regular fa-star"></i> রিভিউ লিখুন
       </button>
     </div>
   </div>
+
+  <!-- UPGRADE 7: FAQ Accordion -->
+  <div class="pdp-faq" style="background:var(--bg);margin-top:8px;padding:20px">
+    <h3 style="font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--dark)">
+      <span style="width:32px;height:32px;background:var(--blue-light);border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center"><i class="fa-solid fa-circle-question" style="color:var(--blue);font-size:13px"></i></span>
+      প্রায়জিজ্ঞাসিত প্রশ্ন
+    </h3>
+
+    <div class="faq-item" style="border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden">
+      <div class="faq-q" onclick="(function(el){const a=el.nextElementSibling;const icon=el.querySelector('.faq-chevron');if(a.style.display==='block'){a.style.display='none';icon.style.transform='rotate(0deg)'}else{a.style.display='block';icon.style.transform='rotate(180deg)'}})(this)"
+        style="padding:14px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--text);background:var(--bg);transition:background var(--t)"
+        onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='var(--bg)'">
+        ডেলিভারি কতদিন লাগে?
+        <i class="fa-solid fa-chevron-down faq-chevron" style="font-size:11px;color:var(--text3);transition:transform .25s ease"></i>
+      </div>
+      <div class="faq-a" style="display:none;padding:0 16px 14px;font-size:13px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border)">
+        ঢাকার ভিতরে ১-২ দিন, ঢাকার বাইরে ৩-৫ কার্যদিবস সময় লাগে। ৳৯৯৯+ অর্ডারে ফ্রি ডেলিভারি।
+      </div>
+    </div>
+
+    <div class="faq-item" style="border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden">
+      <div class="faq-q" onclick="(function(el){const a=el.nextElementSibling;const icon=el.querySelector('.faq-chevron');if(a.style.display==='block'){a.style.display='none';icon.style.transform='rotate(0deg)'}else{a.style.display='block';icon.style.transform='rotate(180deg)'}})(this)"
+        style="padding:14px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--text);background:var(--bg);transition:background var(--t)"
+        onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='var(--bg)'">
+        Cash on Delivery আছে?
+        <i class="fa-solid fa-chevron-down faq-chevron" style="font-size:11px;color:var(--text3);transition:transform .25s ease"></i>
+      </div>
+      <div class="faq-a" style="display:none;padding:0 16px 14px;font-size:13px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border)">
+        হ্যাঁ! আমাদের সব পণ্যে Cash on Delivery সুবিধা আছে। পণ্য হাতে পেয়ে টাকা দিন — কোনো অগ্রিম পেমেন্ট নেই।
+      </div>
+    </div>
+
+    <div class="faq-item" style="border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden">
+      <div class="faq-q" onclick="(function(el){const a=el.nextElementSibling;const icon=el.querySelector('.faq-chevron');if(a.style.display==='block'){a.style.display='none';icon.style.transform='rotate(0deg)'}else{a.style.display='block';icon.style.transform='rotate(180deg)'}})(this)"
+        style="padding:14px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--text);background:var(--bg);transition:background var(--t)"
+        onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='var(--bg)'">
+        Return/Exchange করা যায়?
+        <i class="fa-solid fa-chevron-down faq-chevron" style="font-size:11px;color:var(--text3);transition:transform .25s ease"></i>
+      </div>
+      <div class="faq-a" style="display:none;padding:0 16px 14px;font-size:13px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border)">
+        হ্যাঁ, পণ্য হাতে পাওয়ার ৭ দিনের মধ্যে return/exchange করতে পারবেন। পণ্য অক্ষত অবস্থায় ফেরত দিতে হবে (শর্তাবলী প্রযোজ্য)।
+      </div>
+    </div>
+
+    <div class="faq-item" style="border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden">
+      <div class="faq-q" onclick="(function(el){const a=el.nextElementSibling;const icon=el.querySelector('.faq-chevron');if(a.style.display==='block'){a.style.display='none';icon.style.transform='rotate(0deg)'}else{a.style.display='block';icon.style.transform='rotate(180deg)'}})(this)"
+        style="padding:14px 16px;font-size:13px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--text);background:var(--bg);transition:background var(--t)"
+        onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background='var(--bg)'">
+        পণ্য কি সত্যিই অরিজিনাল?
+        <i class="fa-solid fa-chevron-down faq-chevron" style="font-size:11px;color:var(--text3);transition:transform .25s ease"></i>
+      </div>
+      <div class="faq-a" style="display:none;padding:0 16px 14px;font-size:13px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border)">
+        অবশ্যই! Shoplixo শুধুমাত্র ১০০% অরিজিনাল পণ্য বিক্রি করে। কোনো সমস্যা হলে সম্পূর্ণ অর্থ ফেরত দেওয়া হবে।
+      </div>
+    </div>
+  </div>
+
+  <!-- UPGRADE 5: Frequently Bought Together -->
+  ${renderFrequentlyBoughtTogether(p)}
 
   <!-- Related Products -->
   ${related.length ? `<div class="pdp-related" style="background:var(--bg);margin-top:8px">
@@ -5032,6 +5182,13 @@ function renderProductDetailPage(p) {
 
 // PDP Gallery touch swipe
 setTimeout(() => {
+  // UPGRADE 2: Start countdown if flash sale
+  if (p.isFlash) {
+    const endTime = Date.now() + (p.flashEndsIn || 3 * 60 * 60 * 1000);
+    startPDPCountdown(endTime);
+  }
+  // UPGRADE 4: Setup floating bar
+  setupPDPFloatingBar(p);
   const wrap = document.getElementById('pdp-main-img-wrap');
   if (!wrap) return;
   let startX = 0, startY = 0, isDragging = false;
@@ -5115,6 +5272,137 @@ function pdpBuyNow() {
   addToCart(window._pdpPid, window._pdpQty||1, window._pdpSize||'M', window._pdpColor||'');
   setTimeout(()=>openCheckout(), 200);
 }
+
+/* ===== UPGRADE 9: PDP Skeleton ===== */
+function showPDPSkeleton() {
+  const body = document.getElementById('pdp-body');
+  if (!body) return;
+  body.innerHTML = `
+    <div style="padding:0">
+      <div style="width:100%;height:min(85vw,420px);background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite"></div>
+      <div style="padding:16px 20px">
+        <div style="height:28px;width:75%;background:var(--bg2);border-radius:6px;margin:0 0 12px;animation:shimmer 1.5s infinite"></div>
+        <div style="height:18px;width:50%;background:var(--bg2);border-radius:6px;margin-bottom:16px;animation:shimmer 1.5s infinite"></div>
+        <div style="height:72px;background:var(--bg2);border-radius:var(--r-lg);margin-bottom:14px;animation:shimmer 1.5s infinite"></div>
+        <div style="height:50px;background:var(--bg2);border-radius:var(--r-lg);margin-bottom:14px;animation:shimmer 1.5s infinite"></div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1;height:52px;background:var(--bg2);border-radius:var(--r-full);animation:shimmer 1.5s infinite"></div>
+          <div style="flex:1;height:52px;background:var(--bg2);border-radius:var(--r-full);animation:shimmer 1.5s infinite"></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ===== UPGRADE 2: Flash Sale Countdown ===== */
+function startPDPCountdown(endTime) {
+  const el = document.getElementById('pdp-countdown');
+  if (!el) return;
+  function update() {
+    const diff = endTime - Date.now();
+    if (diff <= 0) { el.textContent = 'শেষ!'; return; }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} বাকি`;
+    setTimeout(update, 1000);
+  }
+  update();
+}
+
+/* ===== UPGRADE 4: Floating Bar ===== */
+function setupPDPFloatingBar(p) {
+  const bar = document.getElementById('pdp-floating-bar');
+  if (!bar) return;
+  const fi = document.getElementById('pdp-float-img');
+  const fn = document.getElementById('pdp-float-name');
+  const fp = document.getElementById('pdp-float-price');
+  if (fi) fi.src = p.img;
+  if (fn) fn.textContent = p.name;
+  if (fp) fp.textContent = `৳${p.price.toLocaleString()}`;
+  bar.style.display = 'flex';
+
+  const pdpBody = document.getElementById('pdp-body');
+  if (!pdpBody) return;
+  // Remove previous listener by cloning
+  const newBody = pdpBody.cloneNode(false);
+  pdpBody.parentNode.replaceChild(newBody, pdpBody);
+  // Re-set content
+  const origBody = document.getElementById('pdp-body');
+
+  // Use scroll on the PDP overlay container instead
+  const overlay = document.getElementById('product-detail-page');
+  if (!overlay) return;
+  overlay._pdpScrollHandler && overlay.removeEventListener('scroll', overlay._pdpScrollHandler);
+  overlay._pdpScrollHandler = function() {
+    const mainCTA = document.querySelector('.pdp-cta-row');
+    if (!mainCTA) return;
+    const ctaBottom = mainCTA.getBoundingClientRect().bottom;
+    if (ctaBottom < 0 && window.innerWidth > 768) {
+      bar.style.transform = 'translateY(0)';
+    } else {
+      bar.style.transform = 'translateY(-100%)';
+    }
+  };
+  overlay.addEventListener('scroll', overlay._pdpScrollHandler, {passive: true});
+}
+
+/* ===== UPGRADE 5: Frequently Bought Together ===== */
+function renderFrequentlyBoughtTogether(p) {
+  const P = window.PRODUCTS || (typeof PRODUCTS !== 'undefined' ? PRODUCTS : []);
+  const suggestions = P.filter(x => x.cat === p.cat && String(x.id) !== String(p.id) && x.isActive !== false).slice(0, 2);
+  if (suggestions.length < 1) return '';
+  const allItems = [p, ...suggestions];
+  const totalPrice = allItems.reduce((sum, item) => sum + item.price, 0);
+  const discountedTotal = Math.round(totalPrice * 0.95);
+  return `
+  <div class="pdp-fbt" style="background:var(--bg);margin-top:8px;padding:20px">
+    <h3 style="font-size:15px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--dark)">
+      <span style="width:32px;height:32px;background:var(--brand-light);border-radius:var(--r-sm);display:inline-flex;align-items:center;justify-content:center"><i class="fa-solid fa-layer-group" style="color:var(--brand);font-size:13px"></i></span>
+      একসাথে কিনলে সাশ্রয়!
+    </h3>
+    <div style="background:var(--bg2);border-radius:var(--r-xl);padding:16px;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch">
+        ${allItems.map((item, i) => `
+          ${i > 0 ? '<div style="flex-shrink:0;width:24px;height:24px;background:var(--bg);border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-plus" style="color:var(--text3);font-size:9px"></i></div>' : ''}
+          <div style="flex-shrink:0;text-align:center;width:76px;cursor:pointer" onclick="openProductPage('${item.id}')">
+            <img src="${item.img}" style="width:68px;height:68px;border-radius:var(--r-sm);object-fit:cover;border:2px solid ${i===0?'var(--brand)':'var(--border)'};transition:var(--t)" loading="lazy" onerror="this.src='https://picsum.photos/seed/${item.id}fbt/80/80'">
+            <div style="font-size:10px;margin-top:5px;color:var(--text3);font-weight:600">৳${item.price.toLocaleString()}</div>
+            <div style="font-size:9px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:76px">${item.name.slice(0,12)}…</div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:var(--text3);text-decoration:line-through">৳${totalPrice.toLocaleString()}</span>
+          <span style="font-size:18px;font-weight:800;color:var(--brand);font-family:'Syne',sans-serif">৳${discountedTotal.toLocaleString()}</span>
+          <span style="background:var(--brand);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--r-sm)">৫% ছাড়</span>
+        </div>
+        <button onclick="pdpAddBundleToCart(${JSON.stringify(allItems.map(i=>i.id))})" style="background:var(--dark2);color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;transition:var(--t)" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='var(--dark2)'">
+          <i class="fa-solid fa-cart-plus"></i> সবগুলো Cart এ যুক্ত করুন
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pdpAddBundleToCart(ids) {
+  if (!Array.isArray(ids)) return;
+  ids.forEach(id => addToCart(id, 1, '', '', true));
+  showToast(`${ids.length}টি পণ্য Cart এ যুক্ত হয়েছে! 🛒`, 'check');
+  if (typeof updateCartUI === 'function') updateCartUI();
+}
+
+/* ===== UPGRADE 6: Image Lightbox ===== */
+function openImageLightbox(src) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadeIn .2s ease';
+  overlay.innerHTML = `<img src="${src}" style="max-width:92vw;max-height:90vh;border-radius:var(--r-lg);box-shadow:0 20px 60px rgba(0,0,0,.5);animation:scaleIn .25s ease">
+    <button onclick="event.stopPropagation();this.parentElement.remove()" style="position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>`;
+  overlay.onclick = () => overlay.remove();
+  document.body.appendChild(overlay);
+}
+
+
 function pdpToggleWish() {
   if (!window._pdpPid) return;
   const btn = document.getElementById('pdp-wish-btn');
@@ -6237,11 +6525,43 @@ function showToast(msg,icon='check'){
 function closeWelcome(){$('welcome-popup').classList.remove('open');document.body.style.overflow='';localStorage.setItem('slx_welcomed','1');}
 function claimWelcome(){closeWelcome();showToast('কোড <strong>LIXA20</strong> — checkout এ 20% ছাড়!','gift');}
 function closeExit(){$('exit-popup').classList.remove('open');document.body.style.overflow='';}
-function subscribeNL(){
-  const e=$('nl-email').value.trim();
-  if(!e||!e.includes('@')){showToast('সঠিক email দিন!','exclamation');return;}
-  showToast('Subscribe সফল! কোড <strong>NEWSLIXA10</strong> পেয়েছেন।','envelope');
-  $('nl-email').value='';$('nl-name').value='';
+async function subscribeNL(){
+  const nameEl = $('nl-name');
+  const emailEl = $('nl-email');
+  const name = nameEl?.value?.trim() || '';
+  const email = emailEl?.value?.trim() || '';
+  if(!email || !email.includes('@') || !email.includes('.')){
+    showToast('সঠিক email ঠিকানা দিন!','exclamation');
+    emailEl?.focus();
+    return;
+  }
+  // Button disable করো — double submit আটকাও
+  const btn = document.querySelector('.nl-box button[onclick*="subscribeNL"]')
+           || document.querySelector('button[onclick="subscribeNL()"]');
+  const origText = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> অপেক্ষা করুন...'; }
+  try {
+    const res = await fetch('/api/commerce?module=newsletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name, source: 'website' })
+    }).then(r => r.json());
+    if (res.ok) {
+      if (res.couponCode) {
+        showToast(`Subscribe সফল! কোড <strong>${res.couponCode}</strong> পেয়েছেন — আপনার email check করুন।`, 'envelope');
+      } else {
+        showToast('✅ Subscribe সফল হয়েছে! ধন্যবাদ।', 'envelope');
+      }
+      if (nameEl) nameEl.value = '';
+      if (emailEl) emailEl.value = '';
+    } else {
+      showToast(res.error || 'Subscribe করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।', 'exclamation');
+    }
+  } catch(e) {
+    showToast('Network সমস্যা। আবার চেষ্টা করুন।', 'exclamation');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+  }
 }
 // Discount popups disabled
 
@@ -10513,7 +10833,25 @@ window.updateAdminPanel = updateAdminPanel;
   </div>
   <div class="pdp-breadcrumb" id="pdp-breadcrumb"></div>
   <div class="pdp-body" id="pdp-body"></div>
-  <!-- Sticky actions OUTSIDE pdp-body overflow — fixes iOS scroll bug -->
+  <!-- UPGRADE 4: Floating sticky bar (desktop, on scroll) -->
+<div id="pdp-floating-bar" style="position:fixed;top:0;left:0;right:0;background:var(--header-bg);box-shadow:0 4px 20px rgba(0,0,0,.12);padding:12px 24px;display:none;align-items:center;justify-content:space-between;z-index:5000;transform:translateY(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-bottom:2px solid var(--brand)">
+  <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+    <img id="pdp-float-img" src="" style="width:42px;height:42px;border-radius:var(--r-sm);object-fit:cover;border:1.5px solid var(--border);flex-shrink:0">
+    <div style="min-width:0">
+      <div id="pdp-float-name" style="font-weight:700;font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--text)"></div>
+      <div id="pdp-float-price" style="color:var(--brand);font-weight:800;font-size:15px;font-family:'Syne',sans-serif"></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;flex-shrink:0;margin-left:16px">
+    <button onclick="pdpAddToCart()" style="background:var(--dark2);color:#fff;padding:10px 20px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;transition:var(--t)" onmouseover="this.style.background='var(--dark3)'" onmouseout="this.style.background='var(--dark2)'">
+      <i class="fa-solid fa-cart-plus"></i> Cart
+    </button>
+    <button onclick="pdpBuyNow()" style="background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:10px 24px;border-radius:var(--r-full);font-size:13px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(228,30,38,.3);transition:var(--t)" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+      <i class="fa-solid fa-bolt"></i> এখনই কিনুন
+    </button>
+  </div>
+</div>
+
   <div class="pdp-sticky-actions" id="pdp-sticky-actions-bar">
     <button class="pdp-sticky-btn-cart" onclick="pdpAddToCart()"><i class="fa-solid fa-cart-plus"></i> Cart</button>
     <button class="pdp-sticky-btn-buy" onclick="pdpBuyNow()"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
