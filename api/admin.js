@@ -22,15 +22,17 @@
  *  POST ?action=status             → Order status আপডেট
  *  POST ?action=order-bulk-status  → Bulk order status আপডেট        [NEW]
  *  POST ?action=payment-verify     → Payment verify করুন
+ *  POST ?action=order-delete       → Order delete / archive করুন    [NEW]
  *
  *  ── RETURN REQUESTS ──────────────────────────────────────────
  *  GET  ?action=returns            → Return requests list
  *  POST ?action=return-update      → Return status আপডেট / Refund
  *
  *  ── CUSTOMERS ────────────────────────────────────────────────
- *  GET  ?action=customers          → Users list (search, sort, paginate)
+ *  GET  ?action=customers          → Users list (search, sort, paginate) [UPGRADED — online/login fields]
  *  POST ?action=customer-ban       → User ban/unban (isBanned field)  [FIXED]
  *  POST ?action=customer-adjust-points → Loyalty points manual adjust [NEW]
+ *  POST ?action=customer-force-logout  → Force logout a user          [NEW]
  *
  *  ── COUPONS ──────────────────────────────────────────────────
  *  GET  ?action=coupons            → Coupon list
@@ -58,6 +60,10 @@
  *  ── NEWSLETTER ───────────────────────────────────────────────
  *  GET  ?action=newsletter         → Subscribers list
  *  POST ?action=newsletter-del     → Subscriber মুছুন
+ *  POST ?action=newsletter-campaign → Campaign email পাঠান (test/broadcast) [NEW]
+ *
+ *  ── IMAGE UPLOAD ─────────────────────────────────────────────
+ *  POST ?action=upload-image       → Cloudinary-তে image upload করুন [NEW]
  *
  *  ── ABANDONED CARTS ──────────────────────────────────────────
  *  GET  ?action=abandoned          → Abandoned carts
@@ -90,6 +96,7 @@
  */
 
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const {
   connectDB, Order, User, Product, Comment, Newsletter, Coupon,
   FlashSale, Bundle, AbandonedCart, LoyaltyTxn, SiteStats,
@@ -104,6 +111,12 @@ const {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    HELPERS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/**
+ * Validate a MongoDB ObjectId string (24 hex chars).
+ * Prevents NoSQL injection through malformed _id values.
+ */
+const isValidObjectId = id => /^[a-f\d]{24}$/i.test(String(id ?? ''));
 
 /**
  * Save a batch of key-value settings in a single Promise.all call.
@@ -672,6 +685,41 @@ module.exports = async (req, res) => {
   }
 
   /* ═══════════════════════════════════════════════════════════
+     ── ORDER DELETE / ARCHIVE (NEW — UPGRADE 1) ─────────────
+     POST ?action=order-delete
+     Body: { orderId, permanent?: boolean }
+     • permanent=false (default) → soft-delete (archived)
+     • permanent=true            → hard-delete from DB
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'order-delete' && req.method === 'POST') {
+    try {
+      const b          = req.body || {};
+      const orderId    = sanitize(String(b.orderId || ''), 30).toUpperCase();
+      // Accept boolean OR string "true"/"false" safely
+      const isPermanent = b.permanent === true || b.permanent === 'true';
+
+      if (!orderId) return res.status(400).json({ ok: false, error: 'orderId required' });
+
+      if (isPermanent) {
+        const deleted = await Order.findOneAndDelete({ orderId });
+        if (!deleted) return res.status(404).json({ ok: false, error: 'Order পাওয়া যায়নি' });
+        return res.json({ ok: true, message: `Order ${orderId} permanently deleted` });
+      } else {
+        const archived = await Order.findOneAndUpdate(
+          { orderId },
+          { $set: { status: 'archived', archivedAt: new Date() } },
+          { new: true }
+        );
+        if (!archived) return res.status(404).json({ ok: false, error: 'Order পাওয়া যায়নি' });
+        return res.json({ ok: true, message: `Order ${orderId} archived` });
+      }
+    } catch (err) {
+      console.error('Order delete error:', err);
+      return res.status(500).json({ ok: false, error: 'Order delete/archive হয়নি: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
      ── RETURN REQUESTS ──────────────────────────────────────
   ═══════════════════════════════════════════════════════════ */
   if (action === 'returns' && req.method === 'GET') {
@@ -775,7 +823,8 @@ module.exports = async (req, res) => {
           .sort(sortMap[sort] || { createdAt: -1 })
           .skip(skip)
           .limit(limit)
-          .select('-password -otp -otpExpiry -__v'),
+          /* UPGRADE 2: isOnline, loginMethod, lastSeen, deviceInfo, loginCount যোগ করা হয়েছে */
+          .select('name email phone avatar isVerified isBanned banReason bannedAt loginMethod isOnline lastSeen lastLogin loginCount deviceInfo createdAt totalOrders totalSpent loyaltyPoints loyaltyTier'),
         User.countDocuments(query),
       ]);
 
@@ -837,6 +886,46 @@ module.exports = async (req, res) => {
       });
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Points adjust হয়নি: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── CUSTOMER FORCE LOGOUT (NEW — UPGRADE 3) ──────────────
+     POST ?action=customer-force-logout
+     Body: { userId }
+     Sets isOnline=false, forceLoggedOut=true so the client
+     detects the flag on next request and clears the session.
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'customer-force-logout' && req.method === 'POST') {
+    try {
+      const { userId } = req.body || {};
+      if (!userId) return res.status(400).json({ ok: false, error: 'userId required' });
+      // Validate MongoDB ObjectId format — prevents NoSQL operator injection
+      if (!isValidObjectId(userId))
+        return res.status(400).json({ ok: false, error: 'Invalid userId format' });
+
+      const user = await User.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            isOnline:       false,
+            lastSeen:       new Date(),
+            forceLoggedOut: true,
+          },
+        },
+        { new: true }
+      ).select('name email phone isOnline lastSeen forceLoggedOut');
+
+      if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
+
+      return res.json({
+        ok: true,
+        message: `"${user.name}" force logged out successfully`,
+        user,
+      });
+    } catch (err) {
+      console.error('Force logout error:', err);
+      return res.status(500).json({ ok: false, error: 'Force logout হয়নি: ' + err.message });
     }
   }
 
@@ -1460,6 +1549,140 @@ module.exports = async (req, res) => {
     }
   }
 
+  /* ═══════════════════════════════════════════════════════════
+     ── IMAGE UPLOAD TO CLOUDINARY (NEW — UPGRADE 4) ─────────
+     POST ?action=upload-image
+     Body: { imageBase64: string, filename?: string }
+     Requires env: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY,
+                   CLOUDINARY_API_SECRET
+     Uploads to folder: shoplixo/products
+     Returns: { ok, url, publicId }
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'upload-image' && req.method === 'POST') {
+    try {
+      const { imageBase64 } = req.body || {};
+      if (!imageBase64 || typeof imageBase64 !== 'string')
+        return res.status(400).json({ ok: false, error: 'imageBase64 required' });
+
+      // Prevent abuse — base64 of 8 MB image ≈ ~10.7 MB string
+      if (imageBase64.length > 11_000_000)
+        return res.status(413).json({ ok: false, error: 'Image too large. Maximum 8 MB।' });
+
+      // Basic base64 / data-URI format check
+      if (!/^(data:image\/[a-z+]+;base64,)?[A-Za-z0-9+/\n]+=*$/.test(imageBase64.slice(0, 100)))
+        return res.status(400).json({ ok: false, error: 'Invalid image format' });
+
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+      const apiKey    = process.env.CLOUDINARY_API_KEY;
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+      if (!cloudName || !apiKey || !apiSecret) {
+        return res.status(500).json({
+          ok: false,
+          error: 'Cloudinary not configured. .env-এ CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET যোগ করুন।',
+        });
+      }
+
+      const timestamp  = Math.round(Date.now() / 1000);
+      const folder     = 'shoplixo/products';
+
+      // HMAC-SHA1 signature — only include params that are sent in the upload call
+      const signaturePayload = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+      const signature = crypto.createHash('sha1').update(signaturePayload).digest('hex');
+
+      const formData = new URLSearchParams();
+      formData.append('file',      imageBase64);
+      formData.append('api_key',   apiKey);
+      formData.append('timestamp', String(timestamp));
+      formData.append('signature', signature);
+      formData.append('folder',    folder);
+
+      const cloudRes  = await fetch(
+        `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`,
+        { method: 'POST', body: formData }
+      );
+      const data = await cloudRes.json();
+
+      if (data.secure_url) {
+        return res.json({ ok: true, url: data.secure_url, publicId: data.public_id });
+      }
+      return res.status(500).json({ ok: false, error: data.error?.message || 'Cloudinary upload failed' });
+
+    } catch (err) {
+      console.error('Image upload error:', err);
+      return res.status(500).json({ ok: false, error: 'Upload error: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── NEWSLETTER CAMPAIGN SEND (NEW — UPGRADE 5) ───────────
+     POST ?action=newsletter-campaign
+     Body: { subject, html, testEmail? }
+     • testEmail set → শুধু ওই address-এ পাঠাও (dry-run)
+     • testEmail absent → সব active subscribers কে পাঠাও
+     Returns: { ok, sent, failed, total, message }
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'newsletter-campaign' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+      const subject   = sanitize(String(b.subject || ''), 300);
+      const html      = b.html ? String(b.html) : '';
+      const testEmail = b.testEmail ? sanitize(String(b.testEmail), 254) : '';
+
+      if (!subject) return res.status(400).json({ ok: false, error: 'subject required' });
+      if (!html)    return res.status(400).json({ ok: false, error: 'html required' });
+
+      // Basic email format guard
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+      // ── Test mode: send to a single address only ──────────
+      if (testEmail) {
+        if (!emailRegex.test(testEmail))
+          return res.status(400).json({ ok: false, error: 'Invalid testEmail format' });
+        await sendEmail(testEmail, subject, html);
+        return res.json({ ok: true, message: `Test email sent to ${testEmail}` });
+      }
+
+      // ── Campaign mode: send to all active subscribers ────
+      const subscribers = await Newsletter.find({ isActive: true })
+        .select('email name')
+        .lean();
+
+      if (!subscribers.length)
+        return res.status(404).json({ ok: false, error: 'কোনো active subscriber নেই' });
+
+      let sent = 0, failed = 0;
+      const batchSize = 50;
+
+      for (let i = 0; i < subscribers.length; i += batchSize) {
+        const batch = subscribers.slice(i, i + batchSize);
+        await Promise.allSettled(
+          batch.map(sub =>
+            sendEmail(sub.email, subject, html)
+              .then(() => { sent++; })
+              .catch(() => { failed++; })
+          )
+        );
+        // Small inter-batch delay to respect rate limits
+        if (i + batchSize < subscribers.length) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+
+      return res.json({
+        ok: true,
+        message: `Campaign sent! ${sent} জন কে পাঠানো হয়েছে।`,
+        sent,
+        failed,
+        total: subscribers.length,
+      });
+
+    } catch (err) {
+      console.error('Newsletter campaign error:', err);
+      return res.status(500).json({ ok: false, error: 'Campaign send হয়নি: ' + err.message });
+    }
+  }
+
   /* ── Fallback ─────────────────────────────────────────── */
   return res.status(400).json({
     ok: false, error: 'Invalid action',
@@ -1468,18 +1691,20 @@ module.exports = async (req, res) => {
       'products', 'product', 'products-export',
       'product-add', 'product-edit', 'product-delete', 'product-bulk',
       'orders', 'order', 'status', 'order-bulk-status', 'payment-verify',
+      'order-delete',
       'returns', 'return-update',
-      'customers', 'customer-ban', 'customer-adjust-points',
+      'customers', 'customer-ban', 'customer-adjust-points', 'customer-force-logout',
       'reviews', 'review-approve', 'review-delete', 'review-reply',
       'flash-sales', 'flash-sale-add', 'flash-sale-del',
       'bundles', 'bundle-add', 'bundle-edit', 'bundle-delete',
       'coupons', 'coupon', 'toggle-coupon', 'coupon-delete',
-      'newsletter', 'newsletter-del',
+      'newsletter', 'newsletter-del', 'newsletter-campaign',
       'abandoned',
       'suppliers', 'supplier-add', 'supplier-edit', 'supplier-delete',
       'inventory', 'inventory-add',
       'referrals', 'referral-settings',
       'notify-broadcast',
+      'upload-image',
       'settings',
       'change-password',
     ],

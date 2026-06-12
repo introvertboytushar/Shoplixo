@@ -17,6 +17,17 @@
  *  ── SESSION ──────────────────────────────────────────────────
  *  POST /api/auth?action=refresh           → Access token রিফ্রেশ
  *  POST /api/auth?action=logout            → Logout (session বাতিল)
+ *
+ *  ── SOCIAL LOGIN ─────────────────────────────────────────────
+ *  POST /api/auth?action=google-login      → Google OAuth Login
+ *  POST /api/auth?action=facebook-login    → Facebook OAuth Login
+ *
+ *  ── ONLINE STATUS ────────────────────────────────────────────
+ *  POST /api/auth?action=heartbeat         → Client heartbeat (online status)
+ *  GET  /api/auth?action=mark-offline      → Idle users offline করুন (cron)
+ *
+ *  ── ADMIN ────────────────────────────────────────────────────
+ *  POST /api/auth?action=force-logout      → Admin: কোনো user কে force logout
  * ══════════════════════════════════════════════════════════════
  */
 
@@ -90,6 +101,18 @@ function signRefreshToken(payload) {
 function tokenError(err, res) {
   const code = err.name === 'TokenExpiredError' ? 'TOKEN_EXPIRED' : 'TOKEN_INVALID';
   return res.status(401).json({ ok: false, code, error: 'Token invalid বা expire হয়ে গেছে। আবার login করুন।' });
+}
+
+/** Check if the requester is an admin (role='admin' or isAdmin=true in JWT) */
+function isAdmin(req) {
+  try {
+    const token = extractToken(req);
+    if (!token) return false;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return decoded.role === 'admin' || decoded.isAdmin === true;
+  } catch {
+    return false;
+  }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -207,9 +230,15 @@ module.exports = async (req, res) => {
 
       /* ✅ Atomic update — no race condition */
       await User.findByIdAndUpdate(user._id, {
-        lastLogin:   new Date(),
-        lastLoginIp: ip,
-        $inc: { loginCount: 1 },
+        lastLogin:      new Date(),
+        lastLoginIp:    ip,
+        $inc:           { loginCount: 1 },
+        // ── UPGRADE 1: Login tracking ──────────────────────────
+        isOnline:       true,
+        lastSeen:       new Date(),
+        loginMethod:    b.method || 'email',  // 'google' | 'facebook' | 'email'
+        deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
+        forceLoggedOut: false,
       });
 
       const payload      = { id: user._id, phone: user.phone };
@@ -269,6 +298,7 @@ module.exports = async (req, res) => {
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
+      await connectDB();   // ✅ once at the top (was called twice — bug fixed)
       const b       = req.body || {};
       const updates = {};
 
@@ -284,7 +314,6 @@ module.exports = async (req, res) => {
         if (email && !isValidEmail(email))
           return res.status(400).json({ ok: false, code: 'INVALID_EMAIL', error: 'সঠিক Email দিন!' });
 
-        await connectDB();
         if (email) {
           const conflict = await User.findOne({ email, _id: { $ne: decoded.id } }).select('_id').lean();
           if (conflict)
@@ -292,8 +321,6 @@ module.exports = async (req, res) => {
         }
         updates.email = email || null;
       }
-
-      await connectDB();
       const user = await User
         .findByIdAndUpdate(decoded.id, updates, { new: true })
         .select('-password -otp -otpExpiry -otpPurpose -__v');
@@ -503,7 +530,12 @@ module.exports = async (req, res) => {
         const decoded = jwt.verify(token, JWT_SECRET);
         /* Record logout time — refresh tokens older than this are rejected by /refresh */
         await connectDB();
-        await User.findByIdAndUpdate(decoded.id, { lastLogout: new Date() }).catch(() => {});
+        await User.findByIdAndUpdate(decoded.id, {
+          lastLogout: new Date(),
+          // ── UPGRADE 3: Mark user offline on logout ───────────
+          isOnline:   false,
+          lastSeen:   new Date(),
+        }).catch(() => {});
       } catch { /* Expired/invalid tokens — silent ignore on logout */ }
     }
     return res.json({ ok: true, message: 'Logout সফল হয়েছে।' });
@@ -553,6 +585,227 @@ module.exports = async (req, res) => {
     }
   }
 
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     UPGRADE 2 ─ GOOGLE LOGIN
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  if (action === 'google-login' && req.method === 'POST') {
+    if (!checkRateLimit(`glogin_${ip}`, 10, 300_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
+
+    const b = req.body || {};
+    /* ── Google OAuth token verification ─────────────────────
+     *  Client থেকে Google ID token পাঠানো হয়।
+     *  এখানে আপনার Google token verification logic বসান।
+     *  e.g.: const ticket = await googleClient.verifyIdToken({ idToken: b.idToken, ... });
+     *  const { sub: googleId, email, name, picture } = ticket.getPayload();
+     * ──────────────────────────────────────────────────────── */
+    const googleId = sanitize(b.googleId || '', 100).trim();
+    const email    = sanitize(b.email    || '', 150).toLowerCase().trim();
+    const name     = sanitize(b.name     || '', 100).trim();
+
+    if (!googleId || !email)
+      return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'Google ID এবং Email আবশ্যক!' });
+
+    try {
+      await connectDB();
+
+      /* Find by googleId first, fallback to email */
+      let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+      if (!user) {
+        /* Auto-register on first Google login */
+        user = await User.create({
+          name:     name || email.split('@')[0],
+          email,
+          googleId,
+          isActive: true,
+          avatar:   b.picture || undefined,
+        });
+      } else if (!user.googleId) {
+        /* Link Google ID to existing email account */
+        user.googleId = googleId;
+        await user.save();
+      }
+
+      if (user.isBanned)
+        return res.status(403).json({ ok: false, code: 'ACCOUNT_BANNED', error: 'Account suspend করা হয়েছে। support@shoplixo.shop এ যোগাযোগ করুন।' });
+
+      await User.findByIdAndUpdate(user._id, {
+        lastLogin:      new Date(),
+        lastLoginIp:    ip,
+        $inc:           { loginCount: 1 },
+        // ── UPGRADE 2: Google login tracking ─────────────────
+        loginMethod:    'google',
+        isOnline:       true,
+        lastSeen:       new Date(),
+        forceLoggedOut: false,
+        deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
+      });
+
+      const payload      = { id: user._id, phone: user.phone || '' };
+      const token        = signAccessToken(payload);
+      const refreshToken = signRefreshToken(payload);
+
+      return res.json({
+        ok: true, token, refreshToken,
+        user: { id: user._id, name: user.name, email: user.email || null },
+      });
+
+    } catch (err) {
+      console.error('[auth/google-login]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
+    }
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     UPGRADE 2 ─ FACEBOOK LOGIN
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  if (action === 'facebook-login' && req.method === 'POST') {
+    if (!checkRateLimit(`fblogin_${ip}`, 10, 300_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক চেষ্টা! ৫ মিনিট পরে আবার করুন।' });
+
+    const b = req.body || {};
+    /* ── Facebook OAuth token verification ────────────────────
+     *  Client থেকে Facebook access token পাঠানো হয়।
+     *  এখানে আপনার Facebook token verification logic বসান।
+     *  e.g.: const fbRes = await fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${b.accessToken}`);
+     *  const { id: facebookId, email, name } = await fbRes.json();
+     * ──────────────────────────────────────────────────────── */
+    const facebookId = sanitize(b.facebookId || '', 100).trim();
+    const email      = sanitize(b.email      || '', 150).toLowerCase().trim();
+    const name       = sanitize(b.name       || '', 100).trim();
+
+    if (!facebookId || !email)
+      return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'Facebook ID এবং Email আবশ্যক!' });
+
+    try {
+      await connectDB();
+
+      /* Find by facebookId first, fallback to email */
+      let user = await User.findOne({ $or: [{ facebookId }, { email }] });
+
+      if (!user) {
+        /* Auto-register on first Facebook login */
+        user = await User.create({
+          name:       name || email.split('@')[0],
+          email,
+          facebookId,
+          isActive:   true,
+          avatar:     b.picture || undefined,
+        });
+      } else if (!user.facebookId) {
+        /* Link Facebook ID to existing email account */
+        user.facebookId = facebookId;
+        await user.save();
+      }
+
+      if (user.isBanned)
+        return res.status(403).json({ ok: false, code: 'ACCOUNT_BANNED', error: 'Account suspend করা হয়েছে। support@shoplixo.shop এ যোগাযোগ করুন।' });
+
+      await User.findByIdAndUpdate(user._id, {
+        lastLogin:      new Date(),
+        lastLoginIp:    ip,
+        $inc:           { loginCount: 1 },
+        // ── UPGRADE 2: Facebook login tracking ───────────────
+        loginMethod:    'facebook',
+        isOnline:       true,
+        lastSeen:       new Date(),
+        forceLoggedOut: false,
+        deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
+      });
+
+      const payload      = { id: user._id, phone: user.phone || '' };
+      const token        = signAccessToken(payload);
+      const refreshToken = signRefreshToken(payload);
+
+      return res.json({
+        ok: true, token, refreshToken,
+        user: { id: user._id, name: user.name, email: user.email || null },
+      });
+
+    } catch (err) {
+      console.error('[auth/facebook-login]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
+    }
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     UPGRADE 4 ─ FORCE LOGOUT  (Admin Only)
+     POST /api/auth?action=force-logout
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  if (action === 'force-logout' && req.method === 'POST') {
+    if (!isAdmin(req))
+      return res.status(403).json({ ok: false, error: 'Admin only' });
+
+    const { userId } = req.body || {};
+    if (!userId)
+      return res.status(400).json({ ok: false, error: 'userId required' });
+
+    try {
+      await connectDB();
+      await User.findByIdAndUpdate(userId, {
+        isOnline:       false,
+        lastSeen:       new Date(),
+        forceLoggedOut: true,
+      });
+
+      return res.json({ ok: true, message: 'User force logged out' });
+
+    } catch (err) {
+      console.error('[auth/force-logout]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
+    }
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     UPGRADE 5 ─ HEARTBEAT  (Client Online Status)
+     POST /api/auth?action=heartbeat
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  if (action === 'heartbeat' && req.method === 'POST') {
+    const userId = req.body?.userId;
+    if (!userId)
+      return res.json({ ok: false });
+
+    try {
+      await connectDB();
+      await User.findByIdAndUpdate(userId, {
+        isOnline:       true,
+        lastSeen:       new Date(),
+        forceLoggedOut: false,
+      });
+
+      /* Admin কর্তৃক force logout হলে client কে জানাও */
+      const user = await User.findById(userId).select('forceLoggedOut').lean();
+      return res.json({ ok: true, forceLoggedOut: user?.forceLoggedOut || false });
+
+    } catch (err) {
+      console.error('[auth/heartbeat]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
+    }
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     UPGRADE 6 ─ MARK OFFLINE  (Cron / Periodic)
+     GET  /api/auth?action=mark-offline
+     ৫ মিনিট ধরে heartbeat না এলে user কে offline করো
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  if (action === 'mark-offline' && req.method === 'GET') {
+    try {
+      await connectDB();
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const result = await User.updateMany(
+        { isOnline: true, lastSeen: { $lt: fiveMinAgo } },
+        { isOnline: false }
+      );
+
+      return res.json({ ok: true, markedOffline: result.modifiedCount ?? result.nModified ?? 0 });
+
+    } catch (err) {
+      console.error('[auth/mark-offline]', err);
+      return res.status(500).json({ ok: false, code: 'SERVER_ERROR', error: 'Server error, আবার চেষ্টা করুন' });
+    }
+  }
+
   /* ── Fallback ─────────────────────────────────────────────── */
   return res.status(400).json({
     ok: false,
@@ -562,6 +815,8 @@ module.exports = async (req, res) => {
       'register', 'login', 'profile', 'update', 'password',
       'forgot-password', 'reset-password',
       'refresh', 'logout', 'delete-account',
+      'google-login', 'facebook-login',
+      'heartbeat', 'mark-offline', 'force-logout',
     ],
   });
 };

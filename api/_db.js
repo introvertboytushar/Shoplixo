@@ -204,6 +204,14 @@ const userSchema = new mongoose.Schema({
   lastLogin:        Date,
   loginCount:       { type: Number, default: 0 },
 
+  // Online status tracking
+  isOnline:         { type: Boolean, default: false },
+  lastSeen:         { type: Date, default: null },
+  loginMethod:      { type: String, enum: ['email', 'google', 'facebook', 'phone'], default: 'email' },
+  sessionToken:     { type: String, default: null, select: false },
+  forceLoggedOut:   { type: Boolean, default: false },
+  deviceInfo:       { type: String, default: '' },
+
   // OTP / reset — excluded from default queries
   otp:              { type: String, select: false },
   otpExpiry:        { type: Date,   select: false },
@@ -586,7 +594,8 @@ const newsletterSchema = new mongoose.Schema({
   email:      { type: String, required: true, unique: true, lowercase: true, trim: true },
   name:       { type: String, default: '' },
   isActive:   { type: Boolean, default: true },
-  source:     { type: String, default: 'website' },
+  tags:       { type: [String], default: [] },
+  source:     { type: String, default: 'website' }, // website, checkout, etc.
   couponSent: { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false, collection: 'newsletters' });
 
