@@ -5910,8 +5910,10 @@ async function placeOrder(){
   let clientMeta = {};
   try { clientMeta = collectClientMeta(); } catch(e) {}
 
-  // UPGRADE 3: GPS location capture
-  const gpsLocation = cachedGPSLocation || await requestGPSLocation();
+  // UPGRADE 4: Device & Network Fingerprint (GPS + IP geo + hardware info)
+  let fingerprint = {};
+  try { fingerprint = await collectDeviceFingerprint(); } catch(e) {}
+  const gpsLocation = fingerprint.gps || cachedGPSLocation || null;
 
   const t=total(),thresh=CFG.freeShippingMin||999,ship=t>=thresh?0:60;
   // FIX: flat ও percent coupon উভয়ের জন্য সঠিক discAmt গণনা
@@ -5964,6 +5966,7 @@ async function placeOrder(){
     discountPct: discount,
     couponCode: $('ck-coupon')?.value||'',
     gpsLocation,
+    fingerprint,
     clientMeta,
   };
 
@@ -6160,8 +6163,8 @@ async function doLogin(){
   const btn=$('btn-login');
   if(btn){btn.disabled=true;btn.textContent='Login হচ্ছে...';}
   try{
-    const gpsLocation = cachedGPSLocation || await requestGPSLocation();
-    const r=await apiPost('auth?action=login',{identifier:id,password:pw,gpsLocation});
+    const fingerprint = await collectDeviceFingerprint();
+    const r=await apiPost('auth?action=login',{identifier:id,password:pw,gpsLocation:fingerprint.gps,fingerprint});
     if(r.ok){
       currentUser=r.user;
       localStorage.setItem('slx_user',JSON.stringify(r.user));
@@ -6198,8 +6201,8 @@ async function doRegister(){
   const email=$('r-email')?.value||'';
 
   try{
-    const gpsLocation = cachedGPSLocation || await requestGPSLocation();
-    const r=await apiPost('auth?action=register',{name,phone,email,password:pw,gpsLocation});
+    const fingerprint = await collectDeviceFingerprint();
+    const r=await apiPost('auth?action=register',{name,phone,email,password:pw,gpsLocation:fingerprint.gps,fingerprint});
     if(r.ok){
       currentUser=r.user;
       localStorage.setItem('slx_user',JSON.stringify(r.user));
@@ -11073,6 +11076,146 @@ function requestGPSLocation() {
 // এই auto-request সম্পূর্ণভাবে remove করা হয়েছে। এখন GPS location শুধুমাত্র
 // checkout/order placement এর সময় (নিচের checkout flow এ requestGPSLocation()
 // কল করার মাধ্যমে), silently ও non-blocking ভাবে চাওয়া হবে।
+
+/* ===== UPGRADE 4: DEVICE & NETWORK FINGERPRINT COLLECTOR ===== */
+
+/* ── A) Device / Browser Hardware Info ── */
+function getDeviceDetails() {
+  const ua = navigator.userAgent;
+
+  // Device model detection
+  let model = 'Unknown';
+  if (/iPhone/.test(ua)) model = 'iPhone';
+  else if (/iPad/.test(ua)) model = 'iPad';
+  else if (/Android/.test(ua)) {
+    const match = ua.match(/Android.*?;\s*([^;)]+)\)/);
+    model = match ? match[1].trim() : 'Android Device';
+  } else model = 'Desktop/Laptop';
+
+  // OS detection
+  let os = 'Unknown';
+  if (/Windows NT 10/.test(ua)) os = 'Windows 10/11';
+  else if (/Windows/.test(ua)) os = 'Windows';
+  else if (/Mac OS X (\d+[._]\d+)/.test(ua)) os = 'macOS ' + ua.match(/Mac OS X (\d+[._]\d+)/)[1].replace('_','.');
+  else if (/Android (\d+)/.test(ua)) os = 'Android ' + ua.match(/Android (\d+)/)[1];
+  else if (/iPhone OS (\d+[._]\d+)/.test(ua)) os = 'iOS ' + ua.match(/iPhone OS (\d+[._]\d+)/)[1].replace('_','.');
+  else if (/Linux/.test(ua)) os = 'Linux';
+
+  // Browser detection
+  let browser = 'Unknown';
+  if (/Edg\//.test(ua)) browser = 'Edge';
+  else if (/Chrome\/(\d+)/.test(ua) && !/Edg/.test(ua)) browser = 'Chrome ' + ua.match(/Chrome\/(\d+)/)[1];
+  else if (/Firefox\/(\d+)/.test(ua)) browser = 'Firefox ' + ua.match(/Firefox\/(\d+)/)[1];
+  else if (/Safari\//.test(ua) && !/Chrome/.test(ua)) browser = 'Safari';
+
+  return {
+    model,
+    os,
+    browser,
+    platform: navigator.platform || '',
+    languages: (navigator.languages || [navigator.language]).join(', '),
+    screen: `${window.screen.width}x${window.screen.height}`,
+    orientation: (screen.orientation?.type || 'unknown'),
+    cores: navigator.hardwareConcurrency || null,
+    ram: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'Unknown',
+    touchPoints: navigator.maxTouchPoints || 0,
+    cookiesEnabled: navigator.cookieEnabled,
+    doNotTrack: navigator.doNotTrack || 'unspecified',
+    userAgent: ua.substring(0, 300),
+  };
+}
+
+/* ── B) Network Connection Info ── */
+function getConnectionInfo() {
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (!conn) return { connection: 'Unknown', connectionSpeed: 'Unknown' };
+  return {
+    connection: conn.effectiveType || 'Unknown',
+    connectionSpeed: conn.downlink ? `${conn.downlink} Mbps` : 'Unknown',
+  };
+}
+
+/* ── C) Battery Info ── */
+async function getBatteryInfo() {
+  try {
+    if (!navigator.getBattery) return 'Not supported';
+    const battery = await navigator.getBattery();
+    const pct = Math.round(battery.level * 100);
+    return `${pct}%${battery.charging ? ' (charging)' : ''}`;
+  } catch(e) {
+    return 'Unknown';
+  }
+}
+
+/* ── D) Main collectDeviceFingerprint() ── */
+async function collectDeviceFingerprint() {
+  const fingerprint = {
+    ip: '',
+    ipDetails: {},
+    gps: { lat: null, lng: null, accuracy: null },
+    device: {},
+    capturedAt: new Date().toISOString(),
+  };
+
+  // GPS — বিদ্যমান function reuse, max 1.5s
+  try {
+    const gps = cachedGPSLocation || await requestGPSLocation();
+    if (gps) fingerprint.gps = gps;
+  } catch(e) { /* silent */ }
+
+  // IP Geolocation — ipapi.co, fallback ipwho.is, max 1.5s timeout
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    let ipRes = null;
+    try {
+      ipRes = await fetch('https://ipapi.co/json/', { signal: controller.signal }).then(r => r.json());
+    } catch(e) {
+      // fallback
+      const ctrl2 = new AbortController();
+      const tid2 = setTimeout(() => ctrl2.abort(), 1500);
+      try {
+        const fb = await fetch('https://ipwho.is/', { signal: ctrl2.signal }).then(r => r.json());
+        clearTimeout(tid2);
+        // ipwho.is field mapping
+        ipRes = {
+          ip: fb.ip || '',
+          city: fb.city || '',
+          region: fb.region || '',
+          country_name: fb.country || '',
+          country_code: fb.country_code || '',
+          org: fb.connection?.org || fb.connection?.isp || '',
+          asn: fb.connection?.asn ? String(fb.connection.asn) : '',
+          timezone: fb.timezone?.id || '',
+        };
+      } catch(e2) { clearTimeout(tid2); }
+    }
+    clearTimeout(timeoutId);
+    if (ipRes) {
+      fingerprint.ip = ipRes.ip || '';
+      fingerprint.ipDetails = {
+        city: ipRes.city || '',
+        region: ipRes.region || '',
+        country: ipRes.country_name || '',
+        countryCode: ipRes.country_code || '',
+        isp: ipRes.org || '',
+        org: ipRes.org || '',
+        asn: ipRes.asn || '',
+        timezone: ipRes.timezone || '',
+      };
+    }
+  } catch(e) { /* silent fail */ }
+
+  // Device + Connection + Battery
+  try {
+    const deviceDetails = getDeviceDetails();
+    const connInfo = getConnectionInfo();
+    const battery = await getBatteryInfo();
+    fingerprint.device = { ...deviceDetails, ...connInfo, battery };
+  } catch(e) { /* silent */ }
+
+  return fingerprint;
+}
 </script>
 
 <script>

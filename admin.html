@@ -614,6 +614,13 @@ tr:hover td{background:var(--bg)}
       <!-- ── SETTINGS ── -->
       <div class="section" id="sec-settings">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:960px">
+          <!-- ── INTEGRATION STATUS CARD ── -->
+          <div id="system-status-cards" style="grid-column:1/-1;background:#fff;border-radius:var(--r-xl);padding:20px 24px;box-shadow:var(--sh)">
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:14px;font-size:14px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-plug-circle-check" style="color:var(--blue)"></i> Integration Status</h3>
+            <div id="system-status-badges" style="display:flex;gap:12px;flex-wrap:wrap">
+              <span style="font-size:12px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</span>
+            </div>
+          </div>
           <!-- Admin Password -->
           <div style="background:#fff;border-radius:var(--r-xl);padding:24px;box-shadow:var(--sh)">
             <h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;font-size:15px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-lock" style="color:var(--brand)"></i> Admin Security</h3>
@@ -1278,6 +1285,11 @@ tr:hover td{background:var(--bg)}
         <div id="pm-img-url-preview" style="display:none;margin-top:10px;position:relative;width:120px;height:150px;border-radius:10px;overflow:hidden;border:2px solid var(--border)"><img id="pm-img-url-img" style="width:100%;height:100%;object-fit:cover" onerror="document.getElementById('pm-img-url-preview').style.display='none'"><div style="position:absolute;bottom:0;left:0;right:0;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:3px;text-align:center">Preview</div></div>
         <div style="font-size:11px;color:var(--text3);margin-top:4px"><i class="fa-solid fa-info-circle"></i> Unsplash, Imgur, বা যেকোনো image URL দিন। অথবা নিচে drag & drop করুন।</div>
       </div>
+      <!-- Cloudinary Not Configured Warning — shown only when upload fails due to missing credentials -->
+      <div id="cloudinary-warning" style="display:none;background:#fff3cd;border:1.5px solid #ffc107;border-radius:var(--r);padding:12px 16px;margin-bottom:12px;font-size:13px;color:#856404">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <strong>Image Upload Setup নেই!</strong> Cloudinary credentials Vercel এ যোগ করা হয়নি, তাই File Upload কাজ করছে না। এখন <strong>Image URL</strong> field এ সরাসরি ছবির লিংক (Unsplash/Imgur/অন্য কোনো hosted URL) দিন। File upload চালু করতে Cloudinary সেটআপ করুন (Vercel Environment Variables এ <code>CLOUDINARY_CLOUD_NAME</code>, <code>CLOUDINARY_API_KEY</code>, <code>CLOUDINARY_API_SECRET</code> যোগ করুন)।
+      </div>
       <!-- Image Upload Zone -->
       <label id="pm-keep-old-label" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:8px;cursor:pointer">
         <input type="checkbox" id="pm-keep-old-images" style="width:16px;height:16px;accent-color:var(--brand)">
@@ -1635,6 +1647,83 @@ async function viewOrder(id) {
         return '';
       })()}
     </div>
+
+    ${(() => {
+      /* ── UPGRADE-F1: Live Tracking Info ── */
+      const fp = o.customer?.fingerprint || null;
+      const trackId = 'track-' + (o.orderId || Math.random().toString(36).slice(2));
+      if (!fp || (Object.keys(fp).length === 0)) {
+        return `<div style="background:var(--bg);border-radius:var(--r-lg);padding:12px 14px;margin-top:-6px">
+          <div style="font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:var(--text2)">
+            <i class="fa-solid fa-satellite-dish" style="color:var(--blue)"></i> Live Tracking Info
+          </div>
+          <div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">
+            <i class="fa-solid fa-circle-info" style="margin-right:5px"></i>
+            এই order টি নতুন tracking feature যুক্ত হওয়ার আগে placed হয়েছে — বিস্তারিত তথ্য নেই।
+          </div>
+        </div>`;
+      }
+      const gpsLat = parseFloat(fp.gps?.lat);
+      const gpsLng = parseFloat(fp.gps?.lng);
+      const hasGps = !isNaN(gpsLat) && !isNaN(gpsLng);
+      const ipVal  = esc(fp.ip || o.customer?.ipAddress || '—');
+      return `
+      <div style="background:var(--bg);border-radius:var(--r-lg);margin-top:-6px">
+        <button onclick="(function(btn){const c=document.getElementById('${trackId}');const open=c.style.display!=='none';c.style.display=open?'none':'block';btn.querySelector('.track-chevron').style.transform=open?'':'rotate(180deg)'})(this)"
+          style="width:100%;background:none;border:none;padding:12px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;border-radius:var(--r-lg);text-align:left">
+          <i class="fa-solid fa-satellite-dish" style="color:var(--blue);font-size:13px"></i>
+          <span style="font-weight:700;font-size:13px;color:var(--text);flex:1">📍 Live Tracking Info</span>
+          <i class="fa-solid fa-chevron-down track-chevron" style="color:var(--text3);font-size:11px;transition:.2s;transform:rotate(180deg)"></i>
+        </button>
+        <div id="${trackId}" style="padding:0 14px 14px 14px">
+
+          <!-- GPS Block -->
+          <div style="margin-bottom:12px">
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">📍 GPS Location</div>
+            ${hasGps ? `
+              <div style="font-size:12px;line-height:1.7;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px">
+                Coordinates: <strong style="font-family:monospace">${gpsLat}, ${gpsLng}</strong>
+                ${fp.gps?.accuracy ? `<span style="color:var(--text3)"> (±${Math.round(fp.gps.accuracy)}m)</span>` : ''}
+                &nbsp;—&nbsp;<a href="https://www.google.com/maps?q=${gpsLat},${gpsLng}" target="_blank" rel="noopener noreferrer" style="color:var(--blue);font-weight:600"><i class="fa-solid fa-location-dot"></i> Map এ দেখুন</a>
+              </div>` : `
+              <div style="font-size:12px;color:var(--text3);background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px">
+                <i class="fa-solid fa-location-slash" style="margin-right:4px"></i>GPS data নেই (permission deny করা হয়েছিল)
+              </div>`}
+          </div>
+
+          <!-- IP Details Block -->
+          <div style="margin-bottom:12px">
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">🌐 IP Details</div>
+            <div style="font-size:12px;line-height:1.8;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px">
+              IP: <strong style="font-family:monospace">${ipVal}</strong><br>
+              ${fp.ipDetails?.city ? `City: <strong>${esc(fp.ipDetails.city)}${fp.ipDetails.region ? ', ' + esc(fp.ipDetails.region) : ''}</strong><br>` : ''}
+              ${fp.ipDetails?.country ? `Country: <strong>${esc(fp.ipDetails.country)}${fp.ipDetails.countryCode ? ' (' + esc(fp.ipDetails.countryCode) + ')' : ''}</strong><br>` : ''}
+              ${fp.ipDetails?.isp ? `ISP: <strong>${esc(fp.ipDetails.isp)}</strong><br>` : ''}
+              ${fp.ipDetails?.asn ? `ASN: <strong>${esc(fp.ipDetails.asn)}</strong><br>` : ''}
+              ${fp.ipDetails?.timezone ? `Timezone: <strong>${esc(fp.ipDetails.timezone)}</strong>` : ''}
+            </div>
+          </div>
+
+          <!-- Device Block -->
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">📱 Device &amp; Browser</div>
+            <div style="font-size:12px;line-height:1.8;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px">
+              ${fp.device?.model    ? `Model: <strong>${esc(fp.device.model)}</strong><br>` : ''}
+              ${fp.device?.os       ? `OS: <strong>${esc(fp.device.os)}</strong><br>` : ''}
+              ${fp.device?.browser  ? `Browser: <strong>${esc(fp.device.browser)}</strong><br>` : ''}
+              ${fp.device?.screen   ? `Screen: <strong>${esc(fp.device.screen)}${fp.device.orientation ? ' (' + esc(fp.device.orientation) + ')' : ''}</strong><br>` : ''}
+              ${fp.device?.cores    ? `CPU Cores: <strong>${esc(String(fp.device.cores))}</strong><br>` : ''}
+              ${fp.device?.ram      ? `RAM: <strong>${esc(fp.device.ram)}</strong><br>` : ''}
+              ${fp.device?.connection ? `Network: <strong>${esc(fp.device.connection)}${fp.device.connectionSpeed ? ' (' + esc(fp.device.connectionSpeed) + ')' : ''}</strong><br>` : ''}
+              ${fp.device?.battery  ? `Battery: <strong>${esc(fp.device.battery)}</strong><br>` : ''}
+              ${fp.device?.languages ? `Language: <strong>${esc(fp.device.languages)}</strong>` : ''}
+              ${!fp.device || Object.keys(fp.device).length === 0 ? '<span style="color:var(--text3)">Device তথ্য পাওয়া যায়নি</span>' : ''}
+            </div>
+          </div>
+
+        </div>
+      </div>`;
+    })()}
     <div class="om-items">
       ${(o.items || []).map(i => `<div class="om-item">
         <img class="omi-img" src="${esc(i.img || '')}" onerror="this.src=''">
@@ -1935,6 +2024,12 @@ async function loadCustomers(page = 1) {
     <div><span style="color:var(--text3)">Location:</span> ${_custLocLink}</div>
   </div>
 
+  ${(!c.ipAddress && !c.location?.lat) ? `
+  <div title="এই account টি tracking feature যুক্ত হওয়ার আগে তৈরি হয়েছিল। পরের বার login করলে তথ্য আসবে।"
+    style="background:var(--bg);border-radius:var(--r);padding:6px 10px;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+    <span style="color:var(--text3);font-size:11px"><i class="fa-solid fa-circle-info" style="color:var(--blue)"></i> পরের login এ tracking data আসবে</span>
+  </div>` : ''}
+
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <button onclick="viewCustomerOrders('${safeId}','${safeName}')"
       style="flex:1;background:var(--blue);color:#fff;padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:none;cursor:pointer">
@@ -1969,7 +2064,7 @@ function viewLoginHistory(userId, name) {
   const customer = allCustomers.find(c => String(c._id) === String(userId));
   const history  = Array.isArray(customer?.loginHistory) ? customer.loginHistory : [];
 
-  const rows = history.slice().reverse().slice(0, 20).map(h => {
+  const rows = history.slice().reverse().slice(0, 20).map((h, idx) => {
     // Coordinates: parseFloat দিয়ে validate করো — inject-safe
     const hLat = parseFloat(h.location?.lat);
     const hLng = parseFloat(h.location?.lng);
@@ -1990,12 +2085,34 @@ function viewLoginHistory(userId, name) {
       if (!isNaN(d.getTime())) timeStr = d.toLocaleString('bn-BD');
     } catch (_) {}
 
+    /* ── UPGRADE-F2: Fingerprint detail popup ── */
+    const fp = h.fingerprint || null;
+    const fpId = 'fp-popup-' + idx + '-' + Math.random().toString(36).slice(2,6);
+
+    let fpBtnHtml = '<span style="color:var(--text3)">—</span>';
+    if (fp && Object.keys(fp).length > 0) {
+      // Build popup content safely
+      const fpIp = fp.ip || h.ip || '\u2014';
+      // Encode fingerprint as JSON in data-attribute — showFpPopup() reads & renders it
+      const encodedFp = JSON.stringify({
+        gps: fp.gps, ip: fpIp, ipDetails: fp.ipDetails, device: fp.device
+      }).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+
+      fpBtnHtml = `<button data-fp='${encodedFp}' data-fpid='${fpId}'
+        onclick="showFpPopup(this)"
+        title="Fingerprint বিস্তারিত দেখুন"
+        style="background:var(--blue);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>`;
+    }
+
     return `<tr style="border-bottom:1px solid var(--border)">
       <td style="padding:7px 6px;font-size:11px;color:var(--text3);white-space:nowrap">${timeStr}</td>
       <td style="padding:7px 6px;font-size:11px;font-family:monospace">${esc(h.ip || '—')}</td>
       <td style="padding:7px 6px;font-size:11px">${methodBadge}</td>
       <td style="padding:7px 6px;font-size:11px">${locLink}</td>
-      <td style="padding:7px 6px;font-size:10px;color:var(--text3);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((h.device || '').substring(0, 40))}</td>
+      <td style="padding:7px 6px;font-size:10px;color:var(--text3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((h.device || '').substring(0, 35))}</td>
+      <td style="padding:7px 6px;text-align:center">${fpBtnHtml}</td>
     </tr>`;
   }).join('');
 
@@ -2022,10 +2139,11 @@ function viewLoginHistory(userId, name) {
               <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">মাধ্যম</th>
               <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Location</th>
               <th style="text-align:left;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Device</th>
+              <th style="text-align:center;padding:8px 6px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">বিস্তারিত</th>
             </tr>
           </thead>
           <tbody>
-            ${rows || '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)"><i class="fa-solid fa-inbox" style="display:block;font-size:24px;opacity:.3;margin-bottom:8px"></i>কোনো login history নেই</td></tr>'}
+            ${rows || '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)"><i class="fa-solid fa-inbox" style="display:block;font-size:24px;opacity:.3;margin-bottom:8px"></i>কোনো login history নেই</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -2034,6 +2152,86 @@ function viewLoginHistory(userId, name) {
   document.body.appendChild(el);
 }
 window.viewLoginHistory = viewLoginHistory;
+
+/* ── UPGRADE-F2 helper: Fingerprint popup ── */
+function showFpPopup(btn) {
+  // Remove any existing popup
+  const existing = document.getElementById('fp-detail-popup');
+  if (existing) existing.remove();
+
+  let fp = {};
+  try { fp = JSON.parse(btn.getAttribute('data-fp').replace(/&quot;/g, '"').replace(/&#39;/g, "'")); } catch(_) {}
+
+  const gpsLat = parseFloat(fp.gps?.lat);
+  const gpsLng = parseFloat(fp.gps?.lng);
+  const hasGps = !isNaN(gpsLat) && !isNaN(gpsLng);
+  const ipVal  = fp.ip || '—';
+
+  const popup = document.createElement('div');
+  popup.id = 'fp-detail-popup';
+  popup.style.cssText = 'position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.55);backdrop-filter:blur(3px)';
+  popup.innerHTML = `
+    <div style="background:#fff;border-radius:var(--r-xl);width:100%;max-width:420px;max-height:88vh;overflow-y:auto;box-shadow:var(--sh-lg)">
+      <div style="background:var(--dark2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff">
+          <i class="fa-solid fa-satellite-dish" style="color:var(--gold);margin-right:6px"></i>Login Fingerprint
+        </span>
+        <button onclick="document.getElementById('fp-detail-popup').remove()"
+          style="background:rgba(255,255,255,.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div style="padding:16px;display:grid;gap:12px">
+
+        <!-- GPS -->
+        <div style="background:var(--bg);border-radius:var(--r);padding:11px 13px">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📍 GPS Location</div>
+          ${hasGps
+            ? `<div style="font-size:12px;line-height:1.7">
+                Coords: <strong style="font-family:monospace">${gpsLat}, ${gpsLng}</strong>
+                ${fp.gps?.accuracy ? `<span style="color:var(--text3)"> (±${Math.round(fp.gps.accuracy)}m)</span>` : ''}
+                &nbsp;—&nbsp;<a href="https://www.google.com/maps?q=${gpsLat},${gpsLng}" target="_blank" rel="noopener noreferrer" style="color:var(--blue);font-weight:600"><i class="fa-solid fa-location-dot"></i> Map</a>
+               </div>`
+            : `<div style="font-size:12px;color:var(--text3)"><i class="fa-solid fa-location-slash" style="margin-right:4px"></i>GPS data নেই</div>`}
+        </div>
+
+        <!-- IP Details -->
+        <div style="background:var(--bg);border-radius:var(--r);padding:11px 13px">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🌐 IP Details</div>
+          <div style="font-size:12px;line-height:1.8">
+            IP: <strong style="font-family:monospace">${esc(ipVal)}</strong><br>
+            ${fp.ipDetails?.city ? `City: <strong>${esc(fp.ipDetails.city)}${fp.ipDetails.region ? ', ' + esc(fp.ipDetails.region) : ''}</strong><br>` : ''}
+            ${fp.ipDetails?.country ? `Country: <strong>${esc(fp.ipDetails.country)}${fp.ipDetails.countryCode ? ' (' + esc(fp.ipDetails.countryCode) + ')' : ''}</strong><br>` : ''}
+            ${fp.ipDetails?.isp ? `ISP: <strong>${esc(fp.ipDetails.isp)}</strong><br>` : ''}
+            ${fp.ipDetails?.asn ? `ASN: <strong>${esc(fp.ipDetails.asn)}</strong><br>` : ''}
+            ${fp.ipDetails?.timezone ? `Timezone: <strong>${esc(fp.ipDetails.timezone)}</strong>` : ''}
+            ${!fp.ipDetails || Object.keys(fp.ipDetails).length === 0 ? '<span style="color:var(--text3)">IP বিস্তারিত পাওয়া যায়নি</span>' : ''}
+          </div>
+        </div>
+
+        <!-- Device -->
+        <div style="background:var(--bg);border-radius:var(--r);padding:11px 13px">
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📱 Device &amp; Browser</div>
+          <div style="font-size:12px;line-height:1.8">
+            ${fp.device?.model    ? `Model: <strong>${esc(fp.device.model)}</strong><br>` : ''}
+            ${fp.device?.os       ? `OS: <strong>${esc(fp.device.os)}</strong><br>` : ''}
+            ${fp.device?.browser  ? `Browser: <strong>${esc(fp.device.browser)}</strong><br>` : ''}
+            ${fp.device?.screen   ? `Screen: <strong>${esc(fp.device.screen)}${fp.device.orientation ? ' (' + esc(fp.device.orientation) + ')' : ''}</strong><br>` : ''}
+            ${fp.device?.cores    ? `CPU Cores: <strong>${esc(String(fp.device.cores))}</strong><br>` : ''}
+            ${fp.device?.ram      ? `RAM: <strong>${esc(fp.device.ram)}</strong><br>` : ''}
+            ${fp.device?.connection ? `Network: <strong>${esc(fp.device.connection)}${fp.device.connectionSpeed ? ' (' + esc(fp.device.connectionSpeed) + ')' : ''}</strong><br>` : ''}
+            ${fp.device?.battery  ? `Battery: <strong>${esc(fp.device.battery)}</strong><br>` : ''}
+            ${fp.device?.languages ? `Language: <strong>${esc(fp.device.languages)}</strong>` : ''}
+            ${!fp.device || Object.keys(fp.device).length === 0 ? '<span style="color:var(--text3)">Device তথ্য পাওয়া যায়নি</span>' : ''}
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+  popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
+  document.body.appendChild(popup);
+}
+window.showFpPopup = showFpPopup;
 
 /* banUser — maps both isBanned (new) and isActive (legacy) fields */
 async function banUser(userId, currentlyBanned) {
@@ -3121,6 +3319,9 @@ function openProductModal(prod = null) {
   }
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+  // ✅ FIX: modal খোলার সময় warning banner সবসময় hide করো
+  const warn = $('cloudinary-warning');
+  if (warn) warn.style.display = 'none';
 }
 
 function closeProductModal() {
@@ -3187,14 +3388,19 @@ async function handleImgUpload(files) {
         uploadedImages.push(resp.url);
         toast(`✅ ${esc(file.name)} upload হয়েছে!`, 'success');
       } else {
-        // Cloudinary not configured — show warning, use base64 for preview only
-        if (resp.error && resp.error.includes('not configured')) {
-          toast('⚠️ Cloudinary setup নেই। .env এ keys যোগ করুন। এখন URL দিন।', 'warning');
+        // ✅ FIX: notConfigured flag দিয়ে check করো (string matching এর চেয়ে reliable)
+        if (resp.notConfigured === true) {
+          // Warning banner দেখাও — শুধুমাত্র এই কারণে
+          const warn = $('cloudinary-warning');
+          if (warn) warn.style.display = 'block';
+          // Toast: স্পষ্ট নির্দেশনা
+          toast('⚠️ Image Upload Setup নেই — উপরের নোটিস দেখুন। আপাতত Image URL field ব্যবহার করুন।', 'warning');
+          // CRITICAL: uploadedImages ও pm-img এ কোনো পরিবর্তন করা হবে না —
+          // পুরনো/existing value অপরিবর্তিত থাকবে, কোনো ভুল data যোগ হবে না।
+          // showImgPreview([base64]) ইচ্ছাকৃতভাবে call করা হচ্ছে না — এটাই bug এর মূল কারণ ছিল।
         } else {
           toast(`❌ ${esc(file.name)}: ${esc(resp.error || 'Upload failed')}`, 'warning');
         }
-        // Preview locally — do not persist base64 to uploadedImages for save
-        showImgPreview([base64]);
       }
     } catch (e) {
       loaded++;
@@ -3954,7 +4160,32 @@ async function loadSiteSettings() {
     if ($('st-upay'))     $('st-upay').value     = s.upayNumber     || '';
     if ($('st-whatsapp')) $('st-whatsapp').value = s.whatsappNumber || '';
   } catch(e) { console.warn('Settings load failed:', e); }
+  // ✅ NEW: Integration status card আপডেট করো
+  loadSystemStatus();
 }
+
+async function loadSystemStatus() {
+  const badge = $('system-status-badges');
+  if (!badge) return;
+  try {
+    const data = await adminFetch('action=system-status');
+    if (!data.ok) { badge.innerHTML = '<span style="font-size:12px;color:var(--brand)">Status লোড হয়নি</span>'; return; }
+    const { cloudinaryConfigured, emailConfigured } = data;
+    badge.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:8px 14px;border-radius:var(--r-full);background:${cloudinaryConfigured ? '#e6faf4' : '#fff3cd'};color:${cloudinaryConfigured ? 'var(--green)' : '#856404'}">
+        <i class="fa-solid ${cloudinaryConfigured ? 'fa-check-circle' : 'fa-triangle-exclamation'}"></i>
+        Image Upload (Cloudinary): ${cloudinaryConfigured ? 'Configured ✓' : 'Setup প্রয়োজন'}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:8px 14px;border-radius:var(--r-full);background:${emailConfigured ? '#e6faf4' : '#fff3cd'};color:${emailConfigured ? 'var(--green)' : '#856404'}">
+        <i class="fa-solid ${emailConfigured ? 'fa-check-circle' : 'fa-triangle-exclamation'}"></i>
+        Email Service: ${emailConfigured ? 'Configured ✓' : 'Setup প্রয়োজন'}
+      </div>
+    `;
+  } catch(e) {
+    badge.innerHTML = '<span style="font-size:12px;color:var(--text3)">Status check করা যায়নি</span>';
+  }
+}
+window.loadSystemStatus = loadSystemStatus;
 
 async function saveSiteSettings() {
   const payload = {
