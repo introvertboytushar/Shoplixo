@@ -39,12 +39,21 @@
  *  DELETE /api/content?module=categories&id=xxx            → Delete if empty (admin)
  *  POST   /api/content?module=categories&action=reorder    → Reorder (admin)
  *  POST   /api/content?module=categories&action=bulk-update → Bulk update (admin) [NEW]
+ *
+ *  ── NOTIFICATIONS ─────────────────────────────────────────────
+ *  GET  /api/content?action=notifications                  → User notifications list [NEW]
+ *  GET  /api/content?action=notifications&userId=x         → Include personal notifs [NEW]
+ *  GET  /api/content?action=notifications&since=<ts>       → Poll for new notifs [NEW]
+ *  POST /api/content?action=notifications-read             → Mark notification(s) as read [NEW]
+ *
+ *  ⚠️  _db.js NOTE: Notification schema এ নিচের field যোগ করুন (যদি না থাকে):
+ *       readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
  * ══════════════════════════════════════════════════════════════
  */
 
 'use strict';
 
-const { connectDB, Product, Comment, Order, Category, User } = require('./_db');
+const { connectDB, Product, Comment, Order, Category, User, Notification } = require('./_db');
 const {
   handleCors, isAdmin, verifyToken, sanitize,
   checkRateLimit, slugify,
@@ -179,6 +188,17 @@ module.exports = async (req, res) => {
       /* GET /api/content?action=stats */
       case 'stats':
         module_ = 'comments';
+        break;
+
+      /* GET  /api/content?action=notifications  → User notifications list [NEW] */
+      case 'notifications':
+        module_ = 'notifications';
+        break;
+
+      /* POST /api/content?action=notifications-read → Mark as read [NEW] */
+      case 'notifications-read':
+        module_ = 'notifications';
+        // keep action='notifications-read' so we can distinguish inside the module
         break;
 
       default:
@@ -960,11 +980,149 @@ module.exports = async (req, res) => {
       return res.status(405).json({ ok: false, error: 'Method not allowed' });
     }
 
+    /* ══════════════════════════════════════════════════════════
+       MODULE: NOTIFICATIONS  [NEW]
+       GET  /api/content?action=notifications               → User notifications list
+       POST /api/content?action=notifications-read          → Mark notification(s) as read
+    ══════════════════════════════════════════════════════════ */
+    if (module_ === 'notifications') {
+
+      /* ── UPGRADE 1: GET — User Notifications List ──────── */
+      if (req.method === 'GET' && action === 'notifications') {
+        const { userId, since } = req.query;
+
+        /* Build base query: always include global broadcasts */
+        const baseConditions = [{ isGlobal: true }];
+
+        /* If a userId is provided, also include personal notifications */
+        if (userId && String(userId).trim()) {
+          baseConditions.push({ userId: String(userId).trim(), isGlobal: false });
+        }
+
+        const dbQuery = { $or: baseConditions };
+
+        /* Optional: only notifications created after `since` timestamp (for polling) */
+        if (since) {
+          const sinceDate = new Date(Number(since) || since);
+          if (!isNaN(sinceDate.getTime())) {
+            dbQuery.createdAt = { $gt: sinceDate };
+          }
+        }
+
+        const rawNotifs = await Notification.find(dbQuery)
+          .sort({ createdAt: -1 })
+          .limit(30)
+          .lean();
+
+        /* Determine per-notification isRead status for the requesting user */
+        const notifications = rawNotifs.map(n => {
+          let isRead;
+          if (n.isGlobal) {
+            /* Global: read if userId appears in the readBy array */
+            isRead = userId
+              ? (Array.isArray(n.readBy) && n.readBy.some(id => String(id) === String(userId)))
+              : false;
+          } else {
+            /* Personal: use the isRead field directly */
+            isRead = Boolean(n.isRead);
+          }
+
+          return {
+            id:        String(n._id),
+            type:      n.type      || 'info',
+            title:     n.title     || '',
+            message:   n.message   || '',
+            icon:      n.icon      || '',
+            link:      n.link      || '',
+            isRead,
+            createdAt: n.createdAt,
+          };
+        });
+
+        const unreadCount = notifications.filter(n => !n.isRead).length;
+
+        return res.json({ ok: true, notifications, unreadCount });
+      }
+
+      /* ── UPGRADE 2: POST — Mark Notification(s) as Read ── */
+      if (req.method === 'POST' && action === 'notifications-read') {
+        const b              = req.body || {};
+        const userId         = String(b.userId || '').trim();
+        const notificationIds = Array.isArray(b.notificationIds) ? b.notificationIds : [];
+        const markAll        = Boolean(b.markAll);
+
+        /* userId is required — we need it to track per-user read status */
+        if (!userId) {
+          return res.status(400).json({ ok: false, error: 'userId দিন' });
+        }
+        if (!markAll && !notificationIds.length) {
+          return res.status(400).json({
+            ok:    false,
+            error: 'notificationIds array দিন অথবা markAll: true পাঠান',
+          });
+        }
+
+        if (markAll) {
+          /* ── Mark ALL visible notifications as read ─────── */
+          /* 1) Global notifications → push userId into readBy (if not already present) */
+          await Notification.updateMany(
+            { isGlobal: true, readBy: { $ne: userId } },
+            { $addToSet: { readBy: userId } }
+          );
+
+          /* 2) Personal notifications for this user → set isRead: true */
+          await Notification.updateMany(
+            { isGlobal: false, userId },
+            { $set: { isRead: true } }
+          );
+        } else {
+          /* ── Mark specific notification IDs as read ──────── */
+          if (notificationIds.length > 100) {
+            return res.status(400).json({ ok: false, error: 'একবারে সর্বোচ্চ ১০০টি mark করা যাবে' });
+          }
+
+          /* Fetch the target notifications to check their type */
+          const targets = await Notification.find({
+            _id: { $in: notificationIds },
+          }).select('_id isGlobal userId').lean();
+
+          if (!targets.length) {
+            return res.status(404).json({ ok: false, error: 'Notification পাওয়া যায়নি' });
+          }
+
+          const globalIds   = targets.filter(n => n.isGlobal).map(n => n._id);
+          const personalIds = targets
+            .filter(n => !n.isGlobal && String(n.userId) === userId)
+            .map(n => n._id);
+
+          /* Global: add userId to readBy */
+          if (globalIds.length) {
+            await Notification.updateMany(
+              { _id: { $in: globalIds }, readBy: { $ne: userId } },
+              { $addToSet: { readBy: userId } }
+            );
+          }
+
+          /* Personal (userId matched): set isRead: true */
+          if (personalIds.length) {
+            await Notification.updateMany(
+              { _id: { $in: personalIds } },
+              { $set: { isRead: true } }
+            );
+          }
+        }
+
+        return res.json({ ok: true, message: 'Marked as read' });
+      }
+
+      return res.status(405).json({ ok: false, error: 'Method not allowed' });
+    }
+
     /* ── Unknown module ──────────────────────────────────────── */
     return res.status(400).json({
       ok:    false,
-      error: 'Invalid module. Use: search, comments, categories',
-      hint:  'Action aliases: comment-add, comments, suggest, popular, trending, related, flag, stats',
+      error: 'Invalid module. Use: search, comments, categories, notifications',
+      hint:  'Action aliases: comment-add, comments, suggest, popular, trending, related, flag, stats, notifications, notifications-read',
     });
 
   } catch (err) {

@@ -31,8 +31,12 @@
  *  ── CUSTOMERS ────────────────────────────────────────────────
  *  GET  ?action=customers          → Users list (search, sort, paginate) [UPGRADED — online/login fields]
  *  POST ?action=customer-ban       → User ban/unban (isBanned field)  [FIXED]
- *  POST ?action=customer-adjust-points → Loyalty points manual adjust [NEW]
+ *  POST ?action=customer-adjust-points → Loyalty points manual adjust [UPGRADED]
  *  POST ?action=customer-force-logout  → Force logout a user          [NEW]
+ *
+ *  ── LOYALTY TIER SETTINGS ────────────────────────────────────
+ *  GET  ?action=loyalty-settings   → বর্তমান tier thresholds পড়ো    [NEW]
+ *  POST ?action=loyalty-settings   → tier thresholds save করো        [NEW]
  *
  *  ── COUPONS ──────────────────────────────────────────────────
  *  GET  ?action=coupons            → Coupon list
@@ -514,6 +518,8 @@ module.exports = async (req, res) => {
       const payment = sanitize(req.query?.payment || '', 50);
       const from    = req.query?.from;
       const to      = req.query?.to;
+      // ✅ FIX S9: userId filter — customer এর _id দিয়ে তার সব order খুঁজো
+      const userId  = sanitize(req.query?.userId  || '', 30);
       const skip    = (page - 1) * limit;
 
       const query = {};
@@ -524,7 +530,17 @@ module.exports = async (req, res) => {
         if (from) query.createdAt.$gte = new Date(from);
         if (to)   query.createdAt.$lte = new Date(to + 'T23:59:59');
       }
-      if (search) {
+
+      // ✅ FIX S9: userId ব্যবহার করে customer এর phone/email বের করো
+      // তারপর সেই phone দিয়ে orders filter করো
+      if (userId && isValidObjectId(userId)) {
+        const user = await User.findById(userId).select('phone email').lean();
+        if (user?.phone) {
+          query['customer.phone'] = { $regex: escapeRegex(user.phone.replace(/^(\+880|880)/, '0')), $options: 'i' };
+        } else if (user?.email) {
+          query['customer.email'] = { $regex: escapeRegex(user.email), $options: 'i' };
+        }
+      } else if (search) {
         query.$or = [
           { orderId:          { $regex: escapeRegex(search), $options: 'i' } },
           { 'customer.name':  { $regex: escapeRegex(search), $options: 'i' } },
@@ -886,7 +902,10 @@ module.exports = async (req, res) => {
           .skip(skip)
           .limit(limit)
           /* UPGRADE 2: isOnline, loginMethod, lastSeen, deviceInfo, loginCount যোগ করা হয়েছে */
-          .select('name email phone avatar isVerified isBanned banReason bannedAt loginMethod isOnline lastSeen lastLogin loginCount deviceInfo createdAt totalOrders totalSpent loyaltyPoints loyaltyTier'),
+          /* FIX (SECTION 3): ipAddress, location, loginHistory — admin panel এ Customer এর
+             login info দেখানোর জন্য এই তিনটি field অবশ্যই select এ থাকতে হবে।
+             আগে এগুলো missing ছিল, তাই viewLoginHistory() modal সবসময় empty দেখাতো। */
+          .select('name email phone avatar isVerified isBanned banReason bannedAt loginMethod isOnline lastSeen lastLogin loginCount deviceInfo ipAddress location loginHistory createdAt totalOrders totalSpent loyaltyPoints loyaltyTier'),
         User.countDocuments(query),
       ]);
 
@@ -915,38 +934,93 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, message: ban ? `"${user.name}" ban হয়েছে` : `"${user.name}" unban হয়েছে`, user });
   }
 
-  /* ── MANUAL LOYALTY POINTS ADJUSTMENT (NEW) ──────────────── */
+  /* ═══════════════════════════════════════════════════════════
+     ── MANUAL LOYALTY POINTS ADJUSTMENT (UPGRADED) ───────────
+     POST ?action=customer-adjust-points
+     Body: { userId, amount, reason? }
+     • amount: positive (যোগ) বা negative (বিয়োগ) integer
+     • Final balance কখনো 0 এর নিচে যাবে না (minimum 0)
+     • Abuse prevention: ±১,০০০,০০০ এর বেশি reject করা হবে
+
+     ⚠️  _db.js NOTE:
+     User schema-তে নিচের field টি যোগ করতে হবে যদি না থাকে:
+       loyaltyPointsHistory: [{
+         amount:     Number,
+         reason:     String,
+         adjustedBy: String,           // 'admin'
+         timestamp:  { type: Date, default: Date.now },
+       }]
+  ═══════════════════════════════════════════════════════════ */
   if (action === 'customer-adjust-points' && req.method === 'POST') {
     const b = req.body || {};
-    const { userId, points, reason } = b;
-    if (!userId || points === undefined) return res.status(400).json({ ok: false, error: 'userId এবং points দিন' });
+    const { userId, amount, reason } = b;
 
-    const pts = parseInt(points);
-    if (isNaN(pts)) return res.status(400).json({ ok: false, error: 'Points অবশ্যই সংখ্যা হতে হবে' });
+    // ── Input validation ──────────────────────────────────────
+    if (!userId)
+      return res.status(400).json({ ok: false, error: 'userId দিন' });
+    if (!isValidObjectId(userId))
+      return res.status(400).json({ ok: false, error: 'userId ফরম্যাট সঠিক নয়' });
+    if (amount === undefined || amount === null || amount === '')
+      return res.status(400).json({ ok: false, error: 'amount দিন (positive বা negative integer)' });
+
+    const amt = parseInt(amount, 10);
+    if (!Number.isInteger(amt) || isNaN(amt))
+      return res.status(400).json({ ok: false, error: 'amount অবশ্যই integer হতে হবে' });
+    if (amt === 0)
+      return res.status(400).json({ ok: false, error: 'amount শূন্য দেওয়া যাবে না' });
+    if (Math.abs(amt) > 1_000_000)
+      return res.status(400).json({
+        ok: false,
+        error: 'amount সর্বোচ্চ ±১,০০০,০০০ এর মধ্যে হতে হবে (abuse prevention)',
+      });
 
     try {
+      // ── Step 1: Atomic minimum-0 balance update via aggregation pipeline ──
+      // $max ensures loyaltyPoints কখনো 0 এর নিচে যাবে না — একটি atomic operation এ
       const user = await User.findByIdAndUpdate(
         userId,
-        { $inc: { loyaltyPoints: pts } },
+        [{
+          $set: {
+            loyaltyPoints: {
+              $max: [0, { $add: ['$loyaltyPoints', amt] }],
+            },
+          },
+        }],
         { new: true }
       ).select('name phone loyaltyPoints');
-      if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
 
-      // Log the manual adjustment
-      await LoyaltyTxn.create({
+      if (!user)
+        return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
+
+      // ── Step 2: Push to loyaltyPointsHistory array (non-blocking) ──
+      // ⚠️  _db.js এ User schema-তে loyaltyPointsHistory array যোগ করুন
+      User.findByIdAndUpdate(userId, {
+        $push: {
+          loyaltyPointsHistory: {
+            amount:     amt,
+            reason:     sanitize(reason || 'Admin manual adjustment', 300),
+            adjustedBy: 'admin',
+            timestamp:  new Date(),
+          },
+        },
+      }).catch(() => {});
+
+      // ── Step 3: Also log to LoyaltyTxn (backward-compatible) ──
+      LoyaltyTxn.create({
         userId,
-        type:   pts > 0 ? 'admin_add' : 'admin_deduct',
-        points: Math.abs(pts),
-        note:   sanitize(reason || 'Admin manual adjustment', 300),
+        type:    amt > 0 ? 'admin_add' : 'admin_deduct',
+        points:  Math.abs(amt),
+        note:    sanitize(reason || 'Admin manual adjustment', 300),
         balance: user.loyaltyPoints,
       }).catch(() => {});
 
       return res.json({
-        ok: true,
-        user,
-        message: `"${user.name}"-এর loyalty points ${pts > 0 ? '+' : ''}${pts} adjustment হয়েছে। নতুন balance: ${user.loyaltyPoints}`,
+        ok:         true,
+        newBalance: user.loyaltyPoints,
+        message:    `✅ "${user.name}"-এর loyalty points ${amt > 0 ? '+' : ''}${amt} adjustment হয়েছে। নতুন balance: ${user.loyaltyPoints}`,
       });
     } catch (err) {
+      console.error('Adjust points error:', err);
       return res.status(500).json({ ok: false, error: 'Points adjust হয়নি: ' + err.message });
     }
   }
@@ -1483,6 +1557,99 @@ module.exports = async (req, res) => {
   }
 
   /* ═══════════════════════════════════════════════════════════
+     ── LOYALTY TIER SETTINGS (NEW) ──────────────────────────
+     GET  ?action=loyalty-settings  → বর্তমান tier thresholds পড়ো
+     POST ?action=loyalty-settings  → নতুন thresholds save করো
+
+     Settings structure (key: 'loyaltyConfig'):
+     {
+       bronzeMin:      0,      // Bronze শুরু
+       silverMin:    1000,     // Silver শুরু
+       goldMin:      5000,     // Gold শুরু
+       platinumMin: 20000,     // Platinum শুরু
+       pointsPerOrder:  10,    // প্রতি order এ points
+     }
+     SiteSettings collection এ upsert হয় (key: loyaltyConfig)
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'loyalty-settings' && req.method === 'GET') {
+    try {
+      // Default values — settings না থাকলে এই values return হবে
+      const LOYALTY_DEFAULTS = {
+        bronzeMin:      0,
+        silverMin:    1000,
+        goldMin:      5000,
+        platinumMin: 20000,
+        pointsPerOrder:  10,
+      };
+
+      const raw = await getSetting('loyaltyConfig').catch(() => null);
+      if (raw?.value) {
+        let saved;
+        try {
+          saved = typeof raw.value === 'object' ? raw.value : JSON.parse(raw.value);
+        } catch {
+          saved = {};
+        }
+        return res.json({ ok: true, settings: { ...LOYALTY_DEFAULTS, ...saved } });
+      }
+
+      // Settings DB তে নেই — default values return করো
+      return res.json({ ok: true, settings: LOYALTY_DEFAULTS });
+    } catch (err) {
+      console.error('Loyalty settings GET error:', err);
+      return res.status(500).json({ ok: false, error: 'Loyalty settings লোড হয়নি: ' + err.message });
+    }
+  }
+
+  if (action === 'loyalty-settings' && req.method === 'POST') {
+    try {
+      const b = req.body || {};
+
+      // ── Validate করো: সব field non-negative integer হতে হবে ──
+      const REQUIRED_FIELDS = ['bronzeMin', 'silverMin', 'goldMin', 'platinumMin', 'pointsPerOrder'];
+      const parsed = {};
+      for (const field of REQUIRED_FIELDS) {
+        if (b[field] === undefined || b[field] === null || b[field] === '')
+          return res.status(400).json({ ok: false, error: `${field} দিন` });
+        const v = parseInt(b[field], 10);
+        if (!Number.isInteger(v) || isNaN(v) || v < 0)
+          return res.status(400).json({ ok: false, error: `${field} অবশ্যই non-negative integer হতে হবে` });
+        parsed[field] = v;
+      }
+
+      // ── Ordered threshold check: bronze < silver < gold < platinum ──
+      const { bronzeMin, silverMin, goldMin, platinumMin } = parsed;
+      if (!(bronzeMin < silverMin))
+        return res.status(400).json({
+          ok: false,
+          error: `bronzeMin (${bronzeMin}) অবশ্যই silverMin (${silverMin}) এর চেয়ে ছোট হতে হবে`,
+        });
+      if (!(silverMin < goldMin))
+        return res.status(400).json({
+          ok: false,
+          error: `silverMin (${silverMin}) অবশ্যই goldMin (${goldMin}) এর চেয়ে ছোট হতে হবে`,
+        });
+      if (!(goldMin < platinumMin))
+        return res.status(400).json({
+          ok: false,
+          error: `goldMin (${goldMin}) অবশ্যই platinumMin (${platinumMin}) এর চেয়ে ছোট হতে হবে`,
+        });
+
+      // ── SiteSettings collection এ upsert করো (key: loyaltyConfig) ──
+      await setSetting('loyaltyConfig', JSON.stringify(parsed), {
+        group: 'loyalty',
+        label: 'Loyalty Tier Configuration',
+        type:  'json',
+      });
+
+      return res.json({ ok: true, message: '✅ Loyalty settings সংরক্ষিত হয়েছে!' });
+    } catch (err) {
+      console.error('Loyalty settings POST error:', err);
+      return res.status(500).json({ ok: false, error: 'Loyalty settings save হয়নি: ' + err.message });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
      ── BROADCAST NOTIFICATION ───────────────────────────────
   ═══════════════════════════════════════════════════════════ */
   if (action === 'notify-broadcast' && req.method === 'POST') {
@@ -1794,6 +1961,7 @@ module.exports = async (req, res) => {
       'suppliers', 'supplier-add', 'supplier-edit', 'supplier-delete',
       'inventory', 'inventory-add',
       'referrals', 'referral-settings',
+      'loyalty-settings',
       'notify-broadcast',
       'upload-image',
       'settings',

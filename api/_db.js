@@ -212,6 +212,12 @@ const userSchema = new mongoose.Schema({
   totalSpent:       { type: Number, default: 0 },
   loyaltyPoints:    { type: Number, default: 0 },
   loyaltyTier:      { type: String, enum: ['bronze','silver','gold','platinum'], default: 'bronze' },
+  loyaltyPointsHistory: [{
+    amount:     { type: Number, required: true },  // positive বা negative
+    reason:     { type: String, default: '' },
+    adjustedBy: { type: String, default: 'admin' },
+    timestamp:  { type: Date, default: Date.now },
+  }],
   referralCode:     { type: String, unique: true, sparse: true },
   referredBy:       { type: String, default: '' },
   totalReferrals:   { type: Number, default: 0 },
@@ -429,6 +435,7 @@ const notificationSchema = new mongoose.Schema({
   isGlobal: { type: Boolean, default: false },
   channel:  { type: String, enum: ['app','sms','email','all'], default: 'app' },
   metadata: mongoose.Schema.Types.Mixed,
+  readBy:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true, versionKey: false, collection: 'notifications' });
 
 // ═══════════════════════════════════════════════════════════════════════════════
