@@ -1794,6 +1794,23 @@ module.exports = async (req, res) => {
   }
 
   /* ═══════════════════════════════════════════════════════════
+     ── SYSTEM STATUS ──────────────────────────────────────────
+     GET ?action=system-status
+     Returns Cloudinary & Email configuration status (admin only).
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'system-status' && req.method === 'GET') {
+    return res.json({
+      ok: true,
+      cloudinaryConfigured: !!(
+        process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET
+      ),
+      emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS),
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
      ── IMAGE UPLOAD TO CLOUDINARY (NEW — UPGRADE 4) ─────────
      POST ?action=upload-image
      Body: { imageBase64: string, filename?: string }
@@ -1821,9 +1838,10 @@ module.exports = async (req, res) => {
       const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
       if (!cloudName || !apiKey || !apiSecret) {
-        return res.status(500).json({
+        return res.status(503).json({
           ok: false,
-          error: 'Cloudinary not configured. .env-এ CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET যোগ করুন।',
+          notConfigured: true,   // ✅ frontend এ easy check করার জন্য
+          error: 'Image upload service configured নেই। Image URL field ব্যবহার করুন, বা Cloudinary setup করুন।',
         });
       }
 
@@ -1964,6 +1982,7 @@ module.exports = async (req, res) => {
       'loyalty-settings',
       'notify-broadcast',
       'upload-image',
+      'system-status',
       'settings',
       'change-password',
     ],

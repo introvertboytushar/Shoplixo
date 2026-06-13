@@ -1,6 +1,6 @@
 /**
  * ══════════════════════════════════════════════════════════════════════
- *  SHOPLIXO — MongoDB Connection + ALL Schemas  (Ultra Pro v5)
+ *  SHOPLIXO — MongoDB Connection + ALL Schemas  (Ultra Pro v6)
  *
  *  ✅ NEW  v4 additions:
  *    • AdminConfig   — server-side admin password & multi-key management
@@ -16,6 +16,16 @@
  *    • Order: `archivedAt` field (set when status → 'archived')
  *    • Order.customer: `ipAddress`, `gpsLocation`, `deviceInfo` fields
  *    • User: `ipAddress`, `location` (GPS), `loginHistory` fields
+ *
+ *  ✅ NEW  v6 additions:
+ *    • fingerprintSchema — reusable Device & Network Fingerprint sub-schema
+ *      Captures: IP geolocation (city, region, country, ISP, org, ASN,
+ *      timezone), GPS coords, and full device info (model, OS, browser,
+ *      platform, screen, CPU cores, RAM, touch points, connection type/
+ *      speed, battery, cookies, DNT, user-agent, languages)
+ *    • User.loginHistory[].fingerprint — rich fingerprint per login entry
+ *    • Order.customer.fingerprint     — rich fingerprint per order
+ *    • All legacy fields preserved for backward compatibility
  *
  *  ✅ FIXED  v4 improvements:
  *    • AdminConfig with bcrypt-ready password hash storage  (BUG-5 / SEC-2)
@@ -74,6 +84,50 @@ const reg = (name, schema) =>
   mongoose.models[name] || mongoose.model(name, schema);
 
 // ═══════════════════════════════════════════════════════════════════════════════
+//  ✅ NEW v6: FINGERPRINT SUB-SCHEMA
+//  Reusable plain-object definition embedded into loginHistory & customer.
+//  Captures full IP geolocation + device/hardware/software details.
+//  All fields have sensible defaults → zero errors on legacy documents.
+// ═══════════════════════════════════════════════════════════════════════════════
+const fingerprintSchema = {
+  ip: { type: String, default: '' },
+  ipDetails: {
+    city:        { type: String, default: '' },
+    region:      { type: String, default: '' },
+    country:     { type: String, default: '' },
+    countryCode: { type: String, default: '' },
+    isp:         { type: String, default: '' },
+    org:         { type: String, default: '' },
+    asn:         { type: String, default: '' },
+    timezone:    { type: String, default: '' },
+  },
+  gps: {
+    lat:      { type: Number, default: null },
+    lng:      { type: Number, default: null },
+    accuracy: { type: Number, default: null },
+  },
+  device: {
+    model:           { type: String,  default: '' },  // e.g. "iPhone 14", "Samsung SM-G991B"
+    os:              { type: String,  default: '' },  // e.g. "Android 13", "iOS 17", "Windows 11"
+    browser:         { type: String,  default: '' },  // e.g. "Chrome 124"
+    platform:        { type: String,  default: '' },
+    languages:       { type: String,  default: '' },
+    screen:          { type: String,  default: '' },  // e.g. "1080x2400"
+    orientation:     { type: String,  default: '' },
+    cores:           { type: Number,  default: null },
+    ram:             { type: String,  default: '' },  // e.g. "8 GB" বা "Unknown"
+    touchPoints:     { type: Number,  default: null },
+    connection:      { type: String,  default: '' },  // e.g. "4g"
+    connectionSpeed: { type: String,  default: '' },  // e.g. "10 Mbps"
+    battery:         { type: String,  default: '' },  // e.g. "85% (charging)"
+    cookiesEnabled:  { type: Boolean, default: null },
+    doNotTrack:      { type: String,  default: '' },
+    userAgent:       { type: String,  default: '' },
+  },
+  capturedAt: { type: Date, default: Date.now },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 //  ORDER SCHEMA
 // ═══════════════════════════════════════════════════════════════════════════════
 const orderSchema = new mongoose.Schema({
@@ -87,7 +141,7 @@ const orderSchema = new mongoose.Schema({
     district: String,
     area:     { type: String, default: '' },
     note:     { type: String, default: '' },
-    // ✅ NEW v5: Location & device tracking
+    // ✅ v5: Location & device tracking — backward compat রাখা হয়েছে
     ipAddress: { type: String, default: '' },
     gpsLocation: {
       lat:      { type: Number, default: null },
@@ -95,6 +149,8 @@ const orderSchema = new mongoose.Schema({
       accuracy: { type: Number, default: null },
     },
     deviceInfo: { type: String, default: '' },
+    // ✅ NEW v6 — সম্পূর্ণ rich fingerprint
+    fingerprint: fingerprintSchema,
   },
 
   items: [{
@@ -246,11 +302,13 @@ const userSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: null },
   },
   loginHistory: [{
-    ip:       String,
-    device:   String,
-    location: { lat: Number, lng: Number },
-    method:   String, // 'email','google','facebook'
-    timestamp:{ type: Date, default: Date.now },
+    ip:        String,
+    device:    String,                        // পুরনো field — backward compat
+    location:  { lat: Number, lng: Number },  // পুরনো field — backward compat
+    method:    String,                        // 'email','google','facebook'
+    timestamp: { type: Date, default: Date.now },
+    // ✅ NEW v6 — সম্পূর্ণ rich fingerprint
+    fingerprint: fingerprintSchema,
   }],
 
   // OTP / reset — excluded from default queries

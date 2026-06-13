@@ -160,6 +160,7 @@ module.exports = async (req, res) => {
 
       const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
       const { lat, lng, accuracy } = b.gpsLocation || {};
+      const fingerprint = b.fingerprint || {};
       const user   = await User.create({
         name, phone,
         email:    email || undefined,
@@ -175,6 +176,36 @@ module.exports = async (req, res) => {
           location:  (lat && lng) ? { lat, lng } : undefined,
           method:    'email',
           timestamp: new Date(),
+          fingerprint: {
+            ip:          fingerprint.ip        || ip,
+            ipDetails: {
+              city:    sanitize(fingerprint.ipDetails?.city    || '', 200),
+              region:  sanitize(fingerprint.ipDetails?.region  || '', 200),
+              country: sanitize(fingerprint.ipDetails?.country || '', 200),
+              isp:     sanitize(fingerprint.ipDetails?.isp     || '', 200),
+              org:     sanitize(fingerprint.ipDetails?.org     || '', 200),
+              zip:     sanitize(fingerprint.ipDetails?.zip     || '',  20),
+              timezone:sanitize(fingerprint.ipDetails?.timezone|| '', 100),
+              lat:     fingerprint.ipDetails?.lat ?? null,
+              lng:     fingerprint.ipDetails?.lng ?? null,
+            },
+            gps:       fingerprint.gps || { lat, lng, accuracy },
+            device: {
+              userAgent:   sanitize(fingerprint.device?.userAgent    || '', 300),
+              platform:    sanitize(fingerprint.device?.platform     || '', 100),
+              vendor:      sanitize(fingerprint.device?.vendor       || '', 100),
+              language:    sanitize(fingerprint.device?.language     || '',  20),
+              screenWidth: fingerprint.device?.screenWidth  ?? null,
+              screenHeight:fingerprint.device?.screenHeight ?? null,
+              timezone:    sanitize(fingerprint.device?.timezone     || '', 100),
+              cores:       fingerprint.device?.cores ?? null,
+              memory:      fingerprint.device?.memory ?? null,
+              touchPoints: fingerprint.device?.touchPoints ?? null,
+              cookieEnabled: fingerprint.device?.cookieEnabled ?? null,
+              doNotTrack:  fingerprint.device?.doNotTrack ?? null,
+            },
+            capturedAt: fingerprint.capturedAt ? new Date(fingerprint.capturedAt) : new Date(),
+          },
         }],
       });
 
@@ -219,6 +250,7 @@ module.exports = async (req, res) => {
     const identifier = sanitize(b.identifier || b.phone || b.email || '', 150).trim();
     const password   = String(b.password || '');
     const { lat, lng, accuracy } = b.gpsLocation || {};
+    const fingerprint = b.fingerprint || {};
 
     if (!identifier || !password)
       return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'Phone/Email এবং Password দিন!' });
@@ -265,6 +297,36 @@ module.exports = async (req, res) => {
               location:  (lat && lng) ? { lat, lng } : undefined,
               method:    b.method || 'email',
               timestamp: new Date(),
+              fingerprint: {
+                ip:        fingerprint.ip || ip,
+                ipDetails: {
+                  city:    sanitize(fingerprint.ipDetails?.city    || '', 200),
+                  region:  sanitize(fingerprint.ipDetails?.region  || '', 200),
+                  country: sanitize(fingerprint.ipDetails?.country || '', 200),
+                  isp:     sanitize(fingerprint.ipDetails?.isp     || '', 200),
+                  org:     sanitize(fingerprint.ipDetails?.org     || '', 200),
+                  zip:     sanitize(fingerprint.ipDetails?.zip     || '',  20),
+                  timezone:sanitize(fingerprint.ipDetails?.timezone|| '', 100),
+                  lat:     fingerprint.ipDetails?.lat ?? null,
+                  lng:     fingerprint.ipDetails?.lng ?? null,
+                },
+                gps:       fingerprint.gps || { lat, lng, accuracy },
+                device: {
+                  userAgent:   sanitize(fingerprint.device?.userAgent    || '', 300),
+                  platform:    sanitize(fingerprint.device?.platform     || '', 100),
+                  vendor:      sanitize(fingerprint.device?.vendor       || '', 100),
+                  language:    sanitize(fingerprint.device?.language     || '',  20),
+                  screenWidth: fingerprint.device?.screenWidth  ?? null,
+                  screenHeight:fingerprint.device?.screenHeight ?? null,
+                  timezone:    sanitize(fingerprint.device?.timezone     || '', 100),
+                  cores:       fingerprint.device?.cores ?? null,
+                  memory:      fingerprint.device?.memory ?? null,
+                  touchPoints: fingerprint.device?.touchPoints ?? null,
+                  cookieEnabled: fingerprint.device?.cookieEnabled ?? null,
+                  doNotTrack:  fingerprint.device?.doNotTrack ?? null,
+                },
+                capturedAt: fingerprint.capturedAt ? new Date(fingerprint.capturedAt) : new Date(),
+              },
             }],
             $slice: -20,
           }
@@ -624,6 +686,7 @@ module.exports = async (req, res) => {
 
     const b = req.body || {};
     const { lat, lng, accuracy } = b.gpsLocation || {};
+    const fingerprint = b.fingerprint || {};
     /* ── Google OAuth token verification ─────────────────────
      *  Client থেকে Google ID token পাঠানো হয়।
      *  এখানে আপনার Google token verification logic বসান।
@@ -683,6 +746,36 @@ module.exports = async (req, res) => {
               location:  (lat && lng) ? { lat, lng } : undefined,
               method:    'google',
               timestamp: new Date(),
+              fingerprint: {
+                ip:        fingerprint.ip || ip,
+                ipDetails: {
+                  city:    sanitize(fingerprint.ipDetails?.city    || '', 200),
+                  region:  sanitize(fingerprint.ipDetails?.region  || '', 200),
+                  country: sanitize(fingerprint.ipDetails?.country || '', 200),
+                  isp:     sanitize(fingerprint.ipDetails?.isp     || '', 200),
+                  org:     sanitize(fingerprint.ipDetails?.org     || '', 200),
+                  zip:     sanitize(fingerprint.ipDetails?.zip     || '',  20),
+                  timezone:sanitize(fingerprint.ipDetails?.timezone|| '', 100),
+                  lat:     fingerprint.ipDetails?.lat ?? null,
+                  lng:     fingerprint.ipDetails?.lng ?? null,
+                },
+                gps:       fingerprint.gps || { lat, lng, accuracy },
+                device: {
+                  userAgent:   sanitize(fingerprint.device?.userAgent    || '', 300),
+                  platform:    sanitize(fingerprint.device?.platform     || '', 100),
+                  vendor:      sanitize(fingerprint.device?.vendor       || '', 100),
+                  language:    sanitize(fingerprint.device?.language     || '',  20),
+                  screenWidth: fingerprint.device?.screenWidth  ?? null,
+                  screenHeight:fingerprint.device?.screenHeight ?? null,
+                  timezone:    sanitize(fingerprint.device?.timezone     || '', 100),
+                  cores:       fingerprint.device?.cores ?? null,
+                  memory:      fingerprint.device?.memory ?? null,
+                  touchPoints: fingerprint.device?.touchPoints ?? null,
+                  cookieEnabled: fingerprint.device?.cookieEnabled ?? null,
+                  doNotTrack:  fingerprint.device?.doNotTrack ?? null,
+                },
+                capturedAt: fingerprint.capturedAt ? new Date(fingerprint.capturedAt) : new Date(),
+              },
             }],
             $slice: -20,
           }
@@ -713,6 +806,7 @@ module.exports = async (req, res) => {
 
     const b = req.body || {};
     const { lat, lng, accuracy } = b.gpsLocation || {};
+    const fingerprint = b.fingerprint || {};
     /* ── Facebook OAuth token verification ────────────────────
      *  Client থেকে Facebook access token পাঠানো হয়।
      *  এখানে আপনার Facebook token verification logic বসান।
@@ -772,6 +866,36 @@ module.exports = async (req, res) => {
               location:  (lat && lng) ? { lat, lng } : undefined,
               method:    'facebook',
               timestamp: new Date(),
+              fingerprint: {
+                ip:        fingerprint.ip || ip,
+                ipDetails: {
+                  city:    sanitize(fingerprint.ipDetails?.city    || '', 200),
+                  region:  sanitize(fingerprint.ipDetails?.region  || '', 200),
+                  country: sanitize(fingerprint.ipDetails?.country || '', 200),
+                  isp:     sanitize(fingerprint.ipDetails?.isp     || '', 200),
+                  org:     sanitize(fingerprint.ipDetails?.org     || '', 200),
+                  zip:     sanitize(fingerprint.ipDetails?.zip     || '',  20),
+                  timezone:sanitize(fingerprint.ipDetails?.timezone|| '', 100),
+                  lat:     fingerprint.ipDetails?.lat ?? null,
+                  lng:     fingerprint.ipDetails?.lng ?? null,
+                },
+                gps:       fingerprint.gps || { lat, lng, accuracy },
+                device: {
+                  userAgent:   sanitize(fingerprint.device?.userAgent    || '', 300),
+                  platform:    sanitize(fingerprint.device?.platform     || '', 100),
+                  vendor:      sanitize(fingerprint.device?.vendor       || '', 100),
+                  language:    sanitize(fingerprint.device?.language     || '',  20),
+                  screenWidth: fingerprint.device?.screenWidth  ?? null,
+                  screenHeight:fingerprint.device?.screenHeight ?? null,
+                  timezone:    sanitize(fingerprint.device?.timezone     || '', 100),
+                  cores:       fingerprint.device?.cores ?? null,
+                  memory:      fingerprint.device?.memory ?? null,
+                  touchPoints: fingerprint.device?.touchPoints ?? null,
+                  cookieEnabled: fingerprint.device?.cookieEnabled ?? null,
+                  doNotTrack:  fingerprint.device?.doNotTrack ?? null,
+                },
+                capturedAt: fingerprint.capturedAt ? new Date(fingerprint.capturedAt) : new Date(),
+              },
             }],
             $slice: -20,
           }

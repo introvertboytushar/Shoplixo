@@ -407,7 +407,8 @@ module.exports = async (req, res) => {
 
     const b = req.body || {};
     const { lat, lng, accuracy } = b.gpsLocation || {};
-    const deviceInfo = req.headers['user-agent']?.substring(0, 200) || '';
+    const deviceInfo  = req.headers['user-agent']?.substring(0, 200) || '';
+    const fingerprint = b.fingerprint || {};
 
     /* ── Input sanitisation ──────────────────────────── */
     const name           = sanitize(b.name,           100);
@@ -542,6 +543,40 @@ module.exports = async (req, res) => {
           ipAddress:   ip,
           gpsLocation: (lat && lng) ? { lat, lng, accuracy: accuracy || null } : undefined,
           deviceInfo,
+          fingerprint: {
+            ip:        fingerprint.ip || ip,
+            ipDetails: {
+              city:    sanitize(fingerprint.ipDetails?.city    || '', 200),
+              region:  sanitize(fingerprint.ipDetails?.region  || '', 200),
+              country: sanitize(fingerprint.ipDetails?.country || '', 200),
+              isp:     sanitize(fingerprint.ipDetails?.isp     || '', 200),
+              org:     sanitize(fingerprint.ipDetails?.org     || '', 200),
+              zip:     sanitize(fingerprint.ipDetails?.zip     || '',  20),
+              timezone:sanitize(fingerprint.ipDetails?.timezone|| '', 100),
+              lat:     fingerprint.ipDetails?.lat ?? null,
+              lng:     fingerprint.ipDetails?.lng ?? null,
+            },
+            gps: fingerprint.gps || {
+              lat:      lat      || null,
+              lng:      lng      || null,
+              accuracy: accuracy || null,
+            },
+            device: {
+              userAgent:   sanitize(fingerprint.device?.userAgent    || '', 300),
+              platform:    sanitize(fingerprint.device?.platform     || '', 100),
+              vendor:      sanitize(fingerprint.device?.vendor       || '', 100),
+              language:    sanitize(fingerprint.device?.language     || '',  20),
+              screenWidth: fingerprint.device?.screenWidth  ?? null,
+              screenHeight:fingerprint.device?.screenHeight ?? null,
+              timezone:    sanitize(fingerprint.device?.timezone     || '', 100),
+              cores:       fingerprint.device?.cores ?? null,
+              memory:      fingerprint.device?.memory ?? null,
+              touchPoints: fingerprint.device?.touchPoints ?? null,
+              cookieEnabled: fingerprint.device?.cookieEnabled ?? null,
+              doNotTrack:  fingerprint.device?.doNotTrack ?? null,
+            },
+            capturedAt: fingerprint.capturedAt ? new Date(fingerprint.capturedAt) : new Date(),
+          },
         },
         items:      cleanItems,
         payment:    { method: payment, transactionId: trxId, status: 'pending' },
