@@ -4419,7 +4419,8 @@ let cart = JSON.parse(localStorage.getItem('slx_cart')||'[]');
 let wishlist = JSON.parse(localStorage.getItem('slx_wish')||'[]');
 let currentUser = JSON.parse(localStorage.getItem('slx_user')||'null');
 let selPayment = 'bkash';
-let discount = 0;
+let discount = 0;      // percent-type coupon এর জন্য (0-100)
+let discountFlat = 0;  // flat-type coupon এর জন্য (টাকার পরিমাণ)
 const COUPONS = {LIXA20:20,LIXA25:25,NEWSLIXA10:10,SAVE15:15,SHOPLIXO5:5}; // fallback only
 
 const $ = id => document.getElementById(id);
@@ -5706,8 +5707,9 @@ function closeCheckout(){$('checkout-modal').classList.remove('open');document.b
 function ckRefresh(){
   const t=total(), thresh=CFG.freeShippingMin||999;
   const ship=t>=thresh?0:60;
-  const discAmt=Math.round(t*discount/100);
-  const fin=t+ship-discAmt;
+  // FIX: flat coupon (discountFlat) এবং percent coupon (discount) আলাদাভাবে handle করা
+  const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
+  const fin=Math.max(0, t+ship-discAmt);
   $('ck-items').innerHTML=cart.map(c=>`<div class="oi-item">
     <img class="oi-img" src="${c.img}" onerror="this.src='https://picsum.photos/seed/${c.id}/46/56'">
     <div style="flex:1"><div class="oi-name">${c.name}</div><div class="oi-meta">×${c.qty} · Size: ${c.size}</div></div>
@@ -5716,6 +5718,7 @@ function ckRefresh(){
   $('ck-sub').textContent=fmt(t);
   $('ck-ship').textContent=ship===0?'বিনামূল্যে 🎉':fmt(60);
   if(discAmt>0){$('disc-row').style.display='flex';$('disc-val').textContent='-'+fmt(discAmt);}
+  else { const dr=$('disc-row'); if(dr) dr.style.display='none'; }
   $('ck-total').textContent=fmt(fin);
 }
 
@@ -5749,29 +5752,37 @@ async function applyCoupon(){
       body:JSON.stringify({code, subtotal:total()})
     });
     const data=await res.json();
-    if(data.ok && data.discount>0){
-      discount=data.discount;
-      msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
+    if(data.ok && (data.discount>0 || data.discountAmt>0)){
+      // FIX: percent ও flat coupon আলাদাভাবে handle করা
+      if(data.type === 'flat'){
+        discountFlat = data.discountAmt || data.discount;
+        discount = 0;
+        msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ৳${discountFlat} ছাড় applied!</span>`;
+      } else {
+        discount = data.discount;
+        discountFlat = 0;
+        msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
+      }
       ckRefresh();
     } else {
-      // API returned error — try local fallback
+      // API returned error — try local fallback (percent only)
       if(COUPONS[code]){
-        discount=COUPONS[code];
+        discount=COUPONS[code]; discountFlat=0;
         msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
         ckRefresh();
       } else {
-        discount=0;
+        discount=0; discountFlat=0;
         msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ ${data.error||'Invalid coupon'}</span>`;
       }
     }
   } catch(e){
     // Network error — fallback to local
     if(COUPONS[code]){
-      discount=COUPONS[code];
+      discount=COUPONS[code]; discountFlat=0;
       msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
       ckRefresh();
     } else {
-      discount=0;
+      discount=0; discountFlat=0;
       msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ Invalid coupon</span>`;
     }
   } finally {
@@ -5903,7 +5914,9 @@ async function placeOrder(){
   const gpsLocation = cachedGPSLocation || await requestGPSLocation();
 
   const t=total(),thresh=CFG.freeShippingMin||999,ship=t>=thresh?0:60;
-  const discAmt=Math.round(t*discount/100),fin=t+ship-discAmt;
+  // FIX: flat ও percent coupon উভয়ের জন্য সঠিক discAmt গণনা
+  const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
+  const fin=Math.max(0, t+ship-discAmt);
 
   // ShurjoPay online payment
   if(selPayment === 'online') {
@@ -5971,7 +5984,7 @@ async function placeOrder(){
     localStorage.setItem('slx_orders',JSON.stringify(orders));
 
     const orderItems=[...cart];
-    cart=[]; discount=0; saveCart();
+    cart=[]; discount=0; discountFlat=0; saveCart();
     closeCheckout();
     $('os-id').textContent=oid;
     $('order-success').classList.add('open');
@@ -5987,7 +6000,7 @@ async function placeOrder(){
     const orders=JSON.parse(localStorage.getItem('slx_orders')||'[]');
     orders.push(order); localStorage.setItem('slx_orders',JSON.stringify(orders));
     const orderItems=[...cart];
-    cart=[]; discount=0; saveCart();
+    cart=[]; discount=0; discountFlat=0; saveCart();
     closeCheckout();
     $('os-id').textContent=oid;
     $('order-success').classList.add('open');
@@ -8906,13 +8919,61 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ── NOTIFICATIONS ── */
 let notifications = JSON.parse(localStorage.getItem('slx_notifs') || '[]');
 
+function saveNotifications(){
+  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+}
+
 function addNotification(type, title, text){
   notifications.unshift({ type, title, text, time: new Date().toISOString(), read: false, id: Date.now() });
   notifications = notifications.slice(0, 20);
-  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+  saveNotifications();
   updateNotifDot();
   renderNotifications();
 }
+
+/* ── SERVER (ADMIN BROADCAST) NOTIFICATIONS ── */
+async function fetchServerNotifications(){
+  try{
+    const userId = currentUser?._id || '';
+    const res = await fetch(`/api/content?action=notifications${userId ? '&userId='+userId : ''}`)
+      .then(r=>r.json());
+
+    if(res.ok && res.notifications?.length){
+      // Server notifications কে local 'notifications' array এ merge করো
+      const serverNotifs = res.notifications.map(n => ({
+        id: 'srv_' + n.id,
+        serverId: n.id,
+        type: n.type === 'promo' ? 'promo' : n.type === 'order' ? 'order' : 'points',
+        title: `${n.icon || '🔔'} ${n.title}`,
+        text: n.message,
+        time: n.createdAt,
+        read: n.isRead,
+        link: n.link || '',
+        isServer: true,
+      }));
+
+      // Existing local notifications এর সাথে merge করো — duplicate (serverId
+      // অনুযায়ী) এড়িয়ে যাও, সর্বশেষ গুলো উপরে রাখো
+      const existingServerIds = new Set(notifications.filter(n=>n.serverId).map(n=>n.serverId));
+      const newOnes = serverNotifs.filter(n=>!existingServerIds.has(n.serverId));
+
+      if(newOnes.length){
+        notifications = [...newOnes, ...notifications];
+        saveNotifications();
+        updateNotifDot();
+        renderNotifications();
+      }
+    }
+  }catch(e){ /* silent fail — UX block করবে না */ }
+}
+
+// Page load এর পরে একবার fetch করো
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(fetchServerNotifications, 1500);
+});
+
+// প্রতি ৩ মিনিটে নতুন broadcast notification check করো (polling)
+setInterval(fetchServerNotifications, 3 * 60 * 1000);
 
 function updateNotifDot(){
   const dot = document.getElementById('notif-dot');
@@ -8930,7 +8991,7 @@ function renderNotifications(){
   const typeIcons = { order:'ni-order', points:'ni-points', promo:'ni-promo' };
   const icons = { order:'fa-receipt', points:'fa-star', promo:'fa-tag' };
   body.innerHTML = notifications.map(n => `
-    <div class="notif-item" onclick="markRead(${n.id})">
+    <div class="notif-item" onclick='handleNotifClick(${JSON.stringify(n.id)})' style="${n.link?'cursor:pointer':''}">
       <div class="ni-icon ${typeIcons[n.type]||'ni-promo'}"><i class="fa-solid ${icons[n.type]||'fa-bell'}"></i></div>
       <div class="ni-text">
         <div class="ni-title">${n.title}</div>
@@ -8941,19 +9002,58 @@ function renderNotifications(){
     </div>`).join('');
 }
 
+/* Notification item ক্লিক হ্যান্ডলার — read করে এবং থাকলে link এ navigate করে */
+function handleNotifClick(id){
+  const notif = notifications.find(n=>n.id===id);
+  if(!notif) return;
+  markRead(id);
+  if(!notif.link) return;
+  if(notif.link.startsWith('/category/')){
+    const cat = notif.link.replace('/category/','');
+    closeNotifPanel();
+    filterCat(cat);
+  } else if(notif.link.startsWith('/product/')){
+    closeNotifPanel();
+    loadProductBySlug(notif.link.replace('/product/',''));
+  } else if(notif.link.startsWith('http')){
+    window.open(notif.link, '_blank');
+  } else {
+    window.location.href = notif.link;
+  }
+}
+
 function markRead(id){
   const n = notifications.find(n=>n.id===id);
   if(n) n.read = true;
-  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+  saveNotifications();
   updateNotifDot();
   renderNotifications();
+
+  // Server notification হলে, backend এও mark-as-read করো
+  if(n?.isServer && n?.serverId && currentUser?._id){
+    fetch('/api/content?action=notifications-read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser._id, notificationIds: [n.serverId] })
+    }).catch(()=>{});
+  }
 }
 
 function markAllRead(){
+  const unreadServerIds = notifications.filter(n=>!n.read && n.isServer && n.serverId).map(n=>n.serverId);
   notifications.forEach(n=>n.read=true);
-  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+  saveNotifications();
   updateNotifDot();
   renderNotifications();
+
+  // Logged-in user হলে server notification গুলোও mark-as-read করো
+  if(unreadServerIds.length && currentUser?._id){
+    fetch('/api/content?action=notifications-read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser._id, notificationIds: unreadServerIds })
+    }).catch(()=>{});
+  }
 }
 
 function openNotifPanel(){
@@ -8992,7 +9092,8 @@ const _origCkRefresh = window.ckRefresh;
 window.ckRefresh = function(){
   const t=total(), thresh=CFG.freeShippingMin||999;
   const ship=t>=thresh?0:60;
-  const discAmt=Math.round(t*discount/100);
+  // FIX: flat ও percent coupon উভয় type handle করা
+  const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
   const loyDisc = window._loyaltyDiscount || 0;
   const fin=Math.max(0, t+ship-discAmt-loyDisc);
   if(_origCkRefresh) _origCkRefresh();

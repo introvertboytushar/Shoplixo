@@ -531,9 +531,25 @@ tr:hover td{background:var(--bg)}
         <div class="table-card" style="margin-bottom:20px">
           <div class="tc-head">
             <div class="tc-title"><i class="fa-solid fa-users" style="color:var(--blue)"></i> Registered Customers</div>
+            <div class="tc-actions">
+              <input class="tc-search" id="cust-search" placeholder="নাম, ইমেইল, ফোন..." oninput="debounceCustomerSearch()" style="width:180px">
+              <select class="tc-select" id="cust-sort" onchange="loadCustomers()">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="orders_hi">Most Orders</option>
+                <option value="spent_hi">Most Spent</option>
+                <option value="points_hi">Most Points</option>
+                <option value="name_az">Name A-Z</option>
+              </select>
+              <button class="tc-btn tc-btn-brand" onclick="loadCustomers()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+            </div>
           </div>
           <div class="cust-grid" id="cust-grid" style="padding:18px">
             <div style="text-align:center;padding:40px;color:var(--text3);grid-column:1/-1"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+          </div>
+          <div class="pagination" id="cust-pagination" style="display:none">
+            <div class="pg-info" id="cust-pg-info"></div>
+            <div class="pg-btns" id="cust-pg-btns"></div>
           </div>
         </div>
       </div>
@@ -565,11 +581,11 @@ tr:hover td{background:var(--bg)}
               <input id="campaign-test-email" placeholder="Test email (optional)..."
                 type="email"
                 style="flex:1;min-width:180px;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none">
-              <button onclick="sendCampaignTest()"
+              <button id="btn-campaign-test" onclick="sendCampaignTest()"
                 style="background:var(--dark2);color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap">
                 <i class="fa-solid fa-vial"></i> Test পাঠান
               </button>
-              <button onclick="sendCampaignAll()"
+              <button id="btn-campaign-all" onclick="sendCampaignAll()"
                 style="background:var(--blue);color:#fff;padding:10px 20px;border-radius:var(--r);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap">
                 <i class="fa-solid fa-paper-plane"></i> সবাইকে পাঠান
               </button>
@@ -877,35 +893,44 @@ tr:hover td{background:var(--bg)}
             <div id="loyalty-members-list" style="padding:16px"></div>
           </div>
           <div class="table-card" style="padding:20px">
-            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-gift" style="color:var(--gold)"></i> Tier Configuration</div>
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-sliders" style="color:var(--gold)"></i> Tier Settings</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:16px">DB-তে configure হওয়া thresholds — এখান থেকে সরাসরি edit ও save করুন</div>
             <div style="display:flex;flex-direction:column;gap:12px">
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:700;color:var(--dark)">🥉 Bronze</span><span style="font-size:12px;color:var(--text3)">0 - 999 Points</span></div>
-                <div style="font-size:12px;color:var(--text2)">1× Points Multiplier | Free Delivery</div>
+              <!-- Points Per Order -->
+              <div>
+                <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Points Per Order (প্রতি ৳100 এ)</label>
+                <input id="ts-points-per-order" type="number" placeholder="10" min="1"
+                  style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
               </div>
+              <!-- Bronze -->
               <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:700;color:var(--dark)">🥈 Silver</span><span style="font-size:12px;color:var(--text3)">1000 - 4999 Points</span></div>
-                <div style="font-size:12px;color:var(--text2)">1.25× Points | 5% Extra Discount</div>
+                <div style="font-weight:700;color:var(--dark);margin-bottom:8px;display:flex;align-items:center;gap:6px">🥉 Bronze <span style="font-size:11px;font-weight:400;color:var(--text3)">(Minimum — সাধারণত 0)</span></div>
+                <input id="ts-bronze-min" type="number" value="0" disabled
+                  style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;background:#f5f5f5;color:var(--text3)">
               </div>
+              <!-- Silver -->
+              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
+                <div style="font-weight:700;color:var(--dark);margin-bottom:8px">🥈 Silver থেকে (min points)</div>
+                <input id="ts-silver-min" type="number" placeholder="1000" min="1"
+                  style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none">
+              </div>
+              <!-- Gold -->
               <div style="background:rgba(255,184,0,.08);border-radius:var(--r-lg);padding:14px;border:1px solid rgba(255,184,0,.3)">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:700;color:var(--dark)">🥇 Gold</span><span style="font-size:12px;color:var(--gold)">5000 - 19999 Points</span></div>
-                <div style="font-size:12px;color:var(--text2)">1.5× Points | 10% Discount | Priority Support</div>
+                <div style="font-weight:700;color:var(--dark);margin-bottom:8px">🥇 Gold থেকে (min points)</div>
+                <input id="ts-gold-min" type="number" placeholder="5000" min="1"
+                  style="width:100%;padding:7px 10px;border:1.5px solid rgba(255,184,0,.5);border-radius:var(--r);font-size:13px;outline:none">
               </div>
-              <div style="background:rgba(229,228,226,.08);border-radius:var(--r-lg);padding:14px;border:1px solid rgba(229,228,226,.3)">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:700;color:var(--dark)">💎 Platinum</span><span style="font-size:12px;color:#aaa">20000+ Points</span></div>
-                <div style="font-size:12px;color:var(--text2)">2× Points | 15% Discount | VIP Support | Early Access</div>
+              <!-- Platinum -->
+              <div style="background:rgba(229,228,226,.12);border-radius:var(--r-lg);padding:14px;border:1px solid rgba(229,228,226,.4)">
+                <div style="font-weight:700;color:var(--dark);margin-bottom:8px">💎 Platinum থেকে (min points)</div>
+                <input id="ts-platinum-min" type="number" placeholder="20000" min="1"
+                  style="width:100%;padding:7px 10px;border:1.5px solid #ccc;border-radius:var(--r);font-size:13px;outline:none">
               </div>
-              <div style="background:var(--green-light);border-radius:var(--r-lg);padding:14px;border:1px solid rgba(0,197,138,.2)">
-                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px">📊 Points Rules</div>
-                <div style="font-size:12px;color:var(--text2);line-height:1.7">
-                  প্রতি ৳100 কেনাকাটায় = 10 Points<br>
-                  Registration Bonus = 100 Points<br>
-                  Review দেওয়া = 25 Points<br>
-                  Referral (success) = 200 Points<br>
-                  Birthday = 2× Points<br>
-                  100 Points = ৳10 ছাড়
-                </div>
-              </div>
+              <!-- Save button -->
+              <button onclick="saveLoyaltyTierSettings()"
+                style="background:linear-gradient(135deg,var(--gold),#e6a800);color:var(--dark);padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
+                <i class="fa-solid fa-floppy-disk"></i> Tier Settings Save করুন
+              </button>
             </div>
           </div>
         </div>
@@ -1171,7 +1196,7 @@ tr:hover td{background:var(--bg)}
                   <option value="loyal">Loyal (1000+ Points)</option>
                   <option value="gold">Gold Tier (5000+ Points)</option>
                 </select></div>
-              <button onclick="sendBroadcast()" style="background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;padding:13px;border-radius:var(--r-full);font-size:15px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fa-solid fa-paper-plane"></i> Notification পাঠান</button>
+              <button id="btn-broadcast" onclick="sendBroadcast()" style="background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;padding:13px;border-radius:var(--r-full);font-size:15px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fa-solid fa-paper-plane"></i> Notification পাঠান</button>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:16px">
@@ -1475,6 +1500,19 @@ async function loadDashboard() {
     const avg = s.totalOrders > 0 ? Math.round((s.totalRev || 0) / s.totalOrders) : 0;
     $('s-avg').textContent = fmt(avg);
     if ($('pending-badge')) $('pending-badge').textContent = s.pendingOrders || 0;
+
+    // FIX: Update review-badge from pendingReviews stat
+    if ($('review-badge')) {
+      const pr = s.pendingReviews || 0;
+      $('review-badge').textContent = pr > 0 ? pr : '!';
+      $('review-badge').style.display = pr > 0 ? 'flex' : 'none';
+    }
+    // FIX: Update returns-badge from pendingReturns stat
+    if ($('returns-badge')) {
+      const ret = s.pendingReturns || 0;
+      $('returns-badge').textContent = ret;
+      $('returns-badge').style.display = ret > 0 ? 'flex' : 'none';
+    }
 
     // Revenue chart — FIX: backend sends date/revenue/orders not _id/revenue
     const days = data.revenueByDay || [];
@@ -1806,15 +1844,48 @@ function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-BD');
 }
 
-async function loadCustomers() {
+let custSearchTimer = null;
+function debounceCustomerSearch() {
+  clearTimeout(custSearchTimer);
+  custSearchTimer = setTimeout(() => loadCustomers(1), 400);
+}
+
+async function loadCustomers(page = 1) {
   if ($('cust-grid')) $('cust-grid').innerHTML = `<div style="text-align:center;padding:40px;grid-column:1/-1"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
-  const data = await adminFetch('action=customers');
+  const search = $('cust-search')?.value?.trim() || '';
+  const sort   = $('cust-sort')?.value || 'newest';
+  let params = `action=customers&page=${page}&limit=24&sort=${sort}`;
+  if (search) params += '&search=' + encodeURIComponent(search);
+  let data;
+  try {
+    data = await adminFetch(params);
+  } catch (e) {
+    if ($('cust-grid')) $('cust-grid').innerHTML = `<p style="color:var(--brand);padding:20px;grid-column:1/-1">❌ Server error: ${esc(e.message)}</p>`;
+    return;
+  }
   if (!data.ok) {
-    if ($('cust-grid')) $('cust-grid').innerHTML = `<p style="color:var(--brand);padding:20px">${esc(data.error)}</p>`;
+    if ($('cust-grid')) $('cust-grid').innerHTML = `<p style="color:var(--brand);padding:20px;grid-column:1/-1">${esc(data.error)}</p>`;
     return;
   }
   const users = data.users || [];
-  allCustomers = users;   // UPGRADE-B2: viewLoginHistory() এর জন্য cache
+  allCustomers = [...allCustomers.filter(c => !users.find(u => String(u._id) === String(c._id))), ...users];   // UPGRADE-B2: viewLoginHistory() এর জন্য cache
+
+  // Pagination UI
+  const pg = data.pagination || {};
+  const pgEl = $('cust-pagination');
+  const pgInfo = $('cust-pg-info');
+  const pgBtns = $('cust-pg-btns');
+  if (pgEl) pgEl.style.display = pg.total > 0 ? '' : 'none';
+  if (pgInfo) pgInfo.textContent = `মোট ${pg.total || users.length} জন customer`;
+  if (pgBtns && pg.pages > 1) {
+    let btns = [];
+    if (pg.page > 1) btns.push(`<button class="pg-btn" onclick="loadCustomers(${pg.page - 1})"><i class="fa-solid fa-chevron-left"></i></button>`);
+    for (let i = Math.max(1, pg.page - 2); i <= Math.min(pg.pages, pg.page + 2); i++) {
+      btns.push(`<button class="pg-btn ${i === pg.page ? 'active' : ''}" onclick="loadCustomers(${i})">${i}</button>`);
+    }
+    if (pg.page < pg.pages) btns.push(`<button class="pg-btn" onclick="loadCustomers(${pg.page + 1})"><i class="fa-solid fa-chevron-right"></i></button>`);
+    pgBtns.innerHTML = btns.join('');
+  } else if (pgBtns) pgBtns.innerHTML = '';
 
   const loginMethodBadge = {
     google:   '<span style="background:#ea4335;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">G Google</span>',
@@ -1872,6 +1943,10 @@ async function loadCustomers() {
     <button onclick="viewLoginHistory('${safeId}','${safeName}')"
       style="flex:1;background:var(--bg2,#fff);color:var(--text2);padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:1.5px solid var(--border);cursor:pointer">
       <i class="fa-solid fa-clock-rotate-left"></i> Login History
+    </button>
+    <button onclick="openAdjustPointsModal('${safeId}','${safeName}',${c.loyaltyPoints || 0})"
+      style="flex:1;background:#fff8e6;color:#b36b00;padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:1.5px solid #ffc107;cursor:pointer">
+      <i class="fa-solid fa-coins"></i> Points Adjust
     </button>
     ${c.isOnline ? `
     <button onclick="forceLogoutCustomer('${safeId}','${safeName}')"
@@ -1983,6 +2058,120 @@ async function banCustomer(userId, currentActive) {
   else toast(data.error || 'Error', 'warning');
 }
 
+/* ── ITEM 3: Adjust Points Modal ── */
+function openAdjustPointsModal(userId, name, currentPoints) {
+  // পুরনো modal থাকলে সরাও
+  const old = document.getElementById('adjust-points-modal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'adjust-points-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:var(--r-xl);width:100%;max-width:400px;box-shadow:var(--sh-lg);overflow:hidden" onclick="event.stopPropagation()">
+      <div style="background:linear-gradient(135deg,#b36b00,#ffc107);padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-coins"></i> Points Adjust — ${esc(name)}
+        </div>
+        <button onclick="document.getElementById('adjust-points-modal').remove()"
+          style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div style="padding:22px;display:flex;flex-direction:column;gap:16px">
+        <div style="background:#fff8e6;border-radius:var(--r);padding:10px 14px;font-size:13px;color:#856404;border:1px solid #ffc107">
+          <i class="fa-solid fa-crown"></i> বর্তমান Balance: <strong>${Number(currentPoints).toLocaleString()} pts</strong>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
+            Amount * <span style="text-transform:none;font-weight:400">(positive = যোগ, negative = বিয়োগ)</span>
+          </label>
+          <input id="adj-pts-amount" type="number" placeholder="+100 বা -50"
+            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:15px;font-weight:700;outline:none;transition:var(--t)"
+            onfocus="this.style.borderColor='#ffc107'" onblur="this.style.borderColor='var(--border)'">
+          <div id="adj-pts-preview" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Reason (optional)</label>
+          <input id="adj-pts-reason" type="text" placeholder="কেন adjust করা হচ্ছে..."
+            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;transition:var(--t)"
+            onfocus="this.style.borderColor='#ffc107'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div style="display:flex;gap:10px">
+          <button id="adj-pts-apply-btn" onclick="adjustLoyaltyPoints('${userId}', '${esc(name)}', ${currentPoints})"
+            style="flex:1;background:linear-gradient(135deg,#b36b00,#ffc107);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
+            <i class="fa-solid fa-check"></i> Apply
+          </button>
+          <button onclick="document.getElementById('adjust-points-modal').remove()"
+            style="flex:1;background:var(--bg);color:var(--text2);padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:600;border:1.5px solid var(--border);cursor:pointer">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  // Amount input — preview দেখাও
+  const amtInput = modal.querySelector('#adj-pts-amount');
+  const preview  = modal.querySelector('#adj-pts-preview');
+  amtInput.addEventListener('input', () => {
+    const v = parseFloat(amtInput.value);
+    if (!isNaN(v) && v !== 0) {
+      const newBal = currentPoints + v;
+      preview.style.color = v > 0 ? 'var(--green)' : 'var(--brand)';
+      preview.textContent = `নতুন balance হবে: ${Math.max(0, newBal).toLocaleString()} pts (${v > 0 ? '+' : ''}${v})`;
+    } else {
+      preview.textContent = '';
+    }
+  });
+
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+  setTimeout(() => amtInput.focus(), 100);
+}
+window.openAdjustPointsModal = openAdjustPointsModal;
+
+async function adjustLoyaltyPoints(userId, name, currentPoints) {
+  const amountInput = $('adj-pts-amount');
+  const amount = parseFloat(amountInput?.value);
+  const reason = $('adj-pts-reason')?.value?.trim() || '';
+
+  // Validation
+  if (isNaN(amount) || amount === 0) {
+    amountInput?.style && (amountInput.style.borderColor = 'var(--brand)');
+    toast('⚠️ Amount দিন (0 হতে পারবে না)!', 'warning');
+    return;
+  }
+
+  const btn = $('adj-pts-apply-btn');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adjusting...'; }
+
+  try {
+    const data = await fetch('/api/admin?action=customer-adjust-points', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: String(userId).trim(), amount, reason }),
+    }).then(r => r.json());
+
+    if (data.ok) {
+      const newBalance = data.newBalance ?? (currentPoints + amount);
+      toast(`✅ Points adjust হয়েছে! নতুন balance: ${Number(newBalance).toLocaleString()} pts`, 'success');
+      // Modal বন্ধ করো
+      const modal = $('adjust-points-modal');
+      if (modal) modal.remove();
+      // Customer list reload করো (পুরো page reload না করে)
+      loadCustomers();
+    } else {
+      toast('❌ ' + (data.error || 'Adjust হয়নি'), 'warning');
+    }
+  } catch (e) {
+    toast('❌ Network error: ' + e.message, 'warning');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+  }
+}
+window.adjustLoyaltyPoints = adjustLoyaltyPoints;
+
 async function forceLogoutCustomer(userId, name) {
   if (!confirm(`${esc(name)} কে force logout করবেন?`)) return;
   const data = await fetch('/api/admin?action=customer-force-logout', {
@@ -2034,8 +2223,16 @@ async function viewCustomerOrders(userId, name) {
    NEWSLETTER
 ═══════════════════════════════════════════ */
 async function loadNewsletter() {
-  const data = await adminFetch('action=newsletter');
-  if (!data.ok) return;
+  if ($('nl-body')) $('nl-body').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
+  let data;
+  try { data = await adminFetch('action=newsletter'); } catch(e) {
+    if ($('nl-body')) $('nl-body').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--brand);padding:30px">❌ Error: ${esc(e.message)}</td></tr>`;
+    return;
+  }
+  if (!data.ok) {
+    if ($('nl-body')) $('nl-body').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">${esc(data.error || 'Error')}</td></tr>`;
+    return;
+  }
   const subs = data.subscribers || [];
   $('nl-body').innerHTML = subs.length
     ? subs.map((s, i) => `<tr>
@@ -2084,6 +2281,10 @@ async function sendCampaignTest() {
     toast('Valid test email দিন!', 'warning'); return;
   }
 
+  // Loading state
+  const btn = $('btn-campaign-test');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> পাঠানো হচ্ছে...'; }
+
   try {
     const data = await fetch('/api/admin?action=newsletter-campaign', {
       method: 'POST',
@@ -2099,8 +2300,11 @@ async function sendCampaignTest() {
       result.textContent      = data.message || data.error || (data.ok ? 'Test sent!' : 'Error');
     }
     if (data.ok) toast('✅ Test email পাঠানো হয়েছে!', 'success');
-    else toast(data.error || 'Error', 'warning');
-  } catch (e) { toast('❌ Server error: ' + e.message, 'warning'); }
+    else toast(data.error || 'Email পাঠানো যায়নি', 'warning');
+  } catch (e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-vial"></i> Test পাঠান'; }
+  }
 }
 
 async function sendCampaignAll() {
@@ -2110,7 +2314,11 @@ async function sendCampaignAll() {
   if (!subject || !html) { toast('Subject এবং message দিন!', 'warning'); return; }
   if (!confirm(`সব subscribers কে email পাঠাবেন?\n\nSubject: ${subject}`)) return;
 
-  toast('পাঠানো হচ্ছে...', 'default');
+  // Loading state
+  const btn = $('btn-campaign-all');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> পাঠানো হচ্ছে...'; }
+  const testBtn = $('btn-campaign-test');
+  if (testBtn) testBtn.disabled = true;
 
   try {
     const data = await fetch('/api/admin?action=newsletter-campaign', {
@@ -2127,28 +2335,86 @@ async function sendCampaignAll() {
       result.textContent      = data.message || data.error || (data.ok ? 'Sent!' : 'Error');
     }
     if (data.ok) toast(`✅ ${data.sent || 0} জন কে email পাঠানো হয়েছে!`, 'success');
-    else toast(data.error || 'Error', 'warning');
-  } catch (e) { toast('❌ Server error: ' + e.message, 'warning'); }
+    else toast(data.error || 'Campaign পাঠানো যায়নি', 'warning');
+  } catch (e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> সবাইকে পাঠান'; }
+    if (testBtn) testBtn.disabled = false;
+  }
 }
 
 /* ─── CSV EXPORTS ─── */
 async function exportOrders() {
-  toast('Exporting...', 'default');
-  const data = await adminFetch('action=orders&limit=500');
-  if (!data.ok) return;
-  const rows = [['Order ID', 'Name', 'Phone', 'District', 'Items', 'Total', 'Payment', 'Status', 'Date']];
-  (data.orders || []).forEach(o => rows.push([o.orderId, o.name, o.phone, o.district, (o.items || []).reduce((s, i) => s + i.qty, 0), o.total, o.payment, o.status, new Date(o.createdAt).toLocaleDateString()]));
-  downloadCSV(rows, 'shoplixo_orders.csv');
-  toast('Export done! ✅', 'success');
+  const btn = document.querySelector('[onclick="exportOrders()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Export হচ্ছে...'; }
+  try {
+    // ── ITEM 2 FIX: loadOrders() এর মতো same filters পড়ো ──
+    const search  = $('order-search')?.value?.trim()  || '';
+    const status  = $('order-status-filter')?.value   || '';
+    const payment = $('order-payment-filter')?.value  || '';
+    const from    = $('order-date-from')?.value        || '';
+    const to      = $('order-date-to')?.value          || '';
+
+    let params = 'action=orders&limit=1000';
+    if (search)  params += '&search='  + encodeURIComponent(search);
+    if (status)  params += '&status='  + status;
+    if (payment) params += '&payment=' + payment;
+    if (from)    params += '&from='    + from;
+    if (to)      params += '&to='      + to;
+
+    // Active filter গুলোর সংখ্যা গণনা করো — success message এ দেখাবো
+    const activeFilters = [search, status, payment, from, to].filter(Boolean);
+
+    const data = await adminFetch(params);
+    if (!data.ok) { toast('Export failed', 'warning'); return; }
+    const rows = [['Order ID', 'Name', 'Phone', 'District', 'Items', 'Subtotal', 'Discount', 'Shipping', 'Total', 'Coupon', 'Payment', 'Status', 'Date']];
+    (data.orders || []).forEach(o => rows.push([
+      o.orderId, o.name, o.phone, o.district,
+      (o.items || []).reduce((s, i) => s + i.qty, 0),
+      o.subtotal || 0, o.discount || 0, o.shipping || 0, o.total,
+      o.coupon || '', o.payment, o.status,
+      new Date(o.createdAt).toLocaleDateString()
+    ]));
+
+    // Filename এ active filter info রাখো
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const suffix  = status ? `_${status}` : payment ? `_${payment}` : '';
+    downloadCSV(rows, `shoplixo_orders${suffix}_${dateStr}.csv`);
+
+    // Success message এ filter count ও order count দেখাও
+    const orderCount = rows.length - 1;
+    if (activeFilters.length === 0) {
+      toast(`✅ ${orderCount}টি order export হয়েছে!`, 'success');
+    } else {
+      const filterLabels = [];
+      if (status)  filterLabels.push(`Status: ${status}`);
+      if (payment) filterLabels.push(`Payment: ${payment}`);
+      if (search)  filterLabels.push(`Search: "${search}"`);
+      if (from)    filterLabels.push(`From: ${from}`);
+      if (to)      filterLabels.push(`To: ${to}`);
+      toast(`✅ ${filterLabels.join(', ')} filter সহ ${orderCount}টি order export হয়েছে!`, 'success');
+    }
+  } catch(e) { toast('❌ Export error: ' + e.message, 'warning'); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
 }
 
 async function exportNewsletter() {
-  const data = await adminFetch('action=newsletter');
-  if (!data.ok) return;
-  const rows = [['Email', 'Name', 'Date']];
-  (data.subscribers || []).forEach(s => rows.push([s.email, s.name || '', new Date(s.createdAt).toLocaleDateString()]));
-  downloadCSV(rows, 'shoplixo_newsletter.csv');
-  toast('Export done! ✅', 'success');
+  const btn = document.querySelector('[onclick="exportNewsletter()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Export হচ্ছে...'; }
+  try {
+    const data = await adminFetch('action=newsletter');
+    if (!data.ok) { toast('Export failed', 'warning'); return; }
+    const rows = [['Email', 'Name', 'Status', 'Date']];
+    (data.subscribers || []).forEach(s => rows.push([
+      s.email, s.name || '', s.isActive ? 'Active' : 'Unsubscribed',
+      new Date(s.createdAt).toLocaleDateString()
+    ]));
+    downloadCSV(rows, 'shoplixo_newsletter.csv');
+    toast(`✅ ${rows.length - 1}টি subscriber export হয়েছে!`, 'success');
+  } catch(e) { toast('❌ Export error: ' + e.message, 'warning'); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
 }
 
 function downloadCSV(rows, filename) {
@@ -2467,6 +2733,9 @@ async function createCoupon() {
   const expiresAt = $('nc-expiry')?.value;
   const description = $('nc-desc')?.value?.trim();
   if (!code || !discount) { toast('Code এবং Discount দিন!', 'warning'); return; }
+  const btn = document.querySelector('[onclick="createCoupon()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> তৈরি হচ্ছে...'; }
   try {
     const data = await fetch('/api/admin?action=coupon', {
       method: 'POST',
@@ -2474,11 +2743,12 @@ async function createCoupon() {
       body: JSON.stringify({ code, type, discount, minOrder, maxUses, expiresAt: expiresAt || null, description }),
     }).then(r => r.json());
     if (data.ok) {
-      toast(`Coupon "${code}" created! ✅`, 'success');
+      toast(`✅ Coupon "${code}" created!`, 'success');
       ['nc-code', 'nc-discount', 'nc-min', 'nc-max', 'nc-expiry', 'nc-desc'].forEach(id => { if ($(id)) $(id).value = ''; });
       loadCoupons();
     } else toast(data.error || 'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
+  } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
 }
 
 // FIX: backend uses 'toggle-coupon' action with code (not couponId)
@@ -2551,6 +2821,9 @@ async function createFlashSale() {
   const description = $('fs-desc')?.value?.trim();
   if (!title || !startAt || !endAt) { toast('Title, Start, End সব দিন!', 'warning'); return; }
   if (new Date(endAt) <= new Date(startAt)) { toast('End time must be after start time!', 'warning'); return; }
+  const btn = document.querySelector('[onclick="createFlashSale()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> তৈরি হচ্ছে...'; }
   try {
     // FIX: correct action name is 'flash-sale-add' not 'flashsale'
     const data = await fetch('/api/admin?action=flash-sale-add', {
@@ -2559,11 +2832,12 @@ async function createFlashSale() {
       body: JSON.stringify({ title, startAt, endAt, extraDiscountPct, description, isActive: true }),
     }).then(r => r.json());
     if (data.ok) {
-      toast('Flash Sale scheduled! ✅', 'success');
+      toast('✅ Flash Sale scheduled!', 'success');
       ['fs-title', 'fs-start', 'fs-end', 'fs-disc', 'fs-desc'].forEach(id => { if ($(id)) $(id).value = ''; });
       loadFlashSales();
     } else toast(data.error || 'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
+  } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
 }
 
 async function deleteFlashSale(id) {
@@ -2617,6 +2891,9 @@ async function createBundle() {
   const discountType = $('nb-disc-type')?.value;
   const discountValue = parseFloat($('nb-disc-val')?.value);
   if (!title || productIds.length < 2 || !discountValue) { toast('Title, Products (min 2), Discount সব দিন!', 'warning'); return; }
+  const btn = document.querySelector('[onclick="createBundle()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> তৈরি হচ্ছে...'; }
   try {
     // FIX: correct action name is 'bundle-add' not 'bundle'
     const data = await fetch('/api/admin?action=bundle-add', {
@@ -2625,11 +2902,12 @@ async function createBundle() {
       body: JSON.stringify({ title, description, productIds, discountType, discountValue, isActive: true }),
     }).then(r => r.json());
     if (data.ok) {
-      toast('Bundle created! ✅', 'success');
+      toast('✅ Bundle তৈরি হয়েছে!', 'success');
       ['nb-title', 'nb-desc', 'nb-products', 'nb-disc-val'].forEach(id => { if ($(id)) $(id).value = ''; });
       loadBundles();
-    } else toast(data.error || 'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
+    } else toast(data.error || 'Bundle তৈরি হয়নি', 'warning');
+  } catch (e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
 }
 
 async function deleteBundle(id) {
@@ -2651,6 +2929,27 @@ async function deleteBundle(id) {
 ═══════════════════════════════════════════ */
 async function loadLoyaltyData() {
   try {
+    // ── ITEM 4: loyalty-settings থেকে configurable thresholds fetch করো ──
+    let cfg = { bronzeMin: 0, silverMin: 1000, goldMin: 5000, platinumMin: 20000, pointsPerOrder: 10 };
+    try {
+      const settingsData = await adminFetch('action=loyalty-settings');
+      if (settingsData.ok && settingsData.settings) {
+        const s = settingsData.settings;
+        cfg = {
+          bronzeMin:     s.bronzeMin     ?? 0,
+          silverMin:     s.silverMin     ?? 1000,
+          goldMin:       s.goldMin       ?? 5000,
+          platinumMin:   s.platinumMin   ?? 20000,
+          pointsPerOrder:s.pointsPerOrder ?? 10,
+        };
+        // Tier Settings form populate করো
+        if ($('ts-silver-min'))    $('ts-silver-min').value    = cfg.silverMin;
+        if ($('ts-gold-min'))      $('ts-gold-min').value      = cfg.goldMin;
+        if ($('ts-platinum-min'))  $('ts-platinum-min').value  = cfg.platinumMin;
+        if ($('ts-points-per-order')) $('ts-points-per-order').value = cfg.pointsPerOrder;
+      }
+    } catch (_) { /* settings fetch ব্যর্থ হলে defaults ব্যবহার করো */ }
+
     const data = await adminFetch('action=customers&limit=100');
     if (!data.ok) return;
     const users = data.users || [];
@@ -2664,14 +2963,19 @@ async function loadLoyaltyData() {
     const redeemed = Math.max(0, estimatedEarned - totalIssued);
     if ($('loy-redeemed')) $('loy-redeemed').textContent = redeemed.toLocaleString();
     if ($('loy-gold-count')) {
-      const gold = withPoints.filter(u => (u.loyaltyPoints || 0) >= 5000).length;
+      // ── ITEM 4: cfg.goldMin ব্যবহার করো (hardcoded 5000 এর পরিবর্তে) ──
+      const gold = withPoints.filter(u => (u.loyaltyPoints || 0) >= cfg.goldMin).length;
       $('loy-gold-count').textContent = gold + ' Gold';
     }
     const el = $('loyalty-members-list');
     if (el) {
       el.innerHTML = withPoints.length ? withPoints.map(u => {
         const pts = u.loyaltyPoints || 0;
-        const tier = pts >= 20000 ? '💎 Platinum' : pts >= 5000 ? '🥇 Gold' : pts >= 1000 ? '🥈 Silver' : '🥉 Bronze';
+        // ── ITEM 4: configurable tier thresholds (hardcoded এর পরিবর্তে) ──
+        const tier = pts >= cfg.platinumMin ? '💎 Platinum'
+                   : pts >= cfg.goldMin     ? '🥇 Gold'
+                   : pts >= cfg.silverMin   ? '🥈 Silver'
+                   : '🥉 Bronze';
         return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border)">
           <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--dark2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">${(u.name || '?')[0].toUpperCase()}</div>
           <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(u.name)}</div><div style="font-size:11px;color:var(--text3)">${tier} · Orders: ${u.totalOrders || 0}</div></div>
@@ -2681,6 +2985,45 @@ async function loadLoyaltyData() {
     }
   } catch (e) { console.error(e); toast('Loyalty data লোড হয়নি', 'warning'); }
 }
+
+/* ── ITEM 4: Tier Settings Save ── */
+async function saveLoyaltyTierSettings() {
+  const silverMin    = parseInt($('ts-silver-min')?.value)    || 1000;
+  const goldMin      = parseInt($('ts-gold-min')?.value)      || 5000;
+  const platinumMin  = parseInt($('ts-platinum-min')?.value)  || 20000;
+  const pointsPerOrder = parseInt($('ts-points-per-order')?.value) || 10;
+
+  // Basic validation
+  if (silverMin >= goldMin || goldMin >= platinumMin) {
+    toast('⚠️ Tier thresholds ascending order এ থাকতে হবে! (Silver < Gold < Platinum)', 'warning');
+    return;
+  }
+
+  const btn = document.querySelector('[onclick="saveLoyaltyTierSettings()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> সংরক্ষণ হচ্ছে...'; }
+
+  try {
+    const res = await fetch('/api/admin?action=loyalty-settings', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bronzeMin: 0, silverMin, goldMin, platinumMin, pointsPerOrder }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('✅ Tier settings save হয়েছে! List refresh হচ্ছে...', 'success');
+      // নতুন threshold দিয়ে loyalty data reload করো
+      loadLoyaltyData();
+    } else {
+      toast(data.error || 'Save হয়নি', 'warning');
+    }
+  } catch (e) {
+    toast('❌ Network error: ' + e.message, 'warning');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+  }
+}
+window.saveLoyaltyTierSettings = saveLoyaltyTierSettings;
 
 async function loadReferralData() {
   const el = $('referral-list');
@@ -2707,6 +3050,20 @@ async function loadReferralData() {
   } catch (e) {
     if (el) el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text3)">Referral API: ${e.message}</div>`;
   }
+
+  // ✅ FIX S9: Referral settings form কে DB থেকে populate করো
+  try {
+    const settingsData = await adminFetch('action=referral-settings');
+    if (settingsData.ok) {
+      const s = settingsData.settings || {};
+      // referral_reward_referrer → ref-reward-pts (referrer এর জন্য points)
+      if ($('ref-reward-pts'))   $('ref-reward-pts').value   = s.referral_reward_referrer ?? 200;
+      // referral_reward_referee → ref-discount-pct (referee/নতুন user এর জন্য reward)
+      if ($('ref-discount-pct')) $('ref-discount-pct').value = s.referral_reward_referee  ?? 10;
+      // referral_min_order → ref-min-order
+      if ($('ref-min-order'))    $('ref-min-order').value    = s.referral_min_order        ?? 500;
+    }
+  } catch (_) {} // settings load fail হলে default values রাখো
 }
 
 /* ═══════════════════════════════════════════
@@ -3459,6 +3816,10 @@ async function sendBroadcast() {
   const segment = $('notif-segment')?.value || '';
   if (!title || !message) { toast('Title এবং Message দিন!', 'warning'); return; }
   if (!confirm(`"${title}" — সকল ${segment || 'active'} user দের কাছে পাঠাবেন?`)) return;
+
+  const btn = $('btn-broadcast');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> পাঠানো হচ্ছে...'; }
+
   try {
     const data = await fetch('/api/admin?action=notify-broadcast', {
       method: 'POST',
@@ -3468,8 +3829,11 @@ async function sendBroadcast() {
     if (data.ok) {
       toast(`✅ Notification পাঠানো হয়েছে! SMS: ${data.smsSent || 0}`, 'success');
       ['notif-title','notif-message','notif-link'].forEach(id => { if ($(id)) $(id).value = ''; });
-    } else toast(data.error || 'Error', 'warning');
-  } catch (e) { toast('Server error: ' + e.message, 'warning'); }
+    } else toast(data.error || 'Notification পাঠানো যায়নি', 'warning');
+  } catch (e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Notification পাঠান'; }
+  }
 }
 
 function fillNotifTemplate(type) {
@@ -3497,6 +3861,7 @@ window.loadCurrentSection = loadCurrentSection;
 window.loadDashboard = loadDashboard;
 // window.loadOrders is set in UPGRADE-A5 block (with date-filter & bulk-select support)
 window.debounceSearch = debounceSearch;
+window.debounceCustomerSearch = debounceCustomerSearch;
 window.viewOrder = viewOrder;
 window.updateOrderStatus = updateOrderStatus;
 window.quickStatus = quickStatus;
@@ -3603,6 +3968,9 @@ async function saveSiteSettings() {
     upayNumber:      $('st-upay')?.value     || '',
     whatsappNumber:  $('st-whatsapp')?.value || '',
   };
+  const btn = document.querySelector('[onclick="saveSiteSettings()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> সংরক্ষণ হচ্ছে...'; }
   try {
     const res = await fetch('/api/admin?action=settings', {
       method: 'POST',
@@ -3610,9 +3978,10 @@ async function saveSiteSettings() {
       body: JSON.stringify(payload)
     });
     const data = await res.json();
-    if (data.ok) toast('✅ Site settings saved!', 'success');
+    if (data.ok) toast('✅ Site settings saved! Frontend এ ৬০ সেকেন্ডের মধ্যে reflect হবে।', 'success');
     else toast(data.error || 'Save হয়নি', 'warning');
-  } catch(e) { toast('❌ Network error', 'warning'); }
+  } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
 }
 window.saveSiteSettings = saveSiteSettings;
 window.loadSiteSettings = loadSiteSettings;
@@ -3663,16 +4032,11 @@ window.changePassword = changePassword;
 /* ══════════════════════════════════════════════
    UPGRADE-A2: Products CSV Export/Import
 ══════════════════════════════════════════════ */
-function downloadCSV(rows, filename) {
-  const csv = rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
 
 async function exportProducts() {
-  toast('⏳ Export হচ্ছে...', 'info');
+  const expBtn = document.querySelector('[onclick="exportProducts()"]');
+  const expBtnHtml = expBtn ? expBtn.innerHTML : '';
+  if (expBtn) { expBtn.disabled = true; expBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Export হচ্ছে...'; }
   try {
     const data = await adminFetch('action=products&limit=1000');
     if (!data.ok) { toast('Export failed', 'warning'); return; }
@@ -3684,6 +4048,7 @@ async function exportProducts() {
     downloadCSV(rows, `shoplixo_products_${new Date().toISOString().slice(0,10)}.csv`);
     toast(`✅ ${rows.length - 1} টি product export হয়েছে!`, 'success');
   } catch(e) { toast('❌ Export error: ' + e.message, 'warning'); }
+  finally { if (expBtn) { expBtn.disabled = false; expBtn.innerHTML = expBtnHtml; } }
 }
 
 async function importProducts(input) {
@@ -3707,7 +4072,9 @@ async function importProducts(input) {
   }
   if (!products.length) { toast('Valid product data পাওয়া যায়নি', 'warning'); return; }
   if (!confirm(`${products.length} টি product import করবেন?`)) return;
-  toast(`⏳ ${products.length} টি product import হচ্ছে...`, 'info');
+  const impLabel = input.closest('label');
+  if (impLabel) { impLabel.style.opacity = '0.6'; impLabel.style.pointerEvents = 'none'; }
+  toast(`⏳ ${products.length} টি product import হচ্ছে...`, 'default');
   let ok = 0, fail = 0;
   for (const p of products) {
     try {
@@ -3722,6 +4089,7 @@ async function importProducts(input) {
   toast(`✅ Import complete: ${ok} success, ${fail} failed`, ok > 0 ? 'success' : 'warning');
   if (ok > 0) { localStorage.removeItem('slx_api_products_cache'); loadAdminProducts(); }
   input.value = '';
+  if (impLabel) { impLabel.style.opacity = ''; impLabel.style.pointerEvents = ''; }
 }
 window.exportProducts = exportProducts;
 window.importProducts = importProducts;
@@ -3821,20 +4189,39 @@ async function bulkUpdateOrders() {
   if (!selectedOrderIds.size) { toast('কোনো order select করা হয়নি', 'warning'); return; }
   if (!confirm(`${selectedOrderIds.size} টি order এর status "${status}" করবেন?`)) return;
   const ids = [...selectedOrderIds];
-  let ok = 0, fail = 0;
-  for (const id of ids) {
-    try {
-      const res = await fetch('/api/admin?action=status', {
-        method: 'POST',
-        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: id, id, status })
-      }).then(r => r.json());
-      if (res.ok) ok++; else fail++;
-    } catch { fail++; }
+  // FIX: Use bulk status API instead of sequential individual calls
+  const applyBtn = document.querySelector('#bulk-actions-bar [onclick="bulkUpdateOrders()"]');
+  const origHtml = applyBtn ? applyBtn.innerHTML : '';
+  if (applyBtn) { applyBtn.disabled = true; applyBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> আপডেট হচ্ছে...'; }
+  try {
+    const res = await fetch('/api/admin?action=order-bulk-status', {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderIds: ids, status, note: `Bulk update → ${status} by admin` })
+    }).then(r => r.json());
+    if (res.ok) {
+      toast(`✅ ${res.updated || ids.length} টি orders এর status "${status}" হয়েছে!`, 'success');
+    } else {
+      // Fallback: sequential update
+      let ok = 0, fail = 0;
+      for (const id of ids) {
+        try {
+          const r = await fetch('/api/admin?action=status', {
+            method: 'POST',
+            headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: id, id, status })
+          }).then(r => r.json());
+          if (r.ok) ok++; else fail++;
+        } catch { fail++; }
+      }
+      toast(`✅ ${ok} orders updated${fail ? ', ' + fail + ' failed' : ''}`, ok > 0 ? 'success' : 'warning');
+    }
+  } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally {
+    if (applyBtn) { applyBtn.disabled = false; applyBtn.innerHTML = origHtml; }
+    clearBulkSelection();
+    loadOrders(currentPage || 1);
   }
-  toast(`✅ ${ok} orders updated${fail ? ', ' + fail + ' failed' : ''}`, ok > 0 ? 'success' : 'warning');
-  clearBulkSelection();
-  loadOrders(currentPage || 1);
 }
 window.toggleSelectAllOrders = toggleSelectAllOrders;
 window.toggleOrderSelect = toggleOrderSelect;
@@ -3953,13 +4340,19 @@ window.loadOrders = async function(page = 1) {
    UPGRADE-A6: Referral Settings DB Save
 ══════════════════════════════════════════════ */
 async function saveReferralSettings() {
+  // FIX: Use correct action=referral-settings and correct field names
+  const btn = document.querySelector('[onclick="saveReferralSettings()"]');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
   const payload = {
-    referralRewardPoints: parseInt($('ref-reward-pts')?.value)   || 200,
-    referralDiscountPct:  parseInt($('ref-discount-pct')?.value) || 10,
-    referralMinOrder:     parseInt($('ref-min-order')?.value)    || 500,
+    referral_enabled:         true,
+    referral_reward_referrer: parseInt($('ref-reward-pts')?.value)   || 200,
+    referral_reward_referee:  parseInt($('ref-discount-pct')?.value) || 10,
+    referral_min_order:       parseInt($('ref-min-order')?.value)    || 500,
+    referral_expiry_days:     30,
   };
   try {
-    const res = await fetch('/api/admin?action=settings', {
+    const res = await fetch('/api/admin?action=referral-settings', {
       method: 'POST',
       headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -3967,7 +4360,10 @@ async function saveReferralSettings() {
     const data = await res.json();
     if (data.ok) toast('✅ Referral settings saved!', 'success');
     else toast(data.error || 'Save হয়নি', 'warning');
-  } catch(e) { toast('❌ Network error', 'warning'); }
+  } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
+  finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+  }
 }
 window.saveReferralSettings = saveReferralSettings;
 
@@ -3982,7 +4378,8 @@ async function loadRevenueChartRange(range) {
     else             { btn.style.background='#fff'; btn.style.color='var(--text2)'; btn.style.borderColor='var(--border)'; }
   });
   try {
-    const data = await adminFetch(`action=stats&revenueRange=${range}`);
+    // FIX: API reads 'range' param, not 'revenueRange'
+    const data = await adminFetch(`action=stats&range=${range}`);
     if (!data.ok) return;
     const days = data.revenueByDay || data.revenueByMonth || [];
     renderRevenueChart(days);
