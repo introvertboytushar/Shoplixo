@@ -10,14 +10,18 @@
 <meta name="keywords" content="online shopping Bangladesh, shoplixo, শপলিক্সো, shirts BD, jeans, shoes, gadgets, women fashion, অনলাইন শপিং বাংলাদেশ, শার্ট কিনুন, জুতা অনলাইন, স্মার্ট ওয়াচ, মহিলা পোশাক, cash on delivery Bangladesh, free delivery dhaka, বিকাশ পেমেন্ট শপিং, নগদ পেমেন্ট, bd fashion online">
 <link rel="canonical" href="https://shoplixo.shop/">
 <!-- Favicon & App Icons -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E41E26'/%3E%3Ctext x='32' y='46' font-family='Arial Black,sans-serif' font-size='38' font-weight='900' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23E41E26'/%3E%3Ctext x='90' y='130' font-family='Arial Black,sans-serif' font-size='110' font-weight='900' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
 <!-- Open Graph (Facebook/WhatsApp preview) -->
 <meta property="og:title" content="Shoplixo — Bangladesh's #1 Online Shopping | Shirts, Shoes, Gadgets">
 <meta property="og:description" content="বাংলাদেশের সবচেয়ে বিশ্বস্ত অনলাইন শপ। Authentic shirts, pants, shoes, gadgets & women's fashion। Free delivery ৳999+. 7-day easy returns.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://shoplixo.shop/">
-<meta property="og:image" content="https://shoplixo.shop/og-image.jpg">
+<meta property="og:image" content="https://shoplixo.shop/logo.webp">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:site_name" content="Shoplixo">
@@ -26,7 +30,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Shoplixo — Bangladesh's #1 Online Shopping">
 <meta name="twitter:description" content="Authentic fashion & gadgets. Free delivery, 7-day returns, 100% genuine.">
-<meta name="twitter:image" content="https://shoplixo.shop/og-image.jpg">
+<meta name="twitter:image" content="https://shoplixo.shop/logo.webp">
 <!-- Additional SEO -->
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="author" content="Shoplixo">
@@ -2839,7 +2843,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         <div class="container" style="position:relative;z-index:2;width:100%">
           <div class="hero-content">
             <div class="hero-eyebrow"><i class="fa-solid fa-heart"></i> Women's Collection</div>
-            <h1 class="hero-title">মহিলাদের জন্য<br><span class="hl">Exclusive Fashion</span> Collection</h1>
+            <h2 class="hero-title">মহিলাদের জন্য<br><span class="hl">Exclusive Fashion</span> Collection</h2>
             <p class="hero-sub">Latest kurtis, dresses, handbags & accessories. Up to 60% off today!</p>
             <div class="hero-actions">
               <a href="#women-section" class="btn-primary"><i class="fa-solid fa-bag-shopping"></i> Shop Women's</a>
@@ -2854,7 +2858,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         <div class="container" style="position:relative;z-index:2;width:100%">
           <div class="hero-content">
             <div class="hero-eyebrow"><i class="fa-solid fa-microchip"></i> Tech & Gadgets</div>
-            <h1 class="hero-title">Latest Gadgets<br><span class="hl">Best Price</span> in Bangladesh</h1>
+            <h2 class="hero-title">Latest Gadgets<br><span class="hl">Best Price</span> in Bangladesh</h2>
             <p class="hero-sub">Smart watches, earbuds, power banks & more. সম্পূর্ণ genuine products.</p>
             <div class="hero-actions">
               <a href="#gadgets-section" class="btn-primary"><i class="fa-solid fa-bag-shopping"></i> Shop Gadgets</a>
@@ -3706,12 +3710,20 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
             <div class="select-wrap"><select id="ck-upazila" onchange="onUpazilaChange()" disabled style="-webkit-appearance:none;padding-right:36px">
               <option value="">— আগে জেলা সিলেক্ট করুন —</option>
             </select></div>
+            <div id="ck-upazila-custom-wrap" style="display:none;margin-top:8px">
+              <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">উপজেলার নাম লিখুন *</label>
+              <input id="ck-upazila-custom" oninput="buildFullAddress()" placeholder="যেমন: আপনার উপজেলার নাম" style="width:100%;box-sizing:border-box">
+            </div>
           </div>
-          <div class="form-g">
+          <div class="form-g" id="ck-union-wrap">
             <label>ইউনিয়ন / পৌরসভা / ওয়ার্ড <span style="font-size:10px;color:var(--text3);font-weight:400">(সিটি এলাকায় ওয়ার্ড, গ্রামে ইউনিয়ন — ঠিকানা বুঝতে সাহায্য করে)</span></label>
-            <div class="select-wrap"><select id="ck-union" disabled style="-webkit-appearance:none;padding-right:36px">
+            <div class="select-wrap"><select id="ck-union" onchange="onUnionChange()" disabled style="-webkit-appearance:none;padding-right:36px">
               <option value="">— আগে উপজেলা সিলেক্ট করুন —</option>
             </select></div>
+            <div id="ck-union-custom-wrap" style="display:none;margin-top:8px">
+              <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text2)">ইউনিয়ন/পৌরসভা/এলাকার নাম লিখুন *</label>
+              <input id="ck-union-custom" oninput="buildFullAddress()" placeholder="যেমন: আপনার ইউনিয়ন/মহল্লার নাম" style="width:100%;box-sizing:border-box">
+            </div>
           </div>
         </div>
 
@@ -3753,7 +3765,22 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
       <div class="ck-sec">
         <div class="ck-sec-title"><i class="fa-solid fa-credit-card"></i> Payment Method</div>
         <div class="pay-methods-grid">
-          <div class="pay-method-btn active" onclick="selPay('bkash',this)">
+          <div class="pay-method-btn active" onclick="selPay('cod',this)" style="grid-column:span 2;position:relative">
+            <span style="position:absolute;top:-8px;right:12px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">সবচেয়ে জনপ্রিয়</span>
+            <div class="pmb-icon">
+              <svg width="40" height="40" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="56" height="56" rx="12" fill="url(#cod2-bg)"/>
+                <defs><linearGradient id="cod2-bg" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#2A2A50"/><stop offset="100%" stop-color="#0D0D1A"/></linearGradient></defs>
+                <rect x="8" y="16" width="40" height="26" rx="4" stroke="white" stroke-width="2" fill="rgba(255,255,255,0.08)"/>
+                <rect x="8" y="23" width="40" height="6" fill="rgba(255,255,255,0.2)"/>
+                <circle cx="20" cy="34" r="4" fill="rgba(255,255,255,0.85)"/>
+                <rect x="28" y="32" width="14" height="3" rx="1.5" fill="rgba(255,255,255,0.65)"/>
+                <rect x="28" y="36" width="10" height="2.5" rx="1.25" fill="rgba(255,255,255,0.4)"/>
+              </svg>
+            </div>
+            <div class="pmb-name">Cash on Delivery (COD)</div><div class="pmb-sub">ডেলিভারির সময় পেমেন্ট করুন</div>
+          </div>
+          <div class="pay-method-btn" onclick="selPay('bkash',this)">
             <div class="pmb-icon">
               <svg width="42" height="42" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="56" height="56" rx="12" fill="#E2006A"/>
@@ -3797,20 +3824,6 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
             </div>
             <div class="pmb-name" style="color:#00A651">Upay</div><div class="pmb-sub">UCB Mobile</div>
           </div>
-          <div class="pay-method-btn" onclick="selPay('cod',this)" style="grid-column:span 2">
-            <div class="pmb-icon">
-              <svg width="40" height="40" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="56" height="56" rx="12" fill="url(#cod2-bg)"/>
-                <defs><linearGradient id="cod2-bg" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#2A2A50"/><stop offset="100%" stop-color="#0D0D1A"/></linearGradient></defs>
-                <rect x="8" y="16" width="40" height="26" rx="4" stroke="white" stroke-width="2" fill="rgba(255,255,255,0.08)"/>
-                <rect x="8" y="23" width="40" height="6" fill="rgba(255,255,255,0.2)"/>
-                <circle cx="20" cy="34" r="4" fill="rgba(255,255,255,0.85)"/>
-                <rect x="28" y="32" width="14" height="3" rx="1.5" fill="rgba(255,255,255,0.65)"/>
-                <rect x="28" y="36" width="10" height="2.5" rx="1.25" fill="rgba(255,255,255,0.4)"/>
-              </svg>
-            </div>
-            <div class="pmb-name">Cash on Delivery (COD)</div><div class="pmb-sub">ডেলিভারির সময় পেমেন্ট করুন</div>
-          </div>
           <!-- Pay Online button (ShurjoPay) -->
           <button class="pay-method-btn" onclick="selPay('online', this)" id="pay-online-btn" style="display:none;grid-column:span 2;width:100%;align-items:center;gap:12px">
             <div class="pm-icon" style="background:linear-gradient(135deg,#1a6b3c,#2ecc71);width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -3823,7 +3836,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
             <div class="pm-badge" style="background:#1a6b3c;color:#fff;font-size:10px;padding:2px 8px;border-radius:10px">Secure</div>
           </button>
         </div>
-        <div class="pay-info-box show" id="pay-info-box">
+        <div class="pay-info-box" id="pay-info-box">
           <div class="pib-title">নিচের নম্বরে <strong id="pay-method-name">bKash</strong> করুন:</div>
           <div class="pib-number" id="pay-number" onclick="copyPayNumber()" title="Click to copy">01516511889</div>
           <div class="pib-note"><i class="fa-regular fa-copy" style="color:var(--brand)"></i> নম্বরে tap করুন কপি করতে | পেমেন্টের পর Transaction ID নিচে দিন।</div>
@@ -4053,7 +4066,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
           </div>
           <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Image URL *</label>
             <input id="ipf-img" placeholder="https://images.unsplash.com/... বা যেকোনো image link" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'" oninput="previewIpfImg(this.value)">
-            <div id="ipf-img-preview" style="display:none;margin-top:8px;width:80px;height:100px;border-radius:var(--r-sm);overflow:hidden;border:2px solid var(--border)"><img id="ipf-img-img" style="width:100%;height:100%;object-fit:cover"></div>
+            <div id="ipf-img-preview" style="display:none;margin-top:8px;width:80px;height:100px;border-radius:var(--r-sm);overflow:hidden;border:2px solid var(--border)"><img id="ipf-img-img" alt="পণ্যের ছবি প্রিভিউ" style="width:100%;height:100%;object-fit:cover"></div>
           </div>
           <div style="margin-bottom:10px"><label style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Description</label><textarea id="ipf-desc" rows="2" placeholder="পণ্যের বিস্তারিত বিবরণ..." style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;resize:vertical" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'"></textarea></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -4418,7 +4431,7 @@ function syncProductsVar() {
 let cart = JSON.parse(localStorage.getItem('slx_cart')||'[]');
 let wishlist = JSON.parse(localStorage.getItem('slx_wish')||'[]');
 let currentUser = JSON.parse(localStorage.getItem('slx_user')||'null');
-let selPayment = 'bkash';
+let selPayment = 'cod';
 let discount = 0;      // percent-type coupon এর জন্য (0-100)
 let discountFlat = 0;  // flat-type coupon এর জন্য (টাকার পরিমাণ)
 const COUPONS = {LIXA20:20,LIXA25:25,NEWSLIXA10:10,SAVE15:15,SHOPLIXO5:5}; // fallback only
@@ -4458,7 +4471,7 @@ function pCard(p) {
     </div>
     <div class="pc-body">
       <div class="pc-cat">${p.cat.replace(/-/g,' ')}</div>
-      <div class="pc-name">${p.name}</div>
+      <h3 class="pc-name">${p.name}</h3>
       <div class="pc-stars"><div class="stars">${starsHTML(p.rating)}</div>${p.rating > 0 ? `<span class="pc-rev">${p.rating.toFixed(1)}</span>` : ''}</div>
       ${saved>0?`<div class="savings-badge"><i class="fa-solid fa-tag"></i> ৳${saved} সাশ্রয়!</div>`:''}
       <div class="stock-bar-wrap">
@@ -4582,10 +4595,9 @@ function openProductPage(pid) {
   history.pushState({productId: pid, type:'pdp'}, p.name, '/product/' + slug);
   // SEO meta update via dedicated function
   updateSEOMeta(p);
-  // Structured data for product
-  let sd = document.getElementById('pdp-json-ld');
-  if (!sd) { sd = document.createElement('script'); sd.id='pdp-json-ld'; sd.type='application/ld+json'; document.head.appendChild(sd); }
-  sd.textContent = JSON.stringify({"@context":"https://schema.org","@type":"Product","name":p.name,"description":p.desc||p.name,"image":p.img,"sku":p.productId||p.id,"brand":{"@type":"Brand","name":"Shoplixo"},"offers":{"@type":"Offer","priceCurrency":"BDT","price":p.price,"availability":"https://schema.org/"+(p.stock>0?"InStock":"OutOfStock"),"seller":{"@type":"Organization","name":"Shoplixo"}}});
+  // Structured data: Product schema + Breadcrumb schema (Upgrade 2C, 2D)
+  injectProductSchema(p);
+  injectBreadcrumbSchema(p);
   renderProductDetailPage(p);
   // pdp already open (opened before skeleton)
   window.scrollTo(0, 0);
@@ -4607,6 +4619,92 @@ function closeProductPage() {
   document.body.style.overflow = '';
   if (history.state && history.state.type === 'pdp') history.back();
   resetSEOMeta(); // Upgrade 4: reset all meta tags to homepage values
+  // Upgrade 2C/2D: remove product-specific structured data when leaving PDP
+  document.getElementById('product-jsonld')?.remove();
+  document.getElementById('breadcrumb-jsonld')?.remove();
+}
+
+// ══════════════════════════════════════
+// DYNAMIC PRODUCT / BREADCRUMB SCHEMA (Upgrade 2C, 2D)
+// ══════════════════════════════════════
+const CAT_LABELS = {
+  'mens-shirts':"শার্ট",'mens-pants':'প্যান্ট ও জিন্স','shoes':'জুতা',
+  'women':"মহিলাদের ফ্যাশন",'gadgets':'গ্যাজেট ও ইলেকট্রনিক্স','kids':"কিডস",
+  'accessories':'অ্যাক্সেসরিজ','women-bags':'মহিলাদের ব্যাগ','women-shoes':"মহিলাদের জুতা"
+};
+
+function injectProductSchema(p) {
+  try {
+    // আগের product schema থাকলে remove করো
+    document.getElementById('product-jsonld')?.remove();
+    if (!p) return;
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": p.name,
+      "image": (p.images && p.images.length) ? p.images : [p.img],
+      "description": p.desc || p.name,
+      "sku": String(p.productId || p.id),
+      "brand": { "@type": "Brand", "name": "Shoplixo" },
+      "offers": {
+        "@type": "Offer",
+        "url": window.location.href,
+        "priceCurrency": "BDT",
+        "price": p.price,
+        "availability": (p.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "itemCondition": "https://schema.org/NewCondition",
+        "seller": { "@type": "Organization", "name": "Shoplixo" }
+      }
+    };
+
+    if (p.rating > 0 && p.reviews > 0) {
+      schema.aggregateRating = {
+        "@type": "AggregateRating",
+        "ratingValue": p.rating,
+        "reviewCount": p.reviews
+      };
+    }
+
+    // undefined/empty field গুলো বাদ দাও
+    Object.keys(schema).forEach(k => { if (schema[k] === undefined) delete schema[k]; });
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'product-jsonld';
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+  } catch (e) {
+    console.warn('Product schema injection skipped:', e);
+  }
+}
+
+function injectBreadcrumbSchema(p) {
+  try {
+    document.getElementById('breadcrumb-jsonld')?.remove();
+    if (!p) return;
+
+    const catLabel = CAT_LABELS[p.cat] || p.cat || 'Category';
+    const catSlug = p.catSlug || p.cat || '';
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://shoplixo.shop/" },
+        { "@type": "ListItem", "position": 2, "name": catLabel, "item": `https://shoplixo.shop/category/${catSlug}` },
+        { "@type": "ListItem", "position": 3, "name": p.name, "item": window.location.href }
+      ]
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'breadcrumb-jsonld';
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+  } catch (e) {
+    console.warn('Breadcrumb schema injection skipped:', e);
+  }
 }
 
 function renderProductDetailPage(p) {
@@ -4908,7 +5006,7 @@ function renderProductDetailPage(p) {
           ${review.images && review.images.length > 0 ? `
           <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
             ${review.images.map(img => `
-              <img src="${img}" onclick="openImageLightbox('${img}')"
+              <img src="${img}" alt="${p.name} - কাস্টমার রিভিউ ছবি" onclick="openImageLightbox('${img}')"
                 style="width:64px;height:64px;border-radius:var(--r-sm);object-fit:cover;cursor:pointer;border:1.5px solid var(--border);transition:var(--t)"
                 onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border)'"
                 loading="lazy">
@@ -5356,7 +5454,7 @@ function setupPDPFloatingBar(p) {
   const fi = document.getElementById('pdp-float-img');
   const fn = document.getElementById('pdp-float-name');
   const fp = document.getElementById('pdp-float-price');
-  if (fi) fi.src = p.img;
+  if (fi) { fi.src = p.img; fi.alt = p.name + ' - Shoplixo'; }
   if (fn) fn.textContent = p.name;
   if (fp) fp.textContent = `৳${(p.price || 0).toLocaleString()}`;
   bar.style.display = 'flex';
@@ -5397,7 +5495,7 @@ function renderFrequentlyBoughtTogether(p) {
         ${allItems.map((item, i) => `
           ${i > 0 ? '<div style="flex-shrink:0;width:24px;height:24px;background:var(--bg);border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-plus" style="color:var(--text3);font-size:9px"></i></div>' : ''}
           <div style="flex-shrink:0;text-align:center;width:76px;cursor:pointer" onclick="openProductPage('${item.id}')">
-            <img src="${item.img}" style="width:68px;height:68px;border-radius:var(--r-sm);object-fit:cover;border:2px solid ${i===0?'var(--brand)':'var(--border)'};transition:var(--t)" loading="lazy" onerror="this.src='https://picsum.photos/seed/${item.id}fbt/80/80'">
+            <img src="${item.img}" alt="${item.name} - Shoplixo" style="width:68px;height:68px;border-radius:var(--r-sm);object-fit:cover;border:2px solid ${i===0?'var(--brand)':'var(--border)'};transition:var(--t)" loading="lazy" onerror="this.src='https://picsum.photos/seed/${item.id}fbt/80/80'">
             <div style="font-size:10px;margin-top:5px;color:var(--text3);font-weight:600">৳${(item.price || 0).toLocaleString()}</div>
             <div style="font-size:9px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:76px">${(item.name || '').slice(0,12)}…</div>
           </div>
@@ -5659,7 +5757,7 @@ function updateCartUI(){
     footer.style.display='none';
   } else {
     body.innerHTML=cart.map((c,i)=>`<div class="cart-item">
-      <div class="ci-img"><img src="${c.img}" alt="${c.name}" onerror="this.src='https://picsum.photos/seed/${c.id}/68/84'"></div>
+      <div class="ci-img"><img src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${c.id}/68/84'"></div>
       <div class="ci-info">
         <div class="ci-name">${c.name}</div>
         <div class="ci-meta">Size: ${c.size}${c.color?' · '+c.color:''}</div>
@@ -5711,7 +5809,7 @@ function ckRefresh(){
   const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
   const fin=Math.max(0, t+ship-discAmt);
   $('ck-items').innerHTML=cart.map(c=>`<div class="oi-item">
-    <img class="oi-img" src="${c.img}" onerror="this.src='https://picsum.photos/seed/${c.id}/46/56'">
+    <img class="oi-img" src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${c.id}/46/56'">
     <div style="flex:1"><div class="oi-name">${c.name}</div><div class="oi-meta">×${c.qty} · Size: ${c.size}</div></div>
     <div class="oi-price">${fmt(c.price*c.qty)}</div>
   </div>`).join('');
@@ -5851,31 +5949,111 @@ function _safeEndpoint(ep){
   return ep;
 }
 
-async function apiPost(endpoint, data) {
-  const token = localStorage.getItem('slx_token') || '';
-  const safeEp = _safeEndpoint(endpoint);
-  const r = await fetch(`${API_BASE}/api/${safeEp}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(data),
-  });
-  if(!r.ok && r.status === 401){
-    // Token expired — clear stale session silently
-    localStorage.removeItem('slx_token');
+/* ════════════════════════════════════════════
+   AUTH — Auto Token Refresh on 401
+   ════════════════════════════════════════════ */
+let _isRefreshing = false;
+let _refreshPromise = null;
+
+// Try to exchange the stored refresh token for a fresh access token.
+// Concurrent callers all await the same in-flight promise (no duplicate calls).
+async function _refreshAccessToken(){
+  if(_isRefreshing) return _refreshPromise;
+
+  const refreshToken = localStorage.getItem('slx_refresh');
+  if(!refreshToken) return false;
+
+  _isRefreshing = true;
+  _refreshPromise = (async () => {
+    try{
+      const res = await fetch(`${API_BASE}/api/auth?action=refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      }).then(r => r.json()).catch(() => null);
+
+      if(res && res.ok && res.token){
+        localStorage.setItem('slx_token', res.token);
+        if(res.refreshToken) localStorage.setItem('slx_refresh', res.refreshToken);
+        return true;
+      }
+      return false;
+    }catch(e){
+      return false;
+    }finally{
+      _isRefreshing = false;
+      _refreshPromise = null;
+    }
+  })();
+
+  return _refreshPromise;
+}
+
+// Refresh token missing/invalid — fully clear the session so the UI
+// falls back to a clean "logged out" state (no half-logged-in limbo).
+function _handleAuthExpired(){
+  const wasLoggedIn = !!currentUser;
+  localStorage.removeItem('slx_token');
+  localStorage.removeItem('slx_refresh');
+  localStorage.removeItem('slx_user');
+  currentUser = null;
+  if(typeof updateUserUI === 'function') updateUserUI();
+  if(wasLoggedIn){
+    showToast('সেশনের মেয়াদ শেষ হয়েছে। আবার Login করুন।','circle-info');
   }
+}
+
+async function apiPost(endpoint, data) {
+  const safeEp = _safeEndpoint(endpoint);
+  const doFetch = () => {
+    const token = localStorage.getItem('slx_token') || '';
+    return fetch(`${API_BASE}/api/${safeEp}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(data),
+    });
+  };
+
+  let r = await doFetch();
+
+  if(!r.ok && r.status === 401){
+    const refreshed = await _refreshAccessToken();
+    if(refreshed){
+      r = await doFetch(); // retry original request with the new token
+      if(!r.ok && r.status === 401) _handleAuthExpired();
+    } else {
+      _handleAuthExpired();
+    }
+  }
+
   return r.json();
 }
 
 async function apiGet(endpoint, params = {}) {
-  const token = localStorage.getItem('slx_token') || '';
   const safeEp = _safeEndpoint(endpoint);
   const qs = new URLSearchParams(params).toString();
-  const r = await fetch(`${API_BASE}/api/${safeEp}${qs ? '?' + qs : ''}`, {
-    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-  });
+  const doFetch = () => {
+    const token = localStorage.getItem('slx_token') || '';
+    return fetch(`${API_BASE}/api/${safeEp}${qs ? '?' + qs : ''}`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+    });
+  };
+
+  let r = await doFetch();
+
+  if(!r.ok && r.status === 401){
+    const refreshed = await _refreshAccessToken();
+    if(refreshed){
+      r = await doFetch(); // retry original request with the new token
+      if(!r.ok && r.status === 401) _handleAuthExpired();
+    } else {
+      _handleAuthExpired();
+    }
+  }
+
   return r.json();
 }
 
@@ -5886,8 +6064,8 @@ async function placeOrder(){
   const name=$('ck-name')?.value.trim();
   const phone=$('ck-phone')?.value.trim();
   const dist=$('ck-district')?.value;
-  const upazila=$('ck-upazila')?.value||'';
-  const union_=$('ck-union')?.value||'';
+  const upazila=getUpazilaValue();
+  const union_=getUnionValue();
   const village=$('ck-village')?.value.trim()||'';
   const house=$('ck-house')?.value.trim()||'';
 
@@ -5898,6 +6076,13 @@ async function placeOrder(){
   if(!name){showToast('নাম লিখুন!','exclamation');$('ck-name')?.focus();return;}
   if(!phone||phone.length<11){showToast('সঠিক ফোন নম্বর দিন!','exclamation');$('ck-phone')?.focus();return;}
   if(!dist){showToast('জেলা সিলেক্ট করুন!','exclamation');$('ck-district')?.focus();return;}
+  // Custom field validation
+  if($('ck-upazila')?.value==='__custom__' && !upazila){
+    showToast('উপজেলার নাম লিখুন!','exclamation');$('ck-upazila-custom')?.focus();return;
+  }
+  if(($('ck-union')?.value==='__custom__' || $('ck-upazila')?.value==='__custom__') && !union_){
+    showToast('ইউনিয়ন/এলাকার নাম লিখুন!','exclamation');$('ck-union-custom')?.focus();return;
+  }
   if(!addr||addr.length<5){showToast('সম্পূর্ণ ঠিকানা লিখুন!','exclamation');$('ck-address')?.focus();return;}
   if(selPayment!=='cod' && selPayment!=='online'){const trx=$('ck-trx')?.value.trim();if(!trx){showToast('Transaction ID দিন!','exclamation');$('ck-trx')?.focus();return;}}
 
@@ -6034,7 +6219,7 @@ function openQV(pid){
   const szHTML=(p.sizes||['S','M','L','XL','XXL']).map((s,i)=>`<button class="size-btn${i===1?' active':''}" onclick="this.closest('.sg').querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')" style="min-width:40px;height:36px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border2);font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;background:#fff;transition:var(--t)">${s}</button>`).join('');
   const clrHTML=p.colors?p.colors.slice(0,5).map((c,i)=>`<button class="col-btn${i===0?' active':''}" onclick="this.closest('.cg').querySelectorAll('.col-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')" style="padding:4px 12px;border-radius:20px;border:1.5px solid var(--border2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;background:#fff;transition:var(--t)">${c}</button>`).join(''):'';
   $('qv-content').innerHTML=`
-    <div style="background:var(--bg2);aspect-ratio:3/4;overflow:hidden"><img src="${p.img}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://picsum.photos/seed/${p.id}/380/500'"></div>
+    <div style="background:var(--bg2);aspect-ratio:3/4;overflow:hidden"><img src="${p.img}" alt="${p.name} - Shoplixo" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://picsum.photos/seed/${p.id}/380/500'"></div>
     <div style="padding:26px;overflow-y:auto;max-height:520px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">${p.cat.replace(/-/g,' ')}</div>
       <div style="font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--dark);line-height:1.3;margin-bottom:10px">${p.name}</div>
@@ -6130,7 +6315,7 @@ function doSearch(){
   if(cat) res=res.filter(p=>p.cat===cat);
   $('search-title').textContent=`"${q}" — ${res.length} টি পণ্য`;
   $('search-list').innerHTML=res.length
-    ?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${res.slice(0,12).map(p=>`<div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:var(--t)" onclick="closeSearch();openProductPage('${p.id}')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''"><img src="${p.img}" style="width:100%;height:120px;object-fit:cover"><div style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.name}</div><div style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${fmt(p.price)}</div></div></div>`).join('')}</div>`
+    ?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${res.slice(0,12).map(p=>`<div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:var(--t)" onclick="closeSearch();openProductPage('${p.id}')" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''"><img src="${p.img}" alt="${p.name} - Shoplixo" loading="lazy" style="width:100%;height:120px;object-fit:cover"><div style="padding:10px"><div style="font-size:12px;font-weight:600;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.name}</div><div style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:700;font-size:14px">${fmt(p.price)}</div></div></div>`).join('')}</div>`
     :`<div style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-search" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>কোনো পণ্য পাওয়া যায়নি।</p></div>`;
   $('search-overlay').style.display='flex';
 }
@@ -6169,6 +6354,7 @@ async function doLogin(){
       currentUser=r.user;
       localStorage.setItem('slx_user',JSON.stringify(r.user));
       localStorage.setItem('slx_token',r.token);
+      if(r.refreshToken) localStorage.setItem('slx_refresh',r.refreshToken);
       closeAuth();updateUserUI();startHeartbeat();
       showToast(`স্বাগতম ${r.user.name}! 🎉`,'user');
     } else {
@@ -6207,6 +6393,7 @@ async function doRegister(){
       currentUser=r.user;
       localStorage.setItem('slx_user',JSON.stringify(r.user));
       localStorage.setItem('slx_token',r.token);
+      if(r.refreshToken) localStorage.setItem('slx_refresh',r.refreshToken);
       // Also save locally as backup
       const users=JSON.parse(localStorage.getItem('slx_users')||'[]');
       users.push({name,phone,email,password:pw,provider:'local',joined:new Date().toISOString()});
@@ -6550,6 +6737,7 @@ function doLogout(){
   currentUser = null;
   localStorage.removeItem('slx_user');
   localStorage.removeItem('slx_token');
+  localStorage.removeItem('slx_refresh');
   closeProfileModal();
   updateUserUI();
   showToast('Logout সফল হয়েছে!','right-from-bracket');
@@ -6596,7 +6784,7 @@ function updateAdminPanel(){
   }
   if($('adm-products-list')){
     $('adm-products-list').innerHTML=P.map(p=>`<div style="display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);padding:8px 0;font-size:13px">
-      <img src="${p.img}" style="width:40px;height:48px;object-fit:cover;border-radius:6px;background:var(--bg2)" onerror="this.src='https://picsum.photos/seed/${p.id}/40/48'">
+      <img src="${p.img}" alt="${p.name}" loading="lazy" style="width:40px;height:48px;object-fit:cover;border-radius:6px;background:var(--bg2)" onerror="this.src='https://picsum.photos/seed/${p.id}/40/48'">
       <div style="flex:1;min-width:0"><div style="font-weight:600;color:var(--dark);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.name}</div><div style="font-size:11px;color:var(--text3)">${p.cat} · Stock: ${p.stock}</div></div>
       <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--brand);white-space:nowrap">${fmt(p.price)}</div>
     </div>`).join('');
@@ -7184,6 +7372,11 @@ function onDivisionChange(){
   $('ck-upazila').innerHTML='<option value="">— আগে জেলা সিলেক্ট করুন —</option>';
   $('ck-union').innerHTML='<option value="">— আগে উপজেলা সিলেক্ট করুন —</option>';
   $('ck-upazila').disabled=true; $('ck-union').disabled=true;
+  // Reset custom fields
+  const ucw=$('ck-upazila-custom-wrap'); if(ucw) ucw.style.display='none';
+  const ucInput=$('ck-upazila-custom'); if(ucInput) ucInput.value='';
+  const unwrap=$('ck-union-custom-wrap'); if(unwrap) unwrap.style.display='none';
+  const unInput=$('ck-union-custom'); if(unInput) unInput.value='';
   if(!div){distSel.disabled=true;return;}
   distSel.disabled=false;
   const divData=BD_GEO[div];
@@ -7201,6 +7394,11 @@ function onDistrictChange(){
   upSel.innerHTML='<option value="">— উপজেলা/থানা সিলেক্ট করুন —</option>';
   $('ck-union').innerHTML='<option value="">— আগে উপজেলা সিলেক্ট করুন —</option>';
   $('ck-union').disabled=true;
+  // Reset custom fields
+  const ucw=$('ck-upazila-custom-wrap'); if(ucw) ucw.style.display='none';
+  const ucInput=$('ck-upazila-custom'); if(ucInput) ucInput.value='';
+  const unwrap=$('ck-union-custom-wrap'); if(unwrap) unwrap.style.display='none';
+  const unInput=$('ck-union-custom'); if(unInput) unInput.value='';
   if(!dist||!div){upSel.disabled=true;return;}
   upSel.disabled=false;
   const distData=BD_GEO[div]?.districts?.[dist];
@@ -7209,6 +7407,10 @@ function onDistrictChange(){
       const opt=document.createElement('option'); opt.value=u; opt.textContent=u;
       upSel.appendChild(opt);
     });
+    // Add custom option at end
+    const customOpt=document.createElement('option');
+    customOpt.value='__custom__'; customOpt.textContent='✏️ অন্যটি (নিজে লিখুন)';
+    upSel.appendChild(customOpt);
     // Show delivery estimate
     const est=$('ck-delivery-est'), txt=$('ck-delivery-text');
     if(est&&txt){
@@ -7224,9 +7426,36 @@ function onUpazilaChange(){
   const dist=$('ck-district').value;
   const upazila=$('ck-upazila').value;
   const unionSel=$('ck-union');
+  const upazilaCustomWrap=$('ck-upazila-custom-wrap');
+  const unionWrap=$('ck-union-wrap');
+  const unionCustomWrap=$('ck-union-custom-wrap');
+
   unionSel.innerHTML='<option value="">— ইউনিয়ন/পৌরসভা সিলেক্ট করুন —</option>';
-  if(!upazila){unionSel.disabled=true;buildFullAddress();return;}
+
+  if(!upazila){
+    unionSel.disabled=true;
+    if(upazilaCustomWrap) upazilaCustomWrap.style.display='none';
+    if(unionCustomWrap) unionCustomWrap.style.display='none';
+    buildFullAddress();
+    return;
+  }
+
+  if(upazila==='__custom__'){
+    // Custom upazila selected — show text input, hide union dropdown, show union custom input
+    if(upazilaCustomWrap) upazilaCustomWrap.style.display='block';
+    unionSel.disabled=true;
+    if(unionWrap) unionWrap.style.display='none';
+    if(unionCustomWrap) unionCustomWrap.style.display='block';
+    buildFullAddress();
+    return;
+  }
+
+  // Normal upazila selected — hide custom upazila input, show union dropdown normally
+  if(upazilaCustomWrap) upazilaCustomWrap.style.display='none';
+  if(unionWrap) unionWrap.style.display='';
+  if(unionCustomWrap) unionCustomWrap.style.display='none';
   unionSel.disabled=false;
+
   // Get unions from data
   const unions=BD_UNIONS[upazila]||BD_UNIONS_BY_KEY[`${dist}__${upazila}`]||[];
   if(unions.length>0){
@@ -7235,6 +7464,22 @@ function onUpazilaChange(){
     // fallback generics
     const commons=['পৌরসভা','সদর ইউনিয়ন','উত্তর ইউনিয়ন','দক্ষিণ ইউনিয়ন','পূর্ব ইউনিয়ন','পশ্চিম ইউনিয়ন','মধ্য ইউনিয়ন','১নং ওয়ার্ড','২নং ওয়ার্ড','৩নং ওয়ার্ড','৪নং ওয়ার্ড','৫নং ওয়ার্ড','৬নং ওয়ার্ড','৭নং ওয়ার্ড','৮নং ওয়ার্ড','৯নং ওয়ার্ড'];
     commons.forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;unionSel.appendChild(o);});
+  }
+  // Add custom option at end of union dropdown
+  const customOpt=document.createElement('option');
+  customOpt.value='__custom__'; customOpt.textContent='✏️ অন্যটি (নিজে লিখুন)';
+  unionSel.appendChild(customOpt);
+
+  buildFullAddress();
+}
+
+function onUnionChange(){
+  const unionSel=$('ck-union');
+  const unionCustomWrap=$('ck-union-custom-wrap');
+  if(unionSel.value==='__custom__'){
+    if(unionCustomWrap) unionCustomWrap.style.display='block';
+  } else {
+    if(unionCustomWrap) unionCustomWrap.style.display='none';
   }
   buildFullAddress();
 }
@@ -7512,12 +7757,31 @@ const BD_UNIONS = {
 // Alias lookup by district+upazila key for disambiguation
 const BD_UNIONS_BY_KEY = {};
 
+function getUpazilaValue(){
+  const sel=$('ck-upazila');
+  if(!sel) return '';
+  if(sel.value==='__custom__'){
+    return $('ck-upazila-custom')?.value?.trim()||'';
+  }
+  return sel.value||'';
+}
+
+function getUnionValue(){
+  const upazilaVal=$('ck-upazila')?.value;
+  const unionSel=$('ck-union');
+  if(!unionSel) return '';
+  if(unionSel.value==='__custom__' || upazilaVal==='__custom__'){
+    return $('ck-union-custom')?.value?.trim()||'';
+  }
+  return unionSel.value||'';
+}
+
 function buildFullAddress(){
   const parts=[
     $('ck-house')?.value.trim(),
     $('ck-village')?.value.trim(),
-    $('ck-union')?.value,
-    $('ck-upazila')?.value,
+    getUnionValue(),
+    getUpazilaValue(),
     $('ck-district')?.value,
     $('ck-division')?.value ? BD_GEO[$('ck-division').value]?.name : '',
   ].filter(Boolean);
@@ -7967,7 +8231,7 @@ function updateCompareBar() {
     if (pid) {
       const p = PRODUCTS.find(x => x.id === pid);
       if (p) {
-        slot.innerHTML = `<img src="${p.img}" onerror="this.src='https://picsum.photos/seed/${pid}/56/68'"><button class="cmp-slot-x" onclick="toggleCompare(${pid});updateCompareBar()">×</button>`;
+        slot.innerHTML = `<img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${pid}/56/68'"><button class="cmp-slot-x" onclick="toggleCompare(${pid});updateCompareBar()">×</button>`;
       }
     } else {
       slot.innerHTML = '<span class="cmp-slot-empty">+</span>';
@@ -8012,8 +8276,8 @@ function openCompareModal() {
       <table class="cmp-table">
         <thead><tr>
           <th style="width:100px">বৈশিষ্ট্য</th>
-          <th><img class="cmp-prod-img" src="${p1.img}" onerror="this.src='https://picsum.photos/seed/${p1.id}/120/150'"><br><strong>${p1.name}</strong><br><span style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:800">${fmt(p1.price)}</span></th>
-          <th><img class="cmp-prod-img" src="${p2.img}" onerror="this.src='https://picsum.photos/seed/${p2.id}/120/150'"><br><strong>${p2.name}</strong><br><span style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:800">${fmt(p2.price)}</span></th>
+          <th><img class="cmp-prod-img" src="${p1.img}" alt="${p1.name} - Shoplixo" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p1.id}/120/150'"><br><strong>${p1.name}</strong><br><span style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:800">${fmt(p1.price)}</span></th>
+          <th><img class="cmp-prod-img" src="${p2.img}" alt="${p2.name} - Shoplixo" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p2.id}/120/150'"><br><strong>${p2.name}</strong><br><span style="color:var(--brand);font-family:'Syne',sans-serif;font-weight:800">${fmt(p2.price)}</span></th>
         </tr></thead>
         <tbody>${rowsHTML}</tbody>
       </table>
@@ -8097,7 +8361,7 @@ function initZoom(card) {
   if (!resultDiv) {
     resultDiv = document.createElement('div');
     resultDiv.className = 'zoom-result';
-    resultDiv.innerHTML = `<img src="${img.src}">`;
+    resultDiv.innerHTML = `<img src="${img.src}" alt="">`;
     wrap.appendChild(resultDiv);
   }
 
@@ -8172,7 +8436,7 @@ if (searchInput) {
       else {
         drop.innerHTML = `<div class="sld-header"><i class="fa-solid fa-magnifying-glass"></i> "${q}" — ${results.length} টি পণ্য</div>` +
           results.map(p => `<div class="sld-item" onclick="document.getElementById('search-live-drop').classList.remove('show');openProductPage('${p.id}')">
-            <img class="sld-img" src="${p.img}" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
+            <img class="sld-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
             <div class="sld-info">
               <div class="sld-name">${p.name}</div>
               <div class="sld-cat">${p.cat.replace(/-/g,' ')}</div>
@@ -8223,7 +8487,7 @@ function renderWishlistPanel() {
     const p = PRODUCTS.find(x => x.id === pid);
     if (!p) return '';
     return `<div class="wlp-item">
-      <img class="wlp-img" src="${p.img}" onerror="this.src='https://picsum.photos/seed/${pid}/54/68'">
+      <img class="wlp-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${pid}/54/68'">
       <div class="wlp-info">
         <div class="wlp-name">${p.name}</div>
         <div class="wlp-price">${fmt(p.price)}</div>
@@ -8335,7 +8599,7 @@ async function loadComments(pid) {
       const body = c.body || c.text || '';
       const rating = c.rating || 5;
       const verified = c.isVerifiedPurchase;
-      const imgsHTML = (c.images||[]).length ? `<div class="ci-images">${c.images.slice(0,4).map(img => `<img class="ci-img-thumb" src="${img}" onclick="window.open('${img}','_blank')">`).join('')}</div>` : '';
+      const imgsHTML = (c.images||[]).length ? `<div class="ci-images">${c.images.slice(0,4).map(img => `<img class="ci-img-thumb" src="${img}" alt="রিভিউ ছবি" loading="lazy" onclick="window.open('${img}','_blank')">`).join('')}</div>` : '';
       return `<div class="comment-item" id="cm-item-${pid}-${i}">
         <div class="ci-head">
           <div class="ci-avatar">${name[0].toUpperCase()}</div>
@@ -8476,7 +8740,7 @@ function renderBundles() {
     return `<div class="bundle-card fade-up">
       <div class="bc-badge">${b.badge}</div>
       <div class="bc-imgs">
-        ${prods.slice(0,2).map(p => `<img src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/200/160'">`).join('')}
+        ${prods.slice(0,2).map(p => `<img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/200/160'">`).join('')}
       </div>
       <div class="bc-body">
         <div class="bc-title">${b.title}</div>
@@ -8556,7 +8820,7 @@ function renderRecentlyViewedV2() {
       const p = PRODUCTS.find(x => x.id === pid);
       if (!p) return '';
       return `<div class="rv-card" onclick="openProductPage('${p.id}')">
-        <img class="rv-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/150/120'">
+        <img class="rv-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/150/120'">
         <div class="rv-body">
           <div class="rv-name">${p.name}</div>
           <div class="rv-price">৳${p.price.toLocaleString('en-IN')}</div>
@@ -9540,7 +9804,7 @@ function updateCompareBar(){
     if(!slot) continue;
     if(compareList[i]){
       const p = PRODUCTS.find(x=>x.id===compareList[i]);
-      if(p) slot.innerHTML = `<img src="${p.img}" alt="${p.name}"><button class="cs-remove" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-xmark"></i></button>`;
+      if(p) slot.innerHTML = `<img src="${p.img}" alt="${p.name}" loading="lazy"><button class="cs-remove" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-xmark"></i></button>`;
     } else {
       slot.innerHTML = '<i class="fa-solid fa-plus" style="opacity:.4"></i>';
       slot.className = 'compare-slot empty';
@@ -9564,7 +9828,7 @@ function buildCompareTable(){
   const tbl = document.getElementById('cmp-table');
   if(!tbl||!prods.length) return;
   const rows = [
-    {label:'ছবি', render:p=>`<img class="cmp-prod-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/200/140'">`},
+    {label:'ছবি', render:p=>`<img class="cmp-prod-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/200/140'">`},
     {label:'পণ্যের নাম', render:p=>`<div class="cmp-prod-name">${p.name}</div>`},
     {label:'দাম', render:p=>`<strong style="color:var(--brand);font-family:Syne,sans-serif;font-size:16px">${fmt(p.price)}</strong>`},
     {label:'আসল দাম', render:p=>`<span style="text-decoration:line-through;color:var(--text3)">${fmt(p.orig)}</span>`},
@@ -9670,13 +9934,13 @@ function renderBundles(){
         <span class="bundle-save">৳${discAmt} সাশ্রয়!</span>
       </div>
       <div class="bundle-items">
-        <img class="bi-img" src="${p1.img}" alt="${p1.name}" onerror="this.src='https://picsum.photos/seed/${p1.id}/64/78'">
+        <img class="bi-img" src="${p1.img}" alt="${p1.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p1.id}/64/78'">
         <div class="bi-info">
           <div class="bi-name">${p1.name}</div>
           <div class="bi-price">${fmt(p1.price)}</div>
         </div>
         <div class="bi-plus">+</div>
-        <img class="bi-img" src="${p2.img}" alt="${p2.name}" onerror="this.src='https://picsum.photos/seed/${p2.id}/64/78'">
+        <img class="bi-img" src="${p2.img}" alt="${p2.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p2.id}/64/78'">
         <div class="bi-info">
           <div class="bi-name">${p2.name}</div>
           <div class="bi-price">${fmt(p2.price)}</div>
@@ -10139,7 +10403,7 @@ function renderWishlistPanel() {
   }
   body.innerHTML = items.map(p => `
     <div class="wlp-item">
-      <img class="wlp-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/54/68'">
+      <img class="wlp-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/54/68'">
       <div class="wlp-info">
         <div class="wlp-name">${p.name}</div>
         <div class="wlp-price">৳${Number(p.price).toLocaleString()}</div>
@@ -10350,7 +10614,7 @@ window.placeOrder = async function() {
   // Save address for next time (multi-address history)
   try {
     const district = document.getElementById('ck-district')?.value;
-    const upazila  = document.getElementById('ck-upazila')?.value;
+    const upazila  = (typeof getUpazilaValue === 'function') ? getUpazilaValue() : (document.getElementById('ck-upazila')?.value||'');
     const address  = document.getElementById('ck-address')?.value;
     const name     = document.getElementById('ck-name')?.value;
     const phone    = document.getElementById('ck-phone')?.value;
@@ -10469,7 +10733,7 @@ function fillAddress(addr, district, upazila){
         <div class="sld-header">🔍 "${q}" এর জন্য ফলাফল</div>
         ${results.map(p => `
           <div class="sld-item" onclick="drop.classList.remove('show');openProductPage('${p.id}')">
-            <img class="sld-img" src="${p.img}" alt="${p.name}" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
+            <img class="sld-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
             <div class="sld-info">
               <div class="sld-name">${p.name}</div>
               <div class="sld-cat">${p.cat?.replace(/-/g,' ')}</div>
@@ -10637,7 +10901,7 @@ function loadAdmProducts() {
   if (!el) return;
   el.innerHTML = all.map(p => `
     <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:var(--r-lg);padding:10px;margin-bottom:8px;background:#fff;transition:var(--t)" onmouseover="this.style.borderColor='var(--brand)'" onmouseout="this.style.borderColor='var(--border)'">
-      <img src="${p.img}" style="width:44px;height:54px;object-fit:cover;border-radius:var(--r-sm);background:var(--bg2);flex-shrink:0" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
+      <img src="${p.img}" alt="${p.name}" loading="lazy" style="width:44px;height:54px;object-fit:cover;border-radius:var(--r-sm);background:var(--bg2);flex-shrink:0" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:13px;color:var(--dark);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${p.name}</div>
         <div style="font-size:11px;color:var(--text3);margin-top:2px">${p.cat} · Stock: <strong style="color:${p.stock<=5?'var(--brand)':'var(--green)'}">${p.stock}</strong></div>
@@ -11018,7 +11282,7 @@ window.updateAdminPanel = updateAdminPanel;
   <!-- UPGRADE 4: Floating sticky bar (desktop, on scroll) -->
 <div id="pdp-floating-bar" style="position:fixed;top:0;left:0;right:0;background:var(--header-bg);box-shadow:0 4px 20px rgba(0,0,0,.12);padding:12px 24px;display:none;align-items:center;justify-content:space-between;z-index:5000;transform:translateY(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border-bottom:2px solid var(--brand)">
   <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-    <img id="pdp-float-img" src="" style="width:42px;height:42px;border-radius:var(--r-sm);object-fit:cover;border:1.5px solid var(--border);flex-shrink:0">
+    <img id="pdp-float-img" src="" alt="" style="width:42px;height:42px;border-radius:var(--r-sm);object-fit:cover;border:1.5px solid var(--border);flex-shrink:0">
     <div style="min-width:0">
       <div id="pdp-float-name" style="font-weight:700;font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--text)"></div>
       <div id="pdp-float-price" style="color:var(--brand);font-weight:800;font-size:15px;font-family:'Syne',sans-serif"></div>
