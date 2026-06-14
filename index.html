@@ -3615,7 +3615,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
   <div class="cart-footer" id="cart-footer" style="display:none">
     <div class="cf-rows">
       <div class="cf-row"><span>Subtotal</span><span id="cf-sub">৳0</span></div>
-      <div class="cf-row"><span>Shipping</span><span id="cf-ship" style="color:var(--green);font-weight:600">ফ্রি</span></div>
+      <div class="cf-row"><span>Delivery Charge</span><span id="cf-ship" style="color:var(--green);font-weight:600">ফ্রি</span></div>
       <div class="cf-total"><span>Total</span><span id="cf-total">৳0</span></div>
     </div>
     <button class="btn-checkout-main" onclick="openCheckout()"><i class="fa-solid fa-lock"></i> Secure Checkout → <span id="cf-total-btn">৳0</span></button>
@@ -3713,7 +3713,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
           </div>
           <div class="form-g" id="ck-union-wrap">
             <label>ইউনিয়ন / পৌরসভা / ওয়ার্ড <span style="font-size:10px;color:var(--text3);font-weight:400">(সিটি এলাকায় ওয়ার্ড, গ্রামে ইউনিয়ন — ঠিকানা বুঝতে সাহায্য করে)</span></label>
-            <div class="select-wrap"><select id="ck-union" onchange="onUnionChange()" disabled style="-webkit-appearance:none;padding-right:36px">
+            <div class="select-wrap" id="ck-union-select-wrap"><select id="ck-union" onchange="onUnionChange()" disabled style="-webkit-appearance:none;padding-right:36px">
               <option value="">— আগে উপজেলা সিলেক্ট করুন —</option>
             </select></div>
             <div id="ck-union-custom-wrap" style="display:none;margin-top:8px">
@@ -3864,7 +3864,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         <div class="order-items-list" id="ck-items"></div>
         <div class="ot-rows">
           <div class="ot-row"><span>Subtotal</span><span id="ck-sub">৳0</span></div>
-          <div class="ot-row"><span>Shipping</span><span id="ck-ship" style="color:var(--green);font-weight:600">ফ্রি</span></div>
+          <div class="ot-row"><span>Delivery Charge</span><span id="ck-ship" style="color:var(--green);font-weight:600">ফ্রি</span></div>
           <div class="ot-row" id="disc-row" style="display:none;color:var(--green)"><span>Discount</span><span id="disc-val">-৳0</span></div>
           <div class="ot-total"><span>Total</span><span id="ck-total">৳0</span></div>
         </div>
@@ -4425,6 +4425,8 @@ function syncProductsVar() {
 
 // State
 let cart = JSON.parse(localStorage.getItem('slx_cart')||'[]');
+// "এখনই কিনুন" / "এখনই অর্ডার করুন" — Buy Now item (cart এর সাথে merge হবে না, আলাদাভাবে order হবে)
+let buyNowItem = null;
 let wishlist = JSON.parse(localStorage.getItem('slx_wish')||'[]');
 let currentUser = JSON.parse(localStorage.getItem('slx_user')||'null');
 let selPayment = 'cod';
@@ -4910,7 +4912,7 @@ function renderProductDetailPage(p) {
         <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
             <span>🚚 Standard Delivery</span>
-            <span style="color:var(--green);font-weight:600">${isFreeDelivery ? 'FREE' : '৳60'} · ${fmt(d3)}–${fmt(d5)}</span>
+            <span style="color:var(--green);font-weight:600">${isFreeDelivery ? 'FREE' : '৳50–৳70 (এলাকা ভিত্তিক)'} · ${fmt(d3)}–${fmt(d5)}</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
             <span>💳 Payment</span>
@@ -5385,16 +5387,20 @@ function pdpAddToCart() {
 }
 function pdpBuyNow() {
   if (!window._pdpPid) return;
-  addToCart(window._pdpPid, window._pdpQty||1, window._pdpSize||'M', window._pdpColor||'');
-  setTimeout(()=>openCheckout(), 200);
+  const P = window.PRODUCTS || PRODUCTS;
+  const p = P.find(x => String(x.id) === String(window._pdpPid));
+  if (!p) return;
+  // Cart এ add না করে শুধু এই product টিকেই order করার জন্য আলাদা buyNowItem সেট করা হলো
+  buyNowItem = {id:String(p.id), qty:window._pdpQty||1, size:window._pdpSize||'M', color:window._pdpColor||'', name:p.name, price:p.price, img:p.img, cat:p.cat||''};
+  openCheckout(true);
 }
-// Direct Order from product card — cart এ add করে সাথে সাথে checkout খোলে
+// Direct Order from product card — cart এ add না করে শুধু এই product টির জন্য checkout খোলে
 function quickOrderNow(pid) {
   const P = window.PRODUCTS || PRODUCTS;
   const p = P.find(x => String(x.id) === String(pid));
   if (!p) return;
-  addToCart(pid, 1, (p.sizes && p.sizes[0]) || 'M', (p.colors && p.colors[0]) || '');
-  setTimeout(() => openCheckout(), 150);
+  buyNowItem = {id:String(p.id), qty:1, size:(p.sizes && p.sizes[0]) || 'M', color:(p.colors && p.colors[0]) || '', name:p.name, price:p.price, img:p.img, cat:p.cat||''};
+  openCheckout(true);
 }
 
 // UPGRADE 1: quickBuyNow — PDP খুলে সাথে সাথে Buy Now flow শুরু করে
@@ -5723,6 +5729,20 @@ function saveCart(){
 const total=()=>cart.reduce((s,c)=>s+c.price*c.qty,0);
 const count=()=>cart.reduce((s,c)=>s+c.qty,0);
 
+// ── BUY NOW HELPERS ──
+// Checkout এ যা দেখানো/order হবে: buyNowItem থাকলে শুধু সেটাই, না থাকলে পুরো cart
+function getOrderItems(){ return buyNowItem ? [buyNowItem] : cart; }
+function getOrderTotal(){ return getOrderItems().reduce((s,c)=>s+c.price*c.qty,0); }
+
+// ── DYNAMIC DELIVERY CHARGE ──
+// ঢাকা বিভাগের ভিতরে ৳50, বাইরে ৳70। Free shipping threshold পার হলে ফ্রি।
+function getDeliveryCharge(t){
+  const thresh=CFG.freeShippingMin||999;
+  if(t>=thresh) return 0;
+  const div=$('ck-division')?.value || localStorage.getItem('slx_division') || '';
+  return div==='dhaka' ? 50 : 70;
+}
+
 function addToCart(pid,qty=1,size='M',color=''){
   const P = window.PRODUCTS || PRODUCTS;
   const p=P.find(x=>String(x.id)===String(pid)); if(!p) return;
@@ -5767,9 +5787,9 @@ function updateCartUI(){
       <button class="ci-del" onclick="removeFromCart(${i})"><i class="fa-solid fa-xmark"></i></button>
     </div>`).join('');
     footer.style.display='block';
-    const ship=t>=thresh?0:60;
+    const ship=getDeliveryCharge(t);
     $('cf-sub').textContent=fmt(t);
-    $('cf-ship').textContent=ship===0?'বিনামূল্যে 🎉':fmt(60);
+    $('cf-ship').textContent=ship===0?'বিনামূল্যে 🎉':fmt(ship);
     $('cf-total').textContent=fmt(t+ship);
     $('cf-total-btn').textContent=fmt(t+ship);
   }
@@ -5782,9 +5802,13 @@ function updateCartUI(){
 function openCart(){$('cart-sidebar').classList.add('open');$('cart-overlay').classList.add('open');document.body.style.overflow='hidden';}
 function closeCart(){$('cart-sidebar').classList.remove('open');$('cart-overlay').classList.remove('open');document.body.style.overflow='';}
 
-/* ---------- CHECKOUT ---------- */
-function openCheckout(){
-  if(!cart.length){showToast('Cart খালি! কিছু যোগ করুন।','exclamation');return;}
+/* ---------- CHECKOUT ----------
+   skipCartCheck=true হলে buyNowItem অনুযায়ী checkout খুলবে (cart খালি থাকলেও) */
+function openCheckout(skipCartCheck){
+  if(!skipCartCheck){
+    if(!cart.length){showToast('Cart খালি! কিছু যোগ করুন।','exclamation');return;}
+    buyNowItem=null; // স্বাভাবিক "Cart দেখুন ও Checkout" — পুরো cart দিয়ে order হবে
+  }
   closeCart(); ckRefresh();
   $('checkout-modal').classList.add('open'); document.body.style.overflow='hidden';
   if(currentUser){if($('ck-name'))$('ck-name').value=currentUser.name||'';if($('ck-phone'))$('ck-phone').value=currentUser.phone||'';}
@@ -5796,21 +5820,22 @@ function openCheckout(){
   const payBox=$('pay-info-box');
   if(payBox && selPayment !== 'cod') payBox.classList.add('show');
 }
-function closeCheckout(){$('checkout-modal').classList.remove('open');document.body.style.overflow='';}
+function closeCheckout(){buyNowItem=null;$('checkout-modal').classList.remove('open');document.body.style.overflow='';}
 
 function ckRefresh(){
-  const t=total(), thresh=CFG.freeShippingMin||999;
-  const ship=t>=thresh?0:60;
+  const items=getOrderItems();
+  const t=getOrderTotal();
+  const ship=getDeliveryCharge(t);
   // FIX: flat coupon (discountFlat) এবং percent coupon (discount) আলাদাভাবে handle করা
   const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
   const fin=Math.max(0, t+ship-discAmt);
-  $('ck-items').innerHTML=cart.map(c=>`<div class="oi-item">
+  $('ck-items').innerHTML=items.map(c=>`<div class="oi-item">
     <img class="oi-img" src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${c.id}/46/56'">
     <div style="flex:1"><div class="oi-name">${c.name}</div><div class="oi-meta">×${c.qty} · Size: ${c.size}</div></div>
     <div class="oi-price">${fmt(c.price*c.qty)}</div>
   </div>`).join('');
   $('ck-sub').textContent=fmt(t);
-  $('ck-ship').textContent=ship===0?'বিনামূল্যে 🎉':fmt(60);
+  $('ck-ship').textContent=ship===0?'বিনামূল্যে 🎉':fmt(ship);
   if(discAmt>0){$('disc-row').style.display='flex';$('disc-val').textContent='-'+fmt(discAmt);}
   else { const dr=$('disc-row'); if(dr) dr.style.display='none'; }
   $('ck-total').textContent=fmt(fin);
@@ -5843,7 +5868,7 @@ async function applyCoupon(){
     const res=await fetch(`/api/commerce?module=coupon`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code, subtotal:total()})
+      body:JSON.stringify({code, subtotal:getOrderTotal()})
     });
     const data=await res.json();
     if(data.ok && (data.discount>0 || data.discountAmt>0)){
@@ -6096,7 +6121,9 @@ async function placeOrder(){
   try { fingerprint = await collectDeviceFingerprint(); } catch(e) {}
   const gpsLocation = fingerprint.gps || cachedGPSLocation || null;
 
-  const t=total(),thresh=CFG.freeShippingMin||999,ship=t>=thresh?0:60;
+  const orderItems=getOrderItems();
+  const t=getOrderTotal();
+  const ship=getDeliveryCharge(t);
   // FIX: flat ও percent coupon উভয়ের জন্য সঠিক discAmt গণনা
   const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
   const fin=Math.max(0, t+ship-discAmt);
@@ -6114,7 +6141,7 @@ async function placeOrder(){
           customerPhone: phone,
           customerEmail: $('ck-email')?.value || '',
           customerAddress: addr,
-          items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+          items: orderItems.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
           returnUrl: window.location.origin + '/payment/success',
           cancelUrl: window.location.origin + '/payment/cancel',
         })
@@ -6143,7 +6170,7 @@ async function placeOrder(){
     note: $('ck-note')?.value||'',
     payment: selPayment,
     trxId: $('ck-trx')?.value||'',
-    items: cart.map(i=>({id:i.id,name:i.name,price:i.price,orig:i.orig,img:i.img,qty:i.qty,size:i.size||'',color:i.color||'',cat:i.cat||''})),
+    items: orderItems.map(i=>({id:i.id,name:i.name,price:i.price,orig:i.orig,img:i.img,qty:i.qty,size:i.size||'',color:i.color||'',cat:i.cat||''})),
     discountPct: discount,
     couponCode: $('ck-coupon')?.value||'',
     gpsLocation,
@@ -6164,11 +6191,12 @@ async function placeOrder(){
     const oid = result.orderId;
     // Save to localStorage as backup
     const orders=JSON.parse(localStorage.getItem('slx_orders')||'[]');
-    orders.push({id:oid,name,phone,district:dist,upazila,union:union_,village,house,address:addr,email:$('ck-email')?.value||'',payment:selPayment,trxId:$('ck-trx')?.value||'',total:result.total,date:new Date().toISOString(),status:'pending',items:[...cart]});
+    orders.push({id:oid,name,phone,district:dist,upazila,union:union_,village,house,address:addr,email:$('ck-email')?.value||'',payment:selPayment,trxId:$('ck-trx')?.value||'',total:result.total,date:new Date().toISOString(),status:'pending',items:[...orderItems]});
     localStorage.setItem('slx_orders',JSON.stringify(orders));
 
-    const orderItems=[...cart];
-    cart=[]; discount=0; discountFlat=0; saveCart();
+    // "এখনই কিনুন/অর্ডার করুন" দিয়ে order হলে cart অপরিবর্তিত থাকবে; cart checkout হলে cart খালি হবে
+    if(buyNowItem){ buyNowItem=null; } else { cart=[]; }
+    discount=0; discountFlat=0; saveCart();
     closeCheckout();
     $('os-id').textContent=oid;
     $('order-success').classList.add('open');
@@ -6180,11 +6208,11 @@ async function placeOrder(){
     // Offline fallback — save locally
     console.warn('API offline, saving locally:', e);
     const oid='SL-'+Date.now().toString().slice(-6);
-    const order={id:oid,name,phone,address:addr,district:dist,email:$('ck-email')?.value,payment:selPayment,items:[...cart],total:fin,date:new Date().toISOString(),status:'pending',offline:true};
+    const order={id:oid,name,phone,address:addr,district:dist,email:$('ck-email')?.value,payment:selPayment,items:[...orderItems],total:fin,date:new Date().toISOString(),status:'pending',offline:true};
     const orders=JSON.parse(localStorage.getItem('slx_orders')||'[]');
     orders.push(order); localStorage.setItem('slx_orders',JSON.stringify(orders));
-    const orderItems=[...cart];
-    cart=[]; discount=0; discountFlat=0; saveCart();
+    if(buyNowItem){ buyNowItem=null; } else { cart=[]; }
+    discount=0; discountFlat=0; saveCart();
     closeCheckout();
     $('os-id').textContent=oid;
     $('order-success').classList.add('open');
@@ -7363,6 +7391,9 @@ const BD_GEO = {
 /* ── ADDRESS FORM FUNCTIONS ── */
 function onDivisionChange(){
   const div=$('ck-division').value;
+  // ডেলিভারি চার্জ হিসাবের জন্য বিভাগ সংরক্ষণ এবং checkout summary রিফ্রেশ
+  if(div) localStorage.setItem('slx_division', div); else localStorage.removeItem('slx_division');
+  if(typeof ckRefresh==='function') ckRefresh();
   const distSel=$('ck-district');
   distSel.innerHTML='<option value="">— জেলা সিলেক্ট করুন —</option>';
   $('ck-upazila').innerHTML='<option value="">— আগে জেলা সিলেক্ট করুন —</option>';
@@ -7373,6 +7404,7 @@ function onDivisionChange(){
   const ucInput=$('ck-upazila-custom'); if(ucInput) ucInput.value='';
   const unwrap=$('ck-union-custom-wrap'); if(unwrap) unwrap.style.display='none';
   const unInput=$('ck-union-custom'); if(unInput) unInput.value='';
+  const uswrap1=$('ck-union-select-wrap'); if(uswrap1) uswrap1.style.display='';
   if(!div){distSel.disabled=true;return;}
   distSel.disabled=false;
   const divData=BD_GEO[div];
@@ -7395,6 +7427,7 @@ function onDistrictChange(){
   const ucInput=$('ck-upazila-custom'); if(ucInput) ucInput.value='';
   const unwrap=$('ck-union-custom-wrap'); if(unwrap) unwrap.style.display='none';
   const unInput=$('ck-union-custom'); if(unInput) unInput.value='';
+  const uswrap2=$('ck-union-select-wrap'); if(uswrap2) uswrap2.style.display='';
   if(!dist||!div){upSel.disabled=true;return;}
   upSel.disabled=false;
   const distData=BD_GEO[div]?.districts?.[dist];
@@ -7424,6 +7457,7 @@ function onUpazilaChange(){
   const unionSel=$('ck-union');
   const upazilaCustomWrap=$('ck-upazila-custom-wrap');
   const unionWrap=$('ck-union-wrap');
+  const unionSelectWrap=$('ck-union-select-wrap');
   const unionCustomWrap=$('ck-union-custom-wrap');
 
   unionSel.innerHTML='<option value="">— ইউনিয়ন/পৌরসভা সিলেক্ট করুন —</option>';
@@ -7431,16 +7465,20 @@ function onUpazilaChange(){
   if(!upazila){
     unionSel.disabled=true;
     if(upazilaCustomWrap) upazilaCustomWrap.style.display='none';
+    if(unionWrap) unionWrap.style.display='';
+    if(unionSelectWrap) unionSelectWrap.style.display='';
     if(unionCustomWrap) unionCustomWrap.style.display='none';
     buildFullAddress();
     return;
   }
 
   if(upazila==='__custom__'){
-    // Custom upazila selected — show text input, hide union dropdown, show union custom input
+    // Custom upazila selected — উপজেলার নাম লেখার ইনপুট দেখাও, union dropdown hide করো,
+    // কিন্তু union-wrap (এবং তার ভেতরের custom union input) visible রাখো
     if(upazilaCustomWrap) upazilaCustomWrap.style.display='block';
     unionSel.disabled=true;
-    if(unionWrap) unionWrap.style.display='none';
+    if(unionWrap) unionWrap.style.display='';
+    if(unionSelectWrap) unionSelectWrap.style.display='none';
     if(unionCustomWrap) unionCustomWrap.style.display='block';
     buildFullAddress();
     return;
@@ -7449,6 +7487,7 @@ function onUpazilaChange(){
   // Normal upazila selected — hide custom upazila input, show union dropdown normally
   if(upazilaCustomWrap) upazilaCustomWrap.style.display='none';
   if(unionWrap) unionWrap.style.display='';
+  if(unionSelectWrap) unionSelectWrap.style.display='';
   if(unionCustomWrap) unionCustomWrap.style.display='none';
   unionSel.disabled=false;
 
@@ -9353,8 +9392,8 @@ window.placeOrder = async function(){
 /* ── OVERRIDE ckRefresh to include loyalty discount ── */
 const _origCkRefresh = window.ckRefresh;
 window.ckRefresh = function(){
-  const t=total(), thresh=CFG.freeShippingMin||999;
-  const ship=t>=thresh?0:60;
+  const t=getOrderTotal();
+  const ship=getDeliveryCharge(t);
   // FIX: flat ও percent coupon উভয় type handle করা
   const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
   const loyDisc = window._loyaltyDiscount || 0;
