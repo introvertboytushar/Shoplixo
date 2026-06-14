@@ -1615,18 +1615,30 @@ async function viewOrder(id) {
       <div class="om-field"><label>Customer</label><span>${esc(o.customer?.name || o.name)}</span></div>
       <div class="om-field"><label>Phone</label><span>${esc(o.customer?.phone || o.phone)}</span></div>
       <div class="om-field"><label>Address</label><span>${esc(o.customer?.address || o.address)}</span></div>
-      <div class="om-field"><label>District / জেলা</label><span>${esc(o.customer?.district || o.district || '—')}</span></div>
-      ${(o.customer?.upazila || o.upazila) ? `<div class="om-field"><label>Upazila / উপজেলা</label><span>${esc(o.customer?.upazila || o.upazila)}</span></div>` : ''}
-      ${(o.customer?.union || o.union) ? `<div class="om-field"><label>Union / ইউনিয়ন</label><span>${esc(o.customer?.union || o.union)}</span></div>` : ''}
-      ${(o.customer?.village || o.village) ? `<div class="om-field"><label>Village / গ্রাম</label><span>${esc(o.customer?.village || o.village)}</span></div>` : ''}
-      ${(o.customer?.house || o.house) ? `<div class="om-field"><label>House / বাড়ি</label><span>${esc(o.customer?.house || o.house)}</span></div>` : ''}
+      <div class="om-field"><label>District</label><span>${esc(o.customer?.district || o.district)}</span></div>
       <div class="om-field"><label>Payment</label><span class="pay-badge pb-${o.payment?.method || o.payment}">${(o.payment?.method || o.payment || '').toUpperCase()}</span></div>
-      <div class="om-field"><label>Delivery Charge</label><span style="font-weight:700;color:${(o.pricing?.shipping ?? o.shipping) === 0 ? 'var(--green)' : 'var(--text)'}">${(o.pricing?.shipping ?? o.shipping) === 0 ? '<span style="color:var(--green)">বিনামূল্যে ✓</span>' : fmt(o.pricing?.shipping ?? o.shipping ?? 0)}</span></div>
       <div class="om-field"><label>Status</label><span class="status-badge sb-${o.status}">${statusLabel(o.status)}</span></div>
       ${o.payment?.transactionId ? `<div class="om-field"><label>Trx ID</label><span>${esc(o.payment.transactionId)}</span></div>` : ''}
       ${o.customer?.note ? `<div class="om-field"><label>Note</label><span>${esc(o.customer.note)}</span></div>` : ''}
       ${(() => {
-        // IP Address only (GPS moved to Live Tracking Info below — no duplication)
+        // UPGRADE-B3: Order GPS Location — parseFloat দিয়ে validate করো (inject-safe)
+        const gps = o.customer?.gpsLocation;
+        const oLat = parseFloat(gps?.lat);
+        const oLng = parseFloat(gps?.lng);
+        const acc  = gps?.accuracy ? Math.round(Number(gps.accuracy)) : null;
+        if (!isNaN(oLat) && !isNaN(oLng)) {
+          return `<div class="om-field"><label><i class="fa-solid fa-location-dot" style="color:var(--blue)"></i> Order Location</label>
+            <span>
+              <a href="https://www.google.com/maps?q=${oLat},${oLng}" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">
+                <i class="fa-solid fa-location-dot"></i> Map এ দেখুন
+              </a>
+              ${acc && !isNaN(acc) ? `<span style="color:var(--text3);font-size:10px;margin-left:4px">(±${acc}m)</span>` : ''}
+            </span></div>`;
+        }
+        return '';
+      })()}
+      ${(() => {
+        // UPGRADE-B3: Order IP Address — esc() দিয়ে sanitize করো
         const ip = o.customer?.ipAddress;
         if (ip) {
           return `<div class="om-field"><label><i class="fa-solid fa-network-wired" style="color:var(--text3)"></i> IP Address</label>
