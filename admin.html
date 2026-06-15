@@ -686,7 +686,9 @@ tr:hover td{background:var(--bg)}
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
               <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Site Name</label><input id="st-name" placeholder="Shoplixo" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
               <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Currency</label><input id="st-currency" placeholder="BDT" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Shipping Cost (৳)</label><input id="st-shipping" type="number" placeholder="60" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Dhaka City Delivery (৳)</label><input id="st-ship-dhaka-city" type="number" placeholder="60" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Dhaka Division (Sub-area) Delivery (৳)</label><input id="st-ship-dhaka-sub" type="number" placeholder="90" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
+              <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Outside Dhaka Delivery (৳)</label><input id="st-ship-outside" type="number" placeholder="120" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
               <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Free Shipping Min (৳)</label><input id="st-free-min" type="number" placeholder="999" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
               <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">bKash Number</label><input id="st-bkash" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
               <div><label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Nagad Number</label><input id="st-nagad" placeholder="01XXXXXXXXX" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none"></div>
@@ -1603,6 +1605,15 @@ function debounceSearch() {
   searchTimer = setTimeout(() => loadOrders(1), 400);
 }
 
+function divisionLabel(slug) {
+  const map = {
+    dhaka: 'ঢাকা বিভাগ', chittagong: 'চট্টগ্রাম বিভাগ', rajshahi: 'রাজশাহী বিভাগ',
+    khulna: 'খুলনা বিভাগ', barishal: 'বরিশাল বিভাগ', sylhet: 'সিলেট বিভাগ',
+    rangpur: 'রংপুর বিভাগ', mymensingh: 'ময়মনসিংহ বিভাগ',
+  };
+  return map[slug] || slug;
+}
+
 async function viewOrder(id) {
   $('om-id').textContent = id;
   $('om-body').innerHTML = `<div style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
@@ -1616,43 +1627,29 @@ async function viewOrder(id) {
       <div class="om-field"><label>Phone</label><span>${esc(o.customer?.phone || o.phone)}</span></div>
       <div class="om-field"><label>Address</label><span>${esc(o.customer?.address || o.address)}</span></div>
       <div class="om-field"><label>District</label><span>${esc(o.customer?.district || o.district)}</span></div>
+      ${o.customer?.division ? `<div class="om-field"><label>Division / বিভাগ</label><span>${esc(divisionLabel(o.customer.division))}</span></div>` : ''}
+      ${o.customer?.upazila ? `<div class="om-field"><label>Upazila / উপজেলা</label><span>${esc(o.customer.upazila)}</span></div>` : ''}
+      ${o.customer?.union ? `<div class="om-field"><label>Union/Ward / ইউনিয়ন</label><span>${esc(o.customer.union)}</span></div>` : ''}
+      ${o.customer?.village ? `<div class="om-field"><label>Village/Area / গ্রাম-এলাকা</label><span>${esc(o.customer.village)}</span></div>` : ''}
+      ${o.customer?.house ? `<div class="om-field"><label>House/Road / বাড়ি-রোড</label><span>${esc(o.customer.house)}</span></div>` : ''}
       <div class="om-field"><label>Payment</label><span class="pay-badge pb-${o.payment?.method || o.payment}">${(o.payment?.method || o.payment || '').toUpperCase()}</span></div>
       <div class="om-field"><label>Status</label><span class="status-badge sb-${o.status}">${statusLabel(o.status)}</span></div>
       ${o.payment?.transactionId ? `<div class="om-field"><label>Trx ID</label><span>${esc(o.payment.transactionId)}</span></div>` : ''}
       ${o.customer?.note ? `<div class="om-field"><label>Note</label><span>${esc(o.customer.note)}</span></div>` : ''}
-      ${(() => {
-        // UPGRADE-B3: Order GPS Location — parseFloat দিয়ে validate করো (inject-safe)
-        const gps = o.customer?.gpsLocation;
-        const oLat = parseFloat(gps?.lat);
-        const oLng = parseFloat(gps?.lng);
-        const acc  = gps?.accuracy ? Math.round(Number(gps.accuracy)) : null;
-        if (!isNaN(oLat) && !isNaN(oLng)) {
-          return `<div class="om-field"><label><i class="fa-solid fa-location-dot" style="color:var(--blue)"></i> Order Location</label>
-            <span>
-              <a href="https://www.google.com/maps?q=${oLat},${oLng}" target="_blank" rel="noopener noreferrer" style="color:var(--blue)">
-                <i class="fa-solid fa-location-dot"></i> Map এ দেখুন
-              </a>
-              ${acc && !isNaN(acc) ? `<span style="color:var(--text3);font-size:10px;margin-left:4px">(±${acc}m)</span>` : ''}
-            </span></div>`;
-        }
-        return '';
-      })()}
-      ${(() => {
-        // UPGRADE-B3: Order IP Address — esc() দিয়ে sanitize করো
-        const ip = o.customer?.ipAddress;
-        if (ip) {
-          return `<div class="om-field"><label><i class="fa-solid fa-network-wired" style="color:var(--text3)"></i> IP Address</label>
-            <span style="font-family:monospace;font-size:12px">${esc(ip)}</span></div>`;
-        }
-        return '';
-      })()}
     </div>
 
     ${(() => {
       /* ── UPGRADE-F1: Live Tracking Info ── */
-      const fp = o.customer?.fingerprint || null;
       const trackId = 'track-' + (o.orderId || Math.random().toString(36).slice(2));
-      if (!fp || (Object.keys(fp).length === 0)) {
+      const fp = (o.customer?.fingerprint && Object.keys(o.customer.fingerprint).length)
+        ? o.customer.fingerprint
+        : {
+            ip: o.customer?.ipAddress || '',
+            gps: o.customer?.gpsLocation || {},
+            ipDetails: {}, device: {},
+          };
+      const hasAnyTrackingData = fp.ip || (fp.gps && fp.gps.lat) || (o.customer?.gpsLocation && o.customer.gpsLocation.lat);
+      if (!hasAnyTrackingData) {
         return `<div style="background:var(--bg);border-radius:var(--r-lg);padding:12px 14px;margin-top:-6px">
           <div style="font-size:12px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;color:var(--text2)">
             <i class="fa-solid fa-satellite-dish" style="color:var(--blue)"></i> Live Tracking Info
@@ -4152,13 +4149,21 @@ async function loadSiteSettings() {
     const s = data.settings || {};
     if ($('st-name'))     $('st-name').value     = s.siteName       || 'Shoplixo';
     if ($('st-currency')) $('st-currency').value = s.currency       || 'BDT';
-    if ($('st-shipping')) $('st-shipping').value = s.shippingCost   || 60;
     if ($('st-free-min')) $('st-free-min').value = s.freeShippingMin|| 999;
     if ($('st-bkash'))    $('st-bkash').value    = s.bkashNumber    || '';
     if ($('st-nagad'))    $('st-nagad').value    = s.nagadNumber    || '';
     if ($('st-rocket'))   $('st-rocket').value   = s.rocketNumber   || '';
     if ($('st-upay'))     $('st-upay').value     = s.upayNumber     || '';
     if ($('st-whatsapp')) $('st-whatsapp').value = s.whatsappNumber || '';
+
+    // ✅ 3-tier delivery charge — load from /api/settings (public normalized)
+    try {
+      const shipRes = await fetch('/api/settings?action=public').then(r => r.json());
+      const ss = shipRes?.settings || {};
+      if ($('st-ship-dhaka-city')) $('st-ship-dhaka-city').value = ss.shippingDhakaCity   ?? 60;
+      if ($('st-ship-dhaka-sub'))  $('st-ship-dhaka-sub').value  = ss.shippingDhakaSub    ?? 90;
+      if ($('st-ship-outside'))    $('st-ship-outside').value    = ss.shippingOutsideDhaka ?? 120;
+    } catch (e) { console.warn('Shipping settings load failed:', e); }
   } catch(e) { console.warn('Settings load failed:', e); }
   // ✅ NEW: Integration status card আপডেট করো
   loadSystemStatus();
@@ -4191,7 +4196,6 @@ async function saveSiteSettings() {
   const payload = {
     siteName:        $('st-name')?.value     || 'Shoplixo',
     currency:        $('st-currency')?.value || 'BDT',
-    shippingCost:    parseFloat($('st-shipping')?.value)  || 60,
     freeShippingMin: parseFloat($('st-free-min')?.value)  || 999,
     bkashNumber:     $('st-bkash')?.value    || '',
     nagadNumber:     $('st-nagad')?.value    || '',
@@ -4211,6 +4215,19 @@ async function saveSiteSettings() {
     const data = await res.json();
     if (data.ok) toast('✅ Site settings saved! Frontend এ ৬০ সেকেন্ডের মধ্যে reflect হবে।', 'success');
     else toast(data.error || 'Save হয়নি', 'warning');
+
+    // ✅ 3-tier delivery charge — সরাসরি /api/settings এ save করো (normalized snake_case keys)
+    try {
+      await fetch('/api/settings?action=admin-save', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shippingDhakaCity:    parseFloat($('st-ship-dhaka-city')?.value) || 60,
+          shippingDhakaSub:     parseFloat($('st-ship-dhaka-sub')?.value)  || 90,
+          shippingOutsideDhaka: parseFloat($('st-ship-outside')?.value)    || 120,
+        })
+      });
+    } catch (e) { console.warn('Shipping settings save failed:', e); }
   } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
   finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
 }
