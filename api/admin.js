@@ -559,6 +559,8 @@ module.exports = async (req, res) => {
           _id: o._id, orderId: o.orderId,
           name: o.customer.name, phone: o.customer.phone,
           district: o.customer.district, address: o.customer.address,
+          division: o.customer.division || '', upazila: o.customer.upazila || '',
+          union: o.customer.union || '', village: o.customer.village || '', house: o.customer.house || '',
           email: o.customer.email, note: o.customer.note,
           items: o.items, itemCount: o.items.reduce((s, i) => s + i.qty, 0),
           subtotal: o.pricing.subtotal, discount: o.pricing.discount,

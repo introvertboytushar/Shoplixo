@@ -54,8 +54,9 @@ const DEFAULT_SETTINGS = [
   { key: 'currency',         value: 'BDT',                                group: 'general',  label: 'Currency',               type: 'string'  },
 
   // ── Shipping ───────────────────────────────────────────────
-  { key: 'shipping_dhaka',        value: 60,   group: 'shipping', label: 'ঢাকায় Shipping (৳)',       type: 'number'  },
-  { key: 'shipping_outside',      value: 120,  group: 'shipping', label: 'ঢাকার বাইরে Shipping (৳)', type: 'number'  },
+  { key: 'shipping_dhaka',        value: 60,   group: 'shipping', label: 'Dhaka City Shipping (৳)',            type: 'number'  },
+  { key: 'shipping_dhaka_sub',    value: 90,   group: 'shipping', label: 'Dhaka Division (Sub-area) Shipping (৳)', type: 'number'  },
+  { key: 'shipping_outside',      value: 120,  group: 'shipping', label: 'Outside Dhaka Shipping (৳)',         type: 'number'  },
   { key: 'shipping_free_above',   value: 1000, group: 'shipping', label: 'Free Shipping Minimum (৳)', type: 'number'  },
   { key: 'shipping_free_enabled', value: true, group: 'shipping', label: 'Free Shipping Enable',      type: 'boolean' },
   { key: 'shipping_express_fee',  value: 200,  group: 'shipping', label: 'Express Delivery Fee (৳)',  type: 'number'  },
@@ -146,7 +147,7 @@ const PUBLIC_KEYS = [
   'hero_banner_1','hero_banner_2','hero_mobile_banner',
   'meta_title','meta_description','meta_keywords','og_image',
   'facebook_url','instagram_url','youtube_url','whatsapp_no','tiktok_url',
-  'shipping_dhaka','shipping_outside','shipping_free_above','shipping_free_enabled',
+  'shipping_dhaka','shipping_dhaka_sub','shipping_outside','shipping_free_above','shipping_free_enabled',
   'shipping_express_fee','cod_available',
   'bkash_number','nagad_number','rocket_number','upay_number','payment_note',
   'feature_reviews','feature_wishlist','feature_compare','feature_flash',
@@ -179,6 +180,10 @@ function normalizeSettings(raw) {
     shippingCost:           raw.shipping_dhaka,
     shippingOutside:        raw.shipping_outside,
     freeShippingMin:        raw.shipping_free_above,
+    // ✅ NEW: 3-tier delivery charge — clear names for index.html / admin.html
+    shippingDhakaCity:      raw.shipping_dhaka,
+    shippingDhakaSub:       raw.shipping_dhaka_sub,
+    shippingOutsideDhaka:   raw.shipping_outside,
     freeShippingEnabled:    raw.shipping_free_enabled,
     shippingExpressFee:     raw.shipping_express_fee,
     codAvailable:           raw.cod_available,
@@ -263,6 +268,10 @@ const ADMIN_SAVE_MAP = {
   freeShippingMin:        { key: 'shipping_free_above',      group: 'shipping'     },
   freeShippingEnabled:    { key: 'shipping_free_enabled',    group: 'shipping'     },
   shippingExpressFee:     { key: 'shipping_express_fee',     group: 'shipping'     },
+  // ✅ NEW: 3-tier delivery charge — alias mappings (same DB keys as above)
+  shippingDhakaCity:      { key: 'shipping_dhaka',           group: 'shipping'     },
+  shippingDhakaSub:        { key: 'shipping_dhaka_sub',       group: 'shipping'     },
+  shippingOutsideDhaka:    { key: 'shipping_outside',         group: 'shipping'     },
   codAvailable:           { key: 'cod_available',            group: 'shipping'     },
   bkashNumber:            { key: 'bkash_number',             group: 'payment'      },
   nagadNumber:            { key: 'nagad_number',             group: 'payment'      },

@@ -29,7 +29,7 @@
 
 'use strict';
 
-const { connectDB, Order, Coupon, Product, User, AbandonedCart } = require('./_db');
+const { connectDB, Order, Coupon, Product, User, AbandonedCart, getSettings } = require('./_db');
 const {
   handleCors, generateOrderId, checkRateLimit, verifyToken,
   isValidBDPhone, sanitize, sendEmail, sendSMS,
@@ -48,6 +48,12 @@ const BD_DISTRICTS = new Set([
   'নড়াইল','কুষ্টিয়া','মেহেরপুর','চুয়াডাঙ্গা','সাতক্ষীরা','বাগেরহাট','পিরোজপুর',
   'ঝালকাঠি','বরগুনা','পটুয়াখালী','ভোলা','কক্সবাজার','বান্দরবান',
   'রাঙামাটি','খাগড়াছড়ি',
+]);
+
+// Dhaka বিভাগের জেলা গুলো (Dhaka জেলা বাদে) — "Dhaka Sub-area" shipping tier এর জন্য
+const DHAKA_DIVISION_OTHER_DISTRICTS = new Set([
+  'নারায়ণগঞ্জ','গাজীপুর','মানিকগঞ্জ','মুন্সিগঞ্জ','নরসিংদী','শরীয়তপুর',
+  'মাদারীপুর','গোপালগঞ্জ','ফরিদপুর','রাজবাড়ী','টাঙ্গাইল','কিশোরগঞ্জ',
 ]);
 
 /* ── Shipping tiers (from env or defaults) ───────────────────────────────── */
@@ -79,11 +85,24 @@ const COURIER_TRACKING = {
    HELPERS
 ───────────────────────────────────────────────────────────────────────── */
 
-/** Compute shipping cost based on district and subtotal */
-function calcShipping(subtotal, district = '') {
-  if (subtotal >= FREE_SHIPPING_MIN) return 0;
-  if (district === 'ঢাকা') return DHAKA_SHIPPING;
-  return OUTSIDE_SHIPPING || SHIPPING_COST;
+/** Compute shipping cost — settings-driven 3-tier (Dhaka City / Dhaka Sub-area / Outside Dhaka),
+ *  fallback to env vars if settings not configured yet. Also returns the tier name for logging. */
+async function calcShipping(subtotal, district = '') {
+  let shippingSettings = {};
+  try {
+    shippingSettings = await getSettings('shipping');
+  } catch (_) { /* DB issue → fall back to env defaults below */ }
+
+  const dhakaCity = parseInt(shippingSettings.shipping_dhaka_city ?? DHAKA_SHIPPING, 10);
+  const dhakaSub  = parseInt(shippingSettings.shipping_dhaka_sub  ?? OUTSIDE_SHIPPING, 10);
+  const outside   = parseInt(shippingSettings.shipping_outside   ?? OUTSIDE_SHIPPING ?? SHIPPING_COST, 10);
+  const freeMin   = parseInt(shippingSettings.shipping_free_above ?? FREE_SHIPPING_MIN, 10);
+
+  if (subtotal >= freeMin) return 0;
+
+  if (district === 'ঢাকা') return dhakaCity;
+  if (DHAKA_DIVISION_OTHER_DISTRICTS.has(district)) return dhakaSub;
+  return outside;
 }
 
 /** Build courier tracking info from order.tracking field */
@@ -415,6 +434,11 @@ module.exports = async (req, res) => {
     const phone          = sanitize(b.phone,           20).replace(/\s+/g, '');
     const address        = sanitize(b.address,        300);
     const district       = sanitize(b.district,        50);
+    const division = sanitize(b.division || '', 30);
+    const upazila  = sanitize(b.upazila  || '', 100);
+    const union_   = sanitize(b.union    || '', 100);
+    const village  = sanitize(b.village  || '', 150);
+    const house    = sanitize(b.house    || '', 150);
     const email          = sanitize(b.email       || '', 150);
     const note           = sanitize(b.note        || '', 500);
     const payment        = String(b.payment       || '').toLowerCase().trim();
@@ -486,7 +510,7 @@ module.exports = async (req, res) => {
 
       /* ── Pricing calculation ─────────────────────── */
       const subtotal = cleanItems.reduce((s, i) => s + i.price * i.qty, 0);
-      const shipping = calcShipping(subtotal, district);
+      const shipping = await calcShipping(subtotal, district);
 
       /* ── Coupon validation ───────────────────────── */
       let discountAmt   = 0;
@@ -540,6 +564,7 @@ module.exports = async (req, res) => {
         orderId,
         customer: {
           name, phone, email, address, district, note,
+          division, upazila, union: union_, village, house,
           ipAddress:   ip,
           gpsLocation: (lat && lng) ? { lat, lng, accuracy: accuracy || null } : undefined,
           deviceInfo,

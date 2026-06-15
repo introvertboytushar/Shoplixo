@@ -139,6 +139,11 @@ const orderSchema = new mongoose.Schema({
     email:    { type: String, default: '' },
     address:  String,
     district: String,
+    division: { type: String, default: '' },
+    upazila:  { type: String, default: '' },
+    union:    { type: String, default: '' },
+    village:  { type: String, default: '' },
+    house:    { type: String, default: '' },
     area:     { type: String, default: '' },
     note:     { type: String, default: '' },
     // ✅ v5: Location & device tracking — backward compat রাখা হয়েছে
