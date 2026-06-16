@@ -64,8 +64,6 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
 .pf-ava:hover{transform:scale(1.05)}
 .pf-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff}
 .pf-phone{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
-.pf-pts{background:rgba(255,255,255,.1);border-radius:var(--r-full);padding:5px 14px;display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:700;color:var(--gold)}
-.pf-tier-pill{margin-top:8px;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:var(--r-full);font-size:10px;font-weight:800;letter-spacing:.5px;border:1.5px solid}
 .pf-nav{padding:10px 0}
 .pf-nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:var(--t);border-left:3px solid transparent}
 .pf-nav-item:hover{background:var(--bg);color:var(--text)}
@@ -86,7 +84,7 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
 .sc-body{padding:20px 22px}
 
 /* STATS GRID */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
 .stat-box{background:#fff;border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh);text-align:center;transition:var(--t)}
 .stat-box:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
 .stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:16px}
@@ -237,11 +235,6 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
         <div class="stat-lbl">মোট ব্যয়</div>
       </div>
       <div class="stat-box">
-        <div class="stat-icon" style="background:#fff8e6;color:var(--gold)"><i class="fa-solid fa-star"></i></div>
-        <div class="stat-val" id="stat-points" style="color:var(--gold)">0</div>
-        <div class="stat-lbl">Loyalty Points</div>
-      </div>
-      <div class="stat-box">
         <div class="stat-icon" style="background:var(--green-l);color:var(--green)"><i class="fa-solid fa-heart"></i></div>
         <div class="stat-val" id="stat-wishlist" style="color:var(--green)">0</div>
         <div class="stat-lbl">Wishlist</div>
@@ -256,8 +249,6 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
           <div class="pf-ava" id="pf-ava">U</div>
           <div class="pf-name" id="pf-name">Loading...</div>
           <div class="pf-phone" id="pf-phone"></div>
-          <div class="pf-pts"><i class="fa-solid fa-star"></i> <span id="pf-pts">0</span> Points</div>
-          <div class="pf-tier-pill" id="pf-tier-pill" style="background:rgba(205,127,50,.15);color:#CD7F32;border-color:rgba(205,127,50,.3)">🥉 Bronze</div>
         </div>
         <nav class="pf-nav" id="pf-nav">
           <div class="pf-nav-item active" onclick="showSection('orders',this)">
@@ -274,12 +265,6 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
           </div>
           <div class="pf-nav-item" onclick="showSection('addresses',this)">
             <i class="fa-solid fa-location-dot"></i> Address
-          </div>
-          <div class="pf-nav-item" onclick="showSection('loyalty',this)">
-            <i class="fa-solid fa-crown"></i> Points
-          </div>
-          <div class="pf-nav-item" onclick="showSection('referral',this)">
-            <i class="fa-solid fa-share-nodes"></i> Refer
           </div>
           <div class="pf-nav-item" onclick="showSection('recent',this)">
             <i class="fa-solid fa-clock-rotate-left"></i> Viewed
@@ -440,146 +425,6 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
           </div>
         </div>
 
-        <!-- LOYALTY SECTION -->
-        <div id="sec-loyalty" class="pf-section">
-          <div class="section-card" style="margin-bottom:16px">
-            <div class="sc-head"><div class="sc-title"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> Loyalty Points & Tier</div></div>
-            <div class="sc-body">
-              <!-- Tier Hero -->
-              <div id="loyalty-tier-card" style="background:linear-gradient(135deg,var(--dark2),#2D1B6E);border-radius:var(--r-xl);padding:28px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden">
-                <div style="position:absolute;top:-20px;right:-20px;font-size:140px;opacity:.04;pointer-events:none">👑</div>
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
-                  <div>
-                    <div id="tier-badge" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,184,0,.2);color:var(--gold);padding:6px 14px;border-radius:var(--r-full);font-size:12px;font-weight:800;letter-spacing:.5px;border:1px solid rgba(255,184,0,.3);margin-bottom:10px">
-                      <i class="fa-solid fa-crown"></i> BRONZE MEMBER
-                    </div>
-                    <div style="font-family:'Syne',sans-serif;font-size:46px;font-weight:800;color:var(--gold);line-height:1" id="lp-balance">0</div>
-                    <div style="font-size:13px;opacity:.7;margin-top:4px">= <span id="lp-taka" style="font-weight:700">৳0</span> discount value</div>
-                  </div>
-                  <div id="tier-icon" style="font-size:64px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))">🥉</div>
-                </div>
-                <div style="background:rgba(255,255,255,.1);border-radius:var(--r-full);height:8px;overflow:hidden;margin-bottom:8px">
-                  <div id="tier-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),#ff6b35);border-radius:var(--r-full);width:0%;transition:width 1s cubic-bezier(.4,0,.2,1)"></div>
-                </div>
-                <div id="tier-progress-text" style="font-size:12px;opacity:.65">Silver এর জন্য আরো 1000 Points প্রয়োজন</div>
-              </div>
-              <!-- Tier Levels -->
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px">
-                <div id="tier-bronze" style="background:rgba(205,127,50,.1);border:2px solid rgba(205,127,50,.4);border-radius:var(--r-lg);padding:12px;text-align:center;transition:var(--t)">
-                  <div style="font-size:22px;margin-bottom:4px">🥉</div>
-                  <div style="font-size:11px;font-weight:800;color:#CD7F32">Bronze</div>
-                  <div style="font-size:10px;color:var(--text3);margin-top:2px">0–999</div>
-                </div>
-                <div id="tier-silver" style="background:rgba(192,192,192,.1);border:2px solid rgba(192,192,192,.3);border-radius:var(--r-lg);padding:12px;text-align:center;transition:var(--t)">
-                  <div style="font-size:22px;margin-bottom:4px">🥈</div>
-                  <div style="font-size:11px;font-weight:800;color:#808080">Silver</div>
-                  <div style="font-size:10px;color:var(--text3);margin-top:2px">1000–4999</div>
-                </div>
-                <div id="tier-gold" style="background:rgba(255,184,0,.08);border:2px solid rgba(255,184,0,.2);border-radius:var(--r-lg);padding:12px;text-align:center;transition:var(--t)">
-                  <div style="font-size:22px;margin-bottom:4px">🥇</div>
-                  <div style="font-size:11px;font-weight:800;color:var(--gold)">Gold</div>
-                  <div style="font-size:10px;color:var(--text3);margin-top:2px">5000–9999</div>
-                </div>
-                <div id="tier-platinum" style="background:rgba(0,197,138,.08);border:2px solid rgba(0,197,138,.2);border-radius:var(--r-lg);padding:12px;text-align:center;transition:var(--t)">
-                  <div style="font-size:22px;margin-bottom:4px">💎</div>
-                  <div style="font-size:11px;font-weight:800;color:var(--green)">Platinum</div>
-                  <div style="font-size:10px;color:var(--text3);margin-top:2px">10000+</div>
-                </div>
-              </div>
-              <!-- Stats -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-                <div style="background:var(--green-l);border-radius:var(--r-lg);padding:14px;text-align:center">
-                  <div style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:var(--green)" id="lp-earned">0</div>
-                  <div style="font-size:12px;color:var(--text3);margin-top:3px">Total Earned</div>
-                </div>
-                <div style="background:var(--brand-l);border-radius:var(--r-lg);padding:14px;text-align:center">
-                  <div style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:var(--brand)" id="lp-used">0</div>
-                  <div style="font-size:12px;color:var(--text3);margin-top:3px">Total Used</div>
-                </div>
-              </div>
-              <!-- Achievements -->
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:16px;margin-bottom:16px">
-                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-trophy" style="color:var(--gold)"></i> Achievements</div>
-                <div style="display:flex;flex-wrap:wrap;gap:8px" id="achievements-list">
-                  <!-- Populated by JS -->
-                </div>
-              </div>
-              <!-- Points History -->
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:16px">
-                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-list" style="color:var(--brand)"></i> Points History</div>
-                <div id="loyalty-history"><div style="text-align:center;padding:20px;color:var(--text3);font-size:13px"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
-              </div>
-              <!-- How to Earn -->
-              <div style="background:#fff8e6;border-radius:var(--r-lg);padding:14px;margin-top:14px;border:1px solid rgba(255,184,0,.2)">
-                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:8px"><i class="fa-solid fa-lightbulb" style="color:var(--gold)"></i> Points কীভাবে Earn করবেন?</div>
-                <div style="font-size:12px;color:var(--text2);line-height:2.1">
-                  ✅ প্রতি ৳100 কেনাকাটায় <strong>10 points</strong><br>
-                  ✅ প্রথম অর্ডারে <strong>50 bonus points</strong><br>
-                  ✅ Review দিলে <strong>25 points</strong><br>
-                  ✅ Video Review দিলে <strong>50 points</strong><br>
-                  ✅ বন্ধুকে Refer করলে <strong>100 points</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- REFERRAL SECTION -->
-        <div id="sec-referral" class="pf-section">
-          <div class="section-card">
-            <div class="sc-head"><div class="sc-title"><i class="fa-solid fa-share-nodes"></i> Refer & Earn</div></div>
-            <div class="sc-body">
-              <div style="background:linear-gradient(135deg,var(--brand),#ff6b35);border-radius:var(--r-xl);padding:28px;color:#fff;text-align:center;margin-bottom:20px;position:relative;overflow:hidden">
-                <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="85%" cy="15%" r="80" fill="rgba(255,255,255,.06)"/><circle cx="10%" cy="85%" r="50" fill="rgba(255,255,255,.05)"/></svg></div>
-                <div style="position:relative;z-index:1">
-                  <div style="font-size:36px;margin-bottom:10px">🎁</div>
-                  <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px">বন্ধুকে Refer করুন</div>
-                  <div style="opacity:.9;font-size:14px;line-height:1.8">প্রতিটি সফল referral এ আপনি পাবেন <strong>100 Loyalty Points</strong><br>আপনার বন্ধু পাবেন <strong>প্রথম অর্ডারে ৫০ Points!</strong></div>
-                </div>
-              </div>
-              <!-- Code Box -->
-              <div style="background:var(--bg);border-radius:var(--r-xl);padding:20px;margin-bottom:16px;text-align:center">
-                <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">আপনার Referral Code</div>
-                <div id="ref-code" onclick="copyRefCode()" style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--dark);background:var(--brand-l);border:2px dashed var(--brand);border-radius:var(--r-lg);padding:14px 24px;letter-spacing:4px;margin-bottom:8px;cursor:pointer;transition:var(--t);user-select:all">—</div>
-                <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Click করে copy করুন</div>
-                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-                  <button onclick="copyRefCode()" style="background:var(--brand);color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-copy"></i> Copy Code</button>
-                  <button onclick="shareRefLink('whatsapp')" style="background:#25D366;color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
-                  <button onclick="shareRefLink('facebook')" style="background:#1877F2;color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
-                  <button onclick="shareRefLink('telegram')" style="background:#229ED9;color:#fff;padding:10px 18px;border-radius:var(--r-full);font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px"><i class="fa-brands fa-telegram"></i> Telegram</button>
-                </div>
-              </div>
-              <!-- Referral Link -->
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;margin-bottom:16px">
-                <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">আপনার Referral Link</div>
-                <div style="display:flex;gap:8px">
-                  <input id="ref-link-input" readonly style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:12px;background:#fff;outline:none;color:var(--text2)" placeholder="Login করলে link দেখাবে">
-                  <button onclick="copyRefLink()" style="background:var(--dark2);color:#fff;padding:9px 16px;border-radius:var(--r);font-size:12px;font-weight:700;white-space:nowrap"><i class="fa-solid fa-copy"></i></button>
-                </div>
-              </div>
-              <!-- Ref Stats -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
-                <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;text-align:center">
-                  <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif;color:var(--dark)" id="ref-total">0</div>
-                  <div style="font-size:11px;color:var(--text3);margin-top:3px">মোট Referral</div>
-                </div>
-                <div style="background:var(--green-l);border-radius:var(--r-lg);padding:14px;text-align:center">
-                  <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif;color:var(--green)" id="ref-completed">0</div>
-                  <div style="font-size:11px;color:var(--text3);margin-top:3px">Completed</div>
-                </div>
-                <div style="background:#fff8e6;border-radius:var(--r-lg);padding:14px;text-align:center">
-                  <div style="font-size:24px;font-weight:800;font-family:'Syne',sans-serif;color:var(--gold)" id="ref-points">0</div>
-                  <div style="font-size:11px;color:var(--text3);margin-top:3px">Points Earned</div>
-                </div>
-              </div>
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:16px">
-                <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-people-arrows" style="color:var(--brand)"></i> Referral History</div>
-                <div id="referral-history"><div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">কোনো referral নেই। বন্ধুদের share করুন!</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- RECENTLY VIEWED SECTION -->
         <div id="sec-recent" class="pf-section">
           <div class="section-card">
@@ -697,10 +542,8 @@ async function loadProfile() {
 
   document.getElementById('pf-name').textContent     = u.name || '';
   document.getElementById('pf-phone').textContent    = u.phone || '';
-  document.getElementById('pf-pts').textContent      = (u.loyaltyPoints || 0).toLocaleString();
   document.getElementById('stat-orders').textContent = u.totalOrders || 0;
   document.getElementById('stat-spent').textContent  = '৳' + Number(u.totalSpent || 0).toLocaleString();
-  document.getElementById('stat-points').textContent = (u.loyaltyPoints || 0).toLocaleString();
   document.getElementById('stat-wishlist').textContent = JSON.parse(localStorage.getItem('slx_wishlist')||'[]').length;
 
   document.getElementById('pf-edit-name').value  = u.name  || '';
@@ -709,7 +552,6 @@ async function loadProfile() {
   if (u.dob) document.getElementById('pf-edit-dob').value = u.dob;
 
   updateAvaPreview();
-  updateTierDisplay(u.loyaltyPoints || 0);
 }
 
 /* ═══ AVATAR ══════════════════════════════════════════════ */
@@ -746,67 +588,6 @@ function updateAvaPreview() {
     preview.textContent = name[0]?.toUpperCase() || 'U';
     preview.style.background = selectedAvaColor;
   }
-}
-
-/* ═══ TIER DISPLAY ════════════════════════════════════════ */
-function updateTierDisplay(points) {
-  const tiers = [
-    { name:'Bronze', min:0,    max:999,  icon:'🥉', color:'#CD7F32', bgColor:'rgba(205,127,50,.1)', borderColor:'rgba(205,127,50,.4)' },
-    { name:'Silver', min:1000, max:4999, icon:'🥈', color:'#808080', bgColor:'rgba(192,192,192,.1)', borderColor:'rgba(192,192,192,.3)' },
-    { name:'Gold',   min:5000, max:9999, icon:'🥇', color:'#FFB800', bgColor:'rgba(255,184,0,.1)',  borderColor:'rgba(255,184,0,.4)' },
-    { name:'Platinum',min:10000,max:Infinity,icon:'💎',color:'#00C58A',bgColor:'rgba(0,197,138,.1)',borderColor:'rgba(0,197,138,.4)' }
-  ];
-  const tier = tiers.find(t => points >= t.min && points <= t.max) || tiers[0];
-  const nextTier = tiers[tiers.indexOf(tier)+1];
-
-  document.getElementById('tier-badge').innerHTML = `<i class="fa-solid fa-crown"></i> ${tier.name.toUpperCase()} MEMBER`;
-  document.getElementById('tier-icon').textContent = tier.icon;
-
-  const pill = document.getElementById('pf-tier-pill');
-  if (pill) {
-    pill.textContent = `${tier.icon} ${tier.name}`;
-    pill.style.color = tier.color;
-    pill.style.borderColor = tier.borderColor;
-    pill.style.background = tier.bgColor;
-  }
-
-  if (nextTier) {
-    const progress = Math.min(100, ((points - tier.min) / (nextTier.min - tier.min)) * 100);
-    setTimeout(() => { document.getElementById('tier-progress-bar').style.width = progress + '%'; }, 300);
-    document.getElementById('tier-progress-text').textContent = `${tier.name} → ${nextTier.name}: আরো ${(nextTier.min - points).toLocaleString()} Points`;
-  } else {
-    document.getElementById('tier-progress-bar').style.width = '100%';
-    document.getElementById('tier-progress-text').textContent = '🎉 সর্বোচ্চ Platinum Tier অর্জন করেছেন!';
-  }
-
-  // Highlight active tier
-  ['bronze','silver','gold','platinum'].forEach((t,i) => {
-    const el = document.getElementById(`tier-${t}`);
-    if (!el) return;
-    el.style.border = tiers[i].name === tier.name ? `2px solid ${tier.color}` : `2px solid ${tiers[i].borderColor}`;
-    el.style.transform = tiers[i].name === tier.name ? 'scale(1.05)' : 'scale(1)';
-    el.style.boxShadow = tiers[i].name === tier.name ? `0 4px 16px ${tier.bgColor}` : 'none';
-  });
-
-  // Achievements
-  renderAchievements(points, currentUser?.totalOrders || 0, currentUser?.totalReferrals || 0);
-}
-
-function renderAchievements(points, orders, refs) {
-  const list = document.getElementById('achievements-list');
-  if (!list) return;
-  const achieves = [
-    { label:'🛍️ First Order', unlocked: orders >= 1 },
-    { label:'⭐ 5 Reviews',   unlocked: false },
-    { label:'🔥 10 Orders',   unlocked: orders >= 10 },
-    { label:'👥 5 Referrals', unlocked: refs >= 5 },
-    { label:'💰 ৳5000 Spent', unlocked: (currentUser?.totalSpent||0) >= 5000 },
-    { label:'🏆 1000 Points', unlocked: points >= 1000 },
-  ];
-  list.innerHTML = achieves.map(a => `
-    <div style="display:inline-flex;align-items:center;gap:5px;background:${a.unlocked?'var(--green-l)':'#fff'};border:1.5px solid ${a.unlocked?'var(--green)':'var(--border)'};border-radius:var(--r-full);padding:5px 12px;font-size:11px;font-weight:600;color:${a.unlocked?'var(--green)':'var(--text3)'};${a.unlocked?'':'opacity:.55'}">
-      ${a.label}${!a.unlocked?' <span style="font-size:9px;opacity:.7">(Locked)</span>':''}
-    </div>`).join('');
 }
 
 /* ═══ LOAD ORDERS ═════════════════════════════════════════ */
@@ -1068,9 +849,7 @@ function showSection(name, el) {
   document.querySelectorAll('.pf-nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`sec-${name}`)?.classList.add('active');
   if (el) el.classList.add('active');
-  if (name === 'loyalty')   { loadLoyaltyHistory(); updateTierDisplay(currentUser?.loyaltyPoints||0); }
-  if (name === 'referral')  loadReferralData();
-  if (name === 'addresses') renderAddresses();
+  if (name === 'addresses') loadAddresses();
   if (name === 'wishlist')  loadWishlist();
   if (name === 'recent')    renderRecentlyViewed();
 }
@@ -1152,36 +931,77 @@ function clearWishlist() {
   loadWishlist();
 }
 
-/* ═══ ADDRESSES ═══════════════════════════════════════════ */
-function getAddresses() { return JSON.parse(localStorage.getItem('slx_addresses')||'[]'); }
-function saveAddressesLS(arr) { localStorage.setItem('slx_addresses', JSON.stringify(arr)); }
-
-function renderAddresses() {
-  const body  = document.getElementById('addresses-body');
-  const addrs = getAddresses();
-  if (!addrs.length) {
-    body.innerHTML = `<div class="empty-state"><i class="fa-solid fa-map-location-dot"></i><p>কোনো address নেই। "নতুন" বাটন চাপুন।</p></div>`;
-    return;
+/* ═══ ADDRESSES (API-based) ═══════════════════════════════ */
+async function loadAddresses() {
+  const body = document.getElementById('addresses-body');
+  if (!body) return;
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> ঠিকানা লোড হচ্ছে...</div>';
+  try {
+    const res  = await fetch(`${API_BASE}/api/auth?action=addresses`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    const r = await res.json();
+    if (r.ok && r.addresses?.length) {
+      body.innerHTML = r.addresses.map((a, i) => `
+        <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+          <div style="width:40px;height:40px;border-radius:50%;background:${a.isDefault?'var(--brand)':'var(--bg3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="fa-solid fa-location-dot" style="color:${a.isDefault?'#fff':'var(--text3)'}"></i>
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <span style="font-weight:700;font-size:14px">${esc(a.label||a.district||'Address')}</span>
+              ${a.isDefault?'<span style="background:var(--green-l);color:var(--green);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px">Default</span>':''}
+            </div>
+            <div style="font-size:13px;color:var(--text2)">${esc(a.address)}, ${esc(a.upazila||'')} ${esc(a.district)}${a.zip?` - ${esc(a.zip)}`:''}
+            </div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">${esc(a.phone||'')}</div>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              ${!a.isDefault?`<button onclick="setDefaultAddress(${i})" style="padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--bg);border:1.5px solid var(--border);cursor:pointer;color:var(--text2)">Default করুন</button>`:''}
+              <button onclick="deleteAddress(${i})" style="padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--brand-l);border:none;cursor:pointer;color:var(--brand)"><i class="fa-solid fa-trash"></i> মুছুন</button>
+            </div>
+          </div>
+        </div>`).join('');
+    } else {
+      body.innerHTML = '<div class="empty-state"><i class="fa-solid fa-map-location-dot"></i><p>কোনো ঠিকানা সংরক্ষিত নেই।<br>অর্ডার করলে স্বয়ংক্রিয়ভাবে এখানে যুক্ত হবে।</p></div>';
+    }
+  } catch {
+    body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">ঠিকানা লোড করা যায়নি।</div>';
   }
-  body.innerHTML = addrs.map((a,i) => `
-    <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start">
-      <div style="width:40px;height:40px;border-radius:50%;background:${a.isDefault?'var(--brand)':'var(--bg3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <i class="fa-solid fa-location-dot" style="color:${a.isDefault?'#fff':'var(--text3)'}"></i>
-      </div>
-      <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-          <span style="font-weight:700;font-size:14px">${esc(a.label||'Address')}</span>
-          ${a.isDefault?'<span style="background:var(--brand-l);color:var(--brand);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px">Default</span>':''}
-        </div>
-        <div style="font-size:13px;color:var(--text2)">${esc(a.address)}, ${esc(a.district)}${a.zip?` - ${esc(a.zip)}`:''}
-        </div>
-        <div style="font-size:12px;color:var(--text3);margin-top:2px">${esc(a.phone||'')}</div>
-        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-          ${!a.isDefault?`<button onclick="setDefaultAddr(${i})" style="padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--bg);border:1.5px solid var(--border);cursor:pointer;color:var(--text2)">Default করুন</button>`:''}
-          <button onclick="deleteAddr(${i})" style="padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;background:var(--brand-l);border:none;cursor:pointer;color:var(--brand)"><i class="fa-solid fa-trash"></i> মুছুন</button>
-        </div>
-      </div>
-    </div>`).join('');
+}
+
+async function setDefaultAddress(index) {
+  try {
+    const res0 = await fetch(`${API_BASE}/api/auth?action=addresses`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    const r0 = await res0.json();
+    const addr = r0?.addresses?.[index];
+    if (!addr) return;
+    await fetch(`${API_BASE}/api/auth?action=address-save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ ...addr, isDefault: true })
+    });
+    toast('Default ঠিকানা সেট হয়েছে ✅', 'success');
+    loadAddresses();
+  } catch {
+    toast('Error হয়েছে, আবার চেষ্টা করুন', 'error');
+  }
+}
+
+async function deleteAddress(index) {
+  if (!confirm('এই ঠিকানা মুছে ফেলবেন?')) return;
+  try {
+    await fetch(`${API_BASE}/api/auth?action=address-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ index })
+    });
+    toast('ঠিকানা মুছে ফেলা হয়েছে', 'info');
+    loadAddresses();
+  } catch {
+    toast('Error হয়েছে, আবার চেষ্টা করুন', 'error');
+  }
 }
 
 function showAddressForm() {
@@ -1197,7 +1017,7 @@ function hideAddrForm() {
   const cb = document.getElementById('addr-default'); if (cb) cb.checked=false;
 }
 
-function saveAddress() {
+async function saveAddress() {
   const label    = document.getElementById('addr-label')?.value?.trim();
   const phone    = document.getElementById('addr-phone')?.value?.trim();
   const address  = document.getElementById('addr-address')?.value?.trim();
@@ -1208,153 +1028,23 @@ function saveAddress() {
   if (!address || address.length < 5) { toast('ঠিকানা সঠিকভাবে দিন!', 'error'); return; }
   if (!district) { toast('জেলা বেছে নিন!', 'error'); return; }
 
-  let addrs = getAddresses();
-  if (isDef) addrs = addrs.map(a => ({...a, isDefault:false}));
-  addrs.push({ label:label||'Address', phone, address, district, zip, isDefault:isDef });
-  saveAddressesLS(addrs);
-  hideAddrForm();
-  renderAddresses();
-  toast('Address সেভ হয়েছে ✅', 'success');
-}
-
-function setDefaultAddr(idx) {
-  let addrs = getAddresses();
-  addrs = addrs.map((a,i) => ({...a, isDefault:i===idx}));
-  saveAddressesLS(addrs);
-  renderAddresses();
-  toast('Default address সেট হয়েছে', 'success');
-}
-
-function deleteAddr(idx) {
-  if (!confirm('এই address মুছবেন?')) return;
-  let addrs = getAddresses();
-  addrs.splice(idx, 1);
-  saveAddressesLS(addrs);
-  renderAddresses();
-  toast('Address মুছে ফেলা হয়েছে', 'info');
-}
-
-/* ═══ LOYALTY HISTORY ═════════════════════════════════════ */
-async function loadLoyaltyHistory() {
-  const el = document.getElementById('loyalty-history');
-  if (!el || !currentUser) return;
-
-  document.getElementById('lp-balance').textContent = (currentUser.loyaltyPoints||0).toLocaleString();
-  document.getElementById('lp-taka').textContent = '৳' + Math.floor((currentUser.loyaltyPoints||0) / 10).toLocaleString();
-
   try {
-    const res  = await fetch(`${API_BASE}/api/loyalty?action=history`, {
-      headers: { Authorization: `Bearer ${authToken}` }
+    const res = await fetch(`${API_BASE}/api/auth?action=address-save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ label: label||'Address', phone, address, district, zip, isDefault: isDef })
     });
     const data = await res.json();
-    if (data.ok && data.transactions?.length) {
-      const earned = data.transactions.filter(t=>t.points>0).reduce((s,t)=>s+t.points,0);
-      const used   = Math.abs(data.transactions.filter(t=>t.points<0).reduce((s,t)=>s+t.points,0));
-      document.getElementById('lp-earned').textContent = earned.toLocaleString();
-      document.getElementById('lp-used').textContent   = used.toLocaleString();
-      el.innerHTML = data.transactions.slice(0,20).map(t => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
-          <div>
-            <div style="font-weight:600;color:var(--dark)">${esc(t.note||typeLabel(t.type))}</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.createdAt?new Date(t.createdAt).toLocaleDateString('bn-BD'):''}</div>
-          </div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:${t.points>=0?'var(--green)':'var(--brand)'}">
-            ${t.points>=0?'+':''}${t.points} pts
-          </div>
-        </div>`).join('');
-      return;
+    if (data.ok !== false) {
+      hideAddrForm();
+      toast('ঠিকানা সেভ হয়েছে ✅', 'success');
+      loadAddresses();
+    } else {
+      toast(data.error || 'সেভ করা যায়নি', 'error');
     }
-  } catch {}
-
-  el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px"><i class="fa-solid fa-star" style="font-size:28px;opacity:.2;display:block;margin-bottom:8px"></i>কোনো transaction নেই।<br>কেনাকাটা করুন points earn করুন!</div>`;
-}
-
-function typeLabel(t) {
-  return {earn:'কেনাকাটা',redeem:'ব্যবহার',bonus:'Bonus',referral:'Referral',admin:'Admin'}[t]||t;
-}
-
-/* ═══ REFERRAL ════════════════════════════════════════════ */
-async function loadReferralData() {
-  const u = currentUser;
-  if (!u) return;
-  const code = u.referralCode || generateRefCode(u.phone);
-  document.getElementById('ref-code').textContent = code;
-  const url = `https://shoplixo.shop/?ref=${encodeURIComponent(code)}`;
-  const linkInput = document.getElementById('ref-link-input');
-  if (linkInput) linkInput.value = url;
-  document.getElementById('ref-total').textContent = u.totalReferrals || 0;
-
-  try {
-    const res  = await fetch(`${API_BASE}/api/referral?action=my`, {
-      headers: { Authorization: `Bearer ${authToken}` }
-    });
-    const data = await res.json();
-    if (data.ok) {
-      document.getElementById('ref-completed').textContent = data.completed || 0;
-      document.getElementById('ref-points').textContent   = data.totalPoints || 0;
-      if (data.referrals?.length) {
-        document.getElementById('referral-history').innerHTML = data.referrals.map(r => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
-            <div>
-              <div style="font-weight:600">${esc(r.referredPhone||'—')}</div>
-              <div style="font-size:11px;color:var(--text3)">${r.createdAt?new Date(r.createdAt).toLocaleDateString('bn-BD'):''}</div>
-            </div>
-            <span style="padding:3px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700;background:${r.status==='completed'?'var(--green-l)':r.status==='paid'?'var(--blue-l)':'#fff8e6'};color:${r.status==='completed'?'var(--green)':r.status==='paid'?'var(--blue)':'var(--gold)'}">
-              ${r.status==='completed'?'✅ Complete':r.status==='paid'?'💰 Paid':'⏳ Pending'}
-            </span>
-          </div>`).join('');
-      }
-    }
-  } catch {}
-}
-
-function generateRefCode(phone) {
-  const suffix = String(phone||'').replace(/\D/g,'').slice(-4).toUpperCase();
-  return 'SLX' + (suffix || Math.random().toString(36).slice(2,6).toUpperCase());
-}
-
-function copyRefCode() {
-  const el = document.getElementById('ref-code');
-  const code = el?.textContent?.trim();
-  if (!code || code==='—') { toast('আগে login করুন', 'error'); return; }
-  navigator.clipboard.writeText(code).then(() => {
-    toast('Referral code copy হয়েছে! 📋', 'success');
-  }).catch(() => {
-    fallbackCopy(code);
-    toast('Copied! 📋', 'success');
-  });
-}
-
-function copyRefLink() {
-  const val = document.getElementById('ref-link-input')?.value;
-  if (!val) { toast('আগে login করুন', 'error'); return; }
-  navigator.clipboard.writeText(val).then(() => {
-    toast('Referral link copy হয়েছে! 🔗', 'success');
-  }).catch(() => {
-    fallbackCopy(val);
-    toast('Copied! 🔗', 'success');
-  });
-}
-
-function shareRefLink(platform) {
-  const code = document.getElementById('ref-code')?.textContent?.trim();
-  if (!code || code==='—') { toast('আগে login করুন', 'error'); return; }
-  const url = `https://shoplixo.shop/?ref=${encodeURIComponent(code)}`;
-  const msg = `🎁 Shoplixo থেকে কিনুন — সেরা দাম!\nআমার referral code: *${code}* ব্যবহার করুন, প্রথম অর্ডারে পাবেন special discount!\n\n${url}`;
-  const links = {
-    whatsapp: `https://wa.me/?text=${encodeURIComponent(msg)}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-    telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(msg)}`
-  };
-  if (links[platform]) window.open(links[platform], '_blank', 'noopener');
-}
-
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-  document.body.appendChild(ta); ta.select();
-  document.execCommand('copy');
-  document.body.removeChild(ta);
+  } catch {
+    toast('Connection error!', 'error');
+  }
 }
 
 /* ═══ RECENTLY VIEWED ═════════════════════════════════════ */

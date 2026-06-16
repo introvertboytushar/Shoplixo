@@ -345,21 +345,11 @@ tr:hover td{background:var(--bg)}
         <i class="fa-solid fa-star"></i> Reviews
         <span class="sb-badge" id="review-badge" style="display:none">!</span>
       </div>
-      <div class="sb-item" onclick="showSection('coupons')">
-        <i class="fa-solid fa-tag"></i> Coupons
-      </div>
       <div class="sb-item" onclick="showSection('flashsale')">
         <i class="fa-solid fa-bolt"></i> Flash Sales
       </div>
       <div class="sb-item" onclick="showSection('bundles')">
         <i class="fa-solid fa-layer-group"></i> Bundles
-      </div>
-      <div class="sb-item" onclick="showSection('loyalty')">
-        <i class="fa-solid fa-crown" style="color:var(--gold)"></i> Loyalty Points
-        <span class="sb-badge" style="background:var(--gold);color:#000">NEW</span>
-      </div>
-      <div class="sb-item" onclick="showSection('referral')">
-        <i class="fa-solid fa-users"></i> Referral Program
       </div>
       <div class="sb-section">Operations</div>
       <div class="sb-item" onclick="showSection('returns')">
@@ -789,44 +779,6 @@ tr:hover td{background:var(--bg)}
         </div>
       </div>
 
-      <!-- ── COUPONS ── -->
-      <div class="section" id="sec-coupons">
-        <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">
-          <div class="table-card">
-            <div class="tc-head">
-              <div class="tc-title"><i class="fa-solid fa-tag" style="color:var(--green)"></i> Active Coupons</div>
-            </div>
-            <table>
-              <thead><tr><th>Code</th><th>Type</th><th>Discount</th><th>Min Order</th><th>Used / Max</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
-              <tbody id="coupons-body"><tr><td colspan="8" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr></tbody>
-            </table>
-          </div>
-          <div class="table-card" style="padding:20px">
-            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-plus" style="color:var(--green)"></i> New Coupon</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Coupon Code</label>
-                <input id="nc-code" placeholder="SAVE20" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Type</label>
-                <select id="nc-type" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none;background:#fff">
-                  <option value="percent">Percentage (%)</option>
-                  <option value="flat">Flat Amount (৳)</option>
-                </select></div>
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Discount Value</label>
-                <input id="nc-discount" type="number" placeholder="20" min="1" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Min Order (৳)</label>
-                <input id="nc-min" type="number" placeholder="500" min="0" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Max Uses (0 = unlimited)</label>
-                <input id="nc-max" type="number" placeholder="100" min="0" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Expires At (optional)</label>
-                <input id="nc-expiry" type="date" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
-              <div><label style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;display:block;margin-bottom:4px">Description</label>
-                <input id="nc-desc" placeholder="Optional note" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none"></div>
-              <button onclick="createCoupon()" style="background:var(--green);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px"><i class="fa-solid fa-plus"></i> Create Coupon</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- ── FLASH SALE ── -->
       <div class="section" id="sec-flashsale">
         <div style="display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start">
@@ -887,106 +839,6 @@ tr:hover td{background:var(--bg)}
           </div>
         </div>
       </div><!-- end bundles -->
-
-      <!-- ── LOYALTY SECTION ── -->
-      <div class="section" id="sec-loyalty">
-        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-          <div class="stat-card"><div class="sc-label">Total Members</div><div class="sc-val" id="loy-members">0</div><div class="sc-sub up"><i class="fa-solid fa-users"></i> Loyalty users</div><div class="sc-icon si-users"><i class="fa-solid fa-crown"></i></div></div>
-          <div class="stat-card"><div class="sc-label">Points Issued</div><div class="sc-val" id="loy-issued">0</div><div class="sc-sub up"><i class="fa-solid fa-star"></i> Total Points</div><div class="sc-icon si-revenue"><i class="fa-solid fa-star"></i></div></div>
-          <div class="stat-card"><div class="sc-label">Points Redeemed</div><div class="sc-val" id="loy-redeemed">0</div><div class="sc-sub up"><i class="fa-solid fa-coins"></i> Redeemed</div><div class="sc-icon si-orders"><i class="fa-solid fa-coins"></i></div></div>
-          <div class="stat-card"><div class="sc-label">Tier Distribution</div><div class="sc-val" id="loy-gold-count" style="color:var(--gold)">0 Gold</div><div class="sc-sub"><i class="fa-solid fa-trophy"></i> Top tier users</div><div class="sc-icon si-pending"><i class="fa-solid fa-trophy"></i></div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div class="table-card">
-            <div class="tc-head"><div class="tc-title"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> Loyalty Members</div><button class="tc-btn" onclick="loadLoyaltyData()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button></div>
-            <div id="loyalty-members-list" style="padding:16px"></div>
-          </div>
-          <div class="table-card" style="padding:20px">
-            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-sliders" style="color:var(--gold)"></i> Tier Settings</div>
-            <div style="font-size:12px;color:var(--text3);margin-bottom:16px">DB-তে configure হওয়া thresholds — এখান থেকে সরাসরি edit ও save করুন</div>
-            <div style="display:flex;flex-direction:column;gap:12px">
-              <!-- Points Per Order -->
-              <div>
-                <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Points Per Order (প্রতি ৳100 এ)</label>
-                <input id="ts-points-per-order" type="number" placeholder="10" min="1"
-                  style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
-              </div>
-              <!-- Bronze -->
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
-                <div style="font-weight:700;color:var(--dark);margin-bottom:8px;display:flex;align-items:center;gap:6px">🥉 Bronze <span style="font-size:11px;font-weight:400;color:var(--text3)">(Minimum — সাধারণত 0)</span></div>
-                <input id="ts-bronze-min" type="number" value="0" disabled
-                  style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;background:#f5f5f5;color:var(--text3)">
-              </div>
-              <!-- Silver -->
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
-                <div style="font-weight:700;color:var(--dark);margin-bottom:8px">🥈 Silver থেকে (min points)</div>
-                <input id="ts-silver-min" type="number" placeholder="1000" min="1"
-                  style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none">
-              </div>
-              <!-- Gold -->
-              <div style="background:rgba(255,184,0,.08);border-radius:var(--r-lg);padding:14px;border:1px solid rgba(255,184,0,.3)">
-                <div style="font-weight:700;color:var(--dark);margin-bottom:8px">🥇 Gold থেকে (min points)</div>
-                <input id="ts-gold-min" type="number" placeholder="5000" min="1"
-                  style="width:100%;padding:7px 10px;border:1.5px solid rgba(255,184,0,.5);border-radius:var(--r);font-size:13px;outline:none">
-              </div>
-              <!-- Platinum -->
-              <div style="background:rgba(229,228,226,.12);border-radius:var(--r-lg);padding:14px;border:1px solid rgba(229,228,226,.4)">
-                <div style="font-weight:700;color:var(--dark);margin-bottom:8px">💎 Platinum থেকে (min points)</div>
-                <input id="ts-platinum-min" type="number" placeholder="20000" min="1"
-                  style="width:100%;padding:7px 10px;border:1.5px solid #ccc;border-radius:var(--r);font-size:13px;outline:none">
-              </div>
-              <!-- Save button -->
-              <button onclick="saveLoyaltyTierSettings()"
-                style="background:linear-gradient(135deg,var(--gold),#e6a800);color:var(--dark);padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
-                <i class="fa-solid fa-floppy-disk"></i> Tier Settings Save করুন
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── REFERRAL SECTION ── -->
-      <div class="section" id="sec-referral">
-        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-          <div class="stat-card"><div class="sc-label">Total Referrals</div><div class="sc-val" id="ref-total">0</div><div class="sc-sub up"><i class="fa-solid fa-users"></i></div><div class="sc-icon si-users"><i class="fa-solid fa-share-nodes"></i></div></div>
-          <div class="stat-card"><div class="sc-label">Successful</div><div class="sc-val" id="ref-success" style="color:var(--green)">0</div><div class="sc-sub up"><i class="fa-solid fa-check-circle"></i></div><div class="sc-icon si-revenue"><i class="fa-solid fa-check"></i></div></div>
-          <div class="stat-card"><div class="sc-label">Conversion Rate</div><div class="sc-val" id="ref-conv">0%</div><div class="sc-sub"><i class="fa-solid fa-chart-line"></i></div><div class="sc-icon si-orders"><i class="fa-solid fa-percent"></i></div></div>
-          <div class="stat-card"><div class="sc-label">Revenue from Refs</div><div class="sc-val" id="ref-rev">৳0</div><div class="sc-sub up"><i class="fa-solid fa-bangladeshi-taka-sign"></i></div><div class="sc-icon si-pending"><i class="fa-solid fa-coins"></i></div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px">
-          <div class="table-card">
-            <div class="tc-head"><div class="tc-title"><i class="fa-solid fa-users"></i> Referral Tracking</div><button class="tc-btn" onclick="loadReferralData()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button></div>
-            <div id="referral-list" style="padding:16px"><div style="text-align:center;padding:30px;color:var(--text3)">Referral data load হচ্ছে...</div></div>
-          </div>
-          <div class="table-card" style="padding:20px">
-            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px"><i class="fa-solid fa-gear" style="color:var(--blue)"></i> Referral Settings</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
-                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px">Referral Reward (Referrer)</div>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <input id="ref-reward-pts" value="200" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
-                  <span style="font-size:13px;color:var(--text2)">Points</span>
-                </div>
-              </div>
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
-                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px">Discount for Referred User</div>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <input id="ref-discount-pct" value="10" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
-                  <span style="font-size:13px;color:var(--text2)">% off first order</span>
-                </div>
-              </div>
-              <div style="background:var(--bg);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)">
-                <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:6px">Minimum Order for Referral to Count</div>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <input id="ref-min-order" value="500" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;outline:none">
-                  <span style="font-size:13px;color:var(--text2)">৳</span>
-                </div>
-              </div>
-              <button onclick="saveReferralSettings()" style="background:var(--blue);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer"><i class="fa-solid fa-save"></i> Save Settings</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- ── RETURNS ── -->
       <div class="section" id="sec-returns">
@@ -1305,6 +1157,22 @@ tr:hover td{background:var(--bg)}
         <div class="upload-progress" id="upload-progress" style="display:none"><div class="upload-progress-bar" id="upload-bar"></div></div>
       </div>
       <div class="img-preview-grid" id="img-preview-grid"></div>
+      <!-- Custom Delivery Charge (per-product override) -->
+      <div class="pm-field" style="grid-column:1/-1">
+        <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px">
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px">🚚 Custom Delivery Charge (Optional)</div>
+          <label class="pm-check" style="margin-bottom:0">
+            <input type="checkbox" id="pm-dc-enabled" onchange="togglePmDeliveryCharge(this.checked)">
+            এই Product-এর জন্য আলাদা Delivery Charge সেট করুন (না দিলে site-wide default প্রযোজ্য হবে)
+          </label>
+          <div class="pm-form-grid" id="pm-dc-fields" style="margin-top:12px;opacity:.5">
+            <div class="pm-field"><label>ঢাকা শহর (Dhaka City) ৳</label><input id="pm-dc-dhaka-city" type="number" placeholder="60" min="0" disabled></div>
+            <div class="pm-field"><label>ঢাকা সাব-এরিয়া (Savar/Keraniganj/Dhamrai) ৳</label><input id="pm-dc-dhaka-subarea" type="number" placeholder="75" min="0" disabled></div>
+            <div class="pm-field"><label>ঢাকা বিভাগ (অন্য জেলা) ৳</label><input id="pm-dc-dhaka-division" type="number" placeholder="90" min="0" disabled></div>
+            <div class="pm-field"><label>ঢাকা বিভাগের বাইরে (সারা বাংলাদেশ) ৳</label><input id="pm-dc-outside-dhaka" type="number" placeholder="120" min="0" disabled></div>
+          </div>
+        </div>
+      </div>
       <div class="pm-checkboxes">
         <label class="pm-check"><input type="checkbox" id="pm-featured"> Featured</label>
         <label class="pm-check"><input type="checkbox" id="pm-new"> New Arrival</label>
@@ -1448,8 +1316,8 @@ window.addEventListener('DOMContentLoaded', () => {
 const sectionTitles = {
   dashboard: 'Dashboard', orders: 'Orders', customers: 'Customers',
   newsletter: 'Newsletter', settings: 'Settings', products: 'Products',
-  reviews: 'Reviews & Comments', coupons: 'Coupons', flashsale: 'Flash Sales',
-  bundles: 'Bundle Offers', loyalty: 'Loyalty Points', referral: 'Referral Program',
+  reviews: 'Reviews & Comments', flashsale: 'Flash Sales',
+  bundles: 'Bundle Offers',
   returns: 'Return Requests', abandoned: 'Abandoned Carts', suppliers: 'Suppliers',
   inventory: 'Inventory Log', notifications: 'Notifications',
 };
@@ -1476,11 +1344,8 @@ function loadCurrentSection(id) {
   else if (active === 'newsletter')    loadNewsletter();
   else if (active === 'products')      loadAdminProducts();
   else if (active === 'reviews')       loadReviews();
-  else if (active === 'coupons')       loadCoupons();
   else if (active === 'flashsale')     loadFlashSales();
   else if (active === 'bundles')       loadBundles();
-  else if (active === 'loyalty')       loadLoyaltyData();
-  else if (active === 'referral')      loadReferralData();
   else if (active === 'returns')       loadReturns();
   else if (active === 'abandoned')     loadAbandoned();
   else if (active === 'suppliers')     loadSuppliers();
@@ -2013,7 +1878,6 @@ async function loadCustomers(page = 1) {
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;font-size:12px">
     <div><span style="color:var(--text3)">Orders:</span> <strong>${c.totalOrders || 0}</strong></div>
     <div><span style="color:var(--text3)">Spent:</span> <strong>৳${Number(c.totalSpent || 0).toLocaleString()}</strong></div>
-    <div><span style="color:var(--text3)">Points:</span> <strong>${c.loyaltyPoints || 0}</strong></div>
     <div><span style="color:var(--text3)">Logins:</span> <strong>${c.loginCount || 0}</strong></div>
     <div><span style="color:var(--text3)">Joined:</span> <strong>${c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD') : '—'}</strong></div>
     <div><span style="color:var(--text3)">Device:</span> <strong style="font-size:10px">${(c.deviceInfo || '').includes('Mobile') ? '📱 Mobile' : '💻 Desktop'}</strong></div>
@@ -2035,10 +1899,6 @@ async function loadCustomers(page = 1) {
     <button onclick="viewLoginHistory('${safeId}','${safeName}')"
       style="flex:1;background:var(--bg2,#fff);color:var(--text2);padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:1.5px solid var(--border);cursor:pointer">
       <i class="fa-solid fa-clock-rotate-left"></i> Login History
-    </button>
-    <button onclick="openAdjustPointsModal('${safeId}','${safeName}',${c.loyaltyPoints || 0})"
-      style="flex:1;background:#fff8e6;color:#b36b00;padding:7px 10px;border-radius:var(--r);font-size:12px;font-weight:700;border:1.5px solid #ffc107;cursor:pointer">
-      <i class="fa-solid fa-coins"></i> Points Adjust
     </button>
     ${c.isOnline ? `
     <button onclick="forceLogoutCustomer('${safeId}','${safeName}')"
@@ -2253,119 +2113,6 @@ async function banCustomer(userId, currentActive) {
   else toast(data.error || 'Error', 'warning');
 }
 
-/* ── ITEM 3: Adjust Points Modal ── */
-function openAdjustPointsModal(userId, name, currentPoints) {
-  // পুরনো modal থাকলে সরাও
-  const old = document.getElementById('adjust-points-modal');
-  if (old) old.remove();
-
-  const modal = document.createElement('div');
-  modal.id = 'adjust-points-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)';
-  modal.innerHTML = `
-    <div style="background:#fff;border-radius:var(--r-xl);width:100%;max-width:400px;box-shadow:var(--sh-lg);overflow:hidden" onclick="event.stopPropagation()">
-      <div style="background:linear-gradient(135deg,#b36b00,#ffc107);padding:18px 22px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px">
-          <i class="fa-solid fa-coins"></i> Points Adjust — ${esc(name)}
-        </div>
-        <button onclick="document.getElementById('adjust-points-modal').remove()"
-          style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div style="padding:22px;display:flex;flex-direction:column;gap:16px">
-        <div style="background:#fff8e6;border-radius:var(--r);padding:10px 14px;font-size:13px;color:#856404;border:1px solid #ffc107">
-          <i class="fa-solid fa-crown"></i> বর্তমান Balance: <strong>${Number(currentPoints).toLocaleString()} pts</strong>
-        </div>
-        <div>
-          <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">
-            Amount * <span style="text-transform:none;font-weight:400">(positive = যোগ, negative = বিয়োগ)</span>
-          </label>
-          <input id="adj-pts-amount" type="number" placeholder="+100 বা -50"
-            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:15px;font-weight:700;outline:none;transition:var(--t)"
-            onfocus="this.style.borderColor='#ffc107'" onblur="this.style.borderColor='var(--border)'">
-          <div id="adj-pts-preview" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
-        </div>
-        <div>
-          <label style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Reason (optional)</label>
-          <input id="adj-pts-reason" type="text" placeholder="কেন adjust করা হচ্ছে..."
-            style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;outline:none;transition:var(--t)"
-            onfocus="this.style.borderColor='#ffc107'" onblur="this.style.borderColor='var(--border)'">
-        </div>
-        <div style="display:flex;gap:10px">
-          <button id="adj-pts-apply-btn" onclick="adjustLoyaltyPoints('${userId}', '${esc(name)}', ${currentPoints})"
-            style="flex:1;background:linear-gradient(135deg,#b36b00,#ffc107);color:#fff;padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
-            <i class="fa-solid fa-check"></i> Apply
-          </button>
-          <button onclick="document.getElementById('adjust-points-modal').remove()"
-            style="flex:1;background:var(--bg);color:var(--text2);padding:11px;border-radius:var(--r-full);font-size:14px;font-weight:600;border:1.5px solid var(--border);cursor:pointer">
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>`;
-
-  // Amount input — preview দেখাও
-  const amtInput = modal.querySelector('#adj-pts-amount');
-  const preview  = modal.querySelector('#adj-pts-preview');
-  amtInput.addEventListener('input', () => {
-    const v = parseFloat(amtInput.value);
-    if (!isNaN(v) && v !== 0) {
-      const newBal = currentPoints + v;
-      preview.style.color = v > 0 ? 'var(--green)' : 'var(--brand)';
-      preview.textContent = `নতুন balance হবে: ${Math.max(0, newBal).toLocaleString()} pts (${v > 0 ? '+' : ''}${v})`;
-    } else {
-      preview.textContent = '';
-    }
-  });
-
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-  document.body.appendChild(modal);
-  setTimeout(() => amtInput.focus(), 100);
-}
-window.openAdjustPointsModal = openAdjustPointsModal;
-
-async function adjustLoyaltyPoints(userId, name, currentPoints) {
-  const amountInput = $('adj-pts-amount');
-  const amount = parseFloat(amountInput?.value);
-  const reason = $('adj-pts-reason')?.value?.trim() || '';
-
-  // Validation
-  if (isNaN(amount) || amount === 0) {
-    amountInput?.style && (amountInput.style.borderColor = 'var(--brand)');
-    toast('⚠️ Amount দিন (0 হতে পারবে না)!', 'warning');
-    return;
-  }
-
-  const btn = $('adj-pts-apply-btn');
-  const origHtml = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adjusting...'; }
-
-  try {
-    const data = await fetch('/api/admin?action=customer-adjust-points', {
-      method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: String(userId).trim(), amount, reason }),
-    }).then(r => r.json());
-
-    if (data.ok) {
-      const newBalance = data.newBalance ?? (currentPoints + amount);
-      toast(`✅ Points adjust হয়েছে! নতুন balance: ${Number(newBalance).toLocaleString()} pts`, 'success');
-      // Modal বন্ধ করো
-      const modal = $('adjust-points-modal');
-      if (modal) modal.remove();
-      // Customer list reload করো (পুরো page reload না করে)
-      loadCustomers();
-    } else {
-      toast('❌ ' + (data.error || 'Adjust হয়নি'), 'warning');
-    }
-  } catch (e) {
-    toast('❌ Network error: ' + e.message, 'warning');
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
-  }
-}
-window.adjustLoyaltyPoints = adjustLoyaltyPoints;
 
 async function forceLogoutCustomer(userId, name) {
   if (!confirm(`${esc(name)} কে force logout করবেন?`)) return;
@@ -2891,89 +2638,6 @@ async function approveAllReviews() {
 }
 
 /* ═══════════════════════════════════════════
-   COUPONS — FIX: backend uses 'toggle-coupon' and 'coupon-delete' actions
-═══════════════════════════════════════════ */
-async function loadCoupons() {
-  $('coupons-body').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin"></i></td></tr>`;
-  try {
-    const data = await adminFetch('action=coupons');
-    if (!data.ok) throw new Error(data.error);
-    const coupons = data.coupons || [];
-    $('coupons-body').innerHTML = coupons.length
-      ? coupons.map(c => `<tr>
-          <td><code style="font-weight:700;font-size:13px;background:var(--bg);padding:3px 8px;border-radius:4px">${esc(c.code)}</code></td>
-          <td><span style="padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:${c.type === 'percent' ? '#e6f0ff' : '#e6faf4'};color:${c.type === 'percent' ? 'var(--blue)' : 'var(--green)'}">${c.type === 'percent' ? '%' : '৳'}</span></td>
-          <td><strong style="color:var(--brand)">${c.discount}${c.type === 'percent' ? '%' : '৳'}</strong></td>
-          <td>৳${c.minOrder || 0}</td>
-          <td>${c.usedCount || 0} / ${c.maxUses || '∞'}</td>
-          <td style="font-size:11px;color:var(--text3)">${c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : 'Never'}</td>
-          <td><span style="padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;background:${c.isActive ? '#e6faf4' : '#f5f5f5'};color:${c.isActive ? 'var(--green)' : 'var(--text3)'}">${c.isActive ? 'Active' : 'Inactive'}</span></td>
-          <td><div class="action-btns">
-            <button class="ab-btn ab-edit" onclick="toggleCoupon('${esc(c.code)}')" title="${c.isActive ? 'Deactivate' : 'Activate'}"><i class="fa-solid fa-toggle-${c.isActive ? 'on' : 'off'}"></i></button>
-            <button class="ab-btn ab-del" onclick="deleteCoupon('${esc(c.code)}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          </div></td>
-        </tr>`).join('')
-      : `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">কোনো coupon নেই। একটি create করুন!</td></tr>`;
-  } catch (e) {
-    $('coupons-body').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Coupons API error: ${e.message}</td></tr>`;
-  }
-}
-
-async function createCoupon() {
-  const code = $('nc-code')?.value?.trim().toUpperCase();
-  const type = $('nc-type')?.value;
-  const discount = parseFloat($('nc-discount')?.value);
-  const minOrder = parseFloat($('nc-min')?.value || '0');
-  const maxUses = parseInt($('nc-max')?.value || '0');
-  const expiresAt = $('nc-expiry')?.value;
-  const description = $('nc-desc')?.value?.trim();
-  if (!code || !discount) { toast('Code এবং Discount দিন!', 'warning'); return; }
-  const btn = document.querySelector('[onclick="createCoupon()"]');
-  const origHtml = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> তৈরি হচ্ছে...'; }
-  try {
-    const data = await fetch('/api/admin?action=coupon', {
-      method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, type, discount, minOrder, maxUses, expiresAt: expiresAt || null, description }),
-    }).then(r => r.json());
-    if (data.ok) {
-      toast(`✅ Coupon "${code}" created!`, 'success');
-      ['nc-code', 'nc-discount', 'nc-min', 'nc-max', 'nc-expiry', 'nc-desc'].forEach(id => { if ($(id)) $(id).value = ''; });
-      loadCoupons();
-    } else toast(data.error || 'Error', 'warning');
-  } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
-  finally { if (btn) { btn.disabled = false; btn.innerHTML = origHtml; } }
-}
-
-// FIX: backend uses 'toggle-coupon' action with code (not couponId)
-async function toggleCoupon(code) {
-  try {
-    const data = await fetch('/api/admin?action=toggle-coupon', {
-      method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    }).then(r => r.json());
-    if (data.ok) { toast('Updated! ✅', 'success'); loadCoupons(); }
-    else toast(data.error || 'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
-}
-
-// FIX: backend uses 'coupon-delete' action with code
-async function deleteCoupon(code) {
-  if (!confirm(`Coupon "${code}" delete করবেন?`)) return;
-  try {
-    const data = await fetch('/api/admin?action=coupon-delete', {
-      method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    }).then(r => r.json());
-    if (data.ok) { toast('Deleted! ✅', 'success'); loadCoupons(); }
-    else toast(data.error || 'Error', 'warning');
-  } catch { toast('API error', 'warning'); }
-}
-
-/* ═══════════════════════════════════════════
    FLASH SALES — FIX: backend uses 'flash-sales', 'flash-sale-add', 'flash-sale-del'
 ═══════════════════════════════════════════ */
 async function loadFlashSales() {
@@ -3120,148 +2784,6 @@ async function deleteBundle(id) {
 }
 
 /* ═══════════════════════════════════════════
-   LOYALTY & REFERRAL (stubs with real data)
-═══════════════════════════════════════════ */
-async function loadLoyaltyData() {
-  try {
-    // ── ITEM 4: loyalty-settings থেকে configurable thresholds fetch করো ──
-    let cfg = { bronzeMin: 0, silverMin: 1000, goldMin: 5000, platinumMin: 20000, pointsPerOrder: 10 };
-    try {
-      const settingsData = await adminFetch('action=loyalty-settings');
-      if (settingsData.ok && settingsData.settings) {
-        const s = settingsData.settings;
-        cfg = {
-          bronzeMin:     s.bronzeMin     ?? 0,
-          silverMin:     s.silverMin     ?? 1000,
-          goldMin:       s.goldMin       ?? 5000,
-          platinumMin:   s.platinumMin   ?? 20000,
-          pointsPerOrder:s.pointsPerOrder ?? 10,
-        };
-        // Tier Settings form populate করো
-        if ($('ts-silver-min'))    $('ts-silver-min').value    = cfg.silverMin;
-        if ($('ts-gold-min'))      $('ts-gold-min').value      = cfg.goldMin;
-        if ($('ts-platinum-min'))  $('ts-platinum-min').value  = cfg.platinumMin;
-        if ($('ts-points-per-order')) $('ts-points-per-order').value = cfg.pointsPerOrder;
-      }
-    } catch (_) { /* settings fetch ব্যর্থ হলে defaults ব্যবহার করো */ }
-
-    const data = await adminFetch('action=customers&limit=100');
-    if (!data.ok) return;
-    const users = data.users || [];
-    const withPoints = users.filter(u => (u.loyaltyPoints || 0) > 0);
-    if ($('loy-members')) $('loy-members').textContent = withPoints.length;
-    const totalIssued = withPoints.reduce((s, u) => s + (u.loyaltyPoints || 0), 0);
-    if ($('loy-issued')) $('loy-issued').textContent = totalIssued.toLocaleString();
-    // Estimate redeemed (total spent × 0.1 - current points)
-    const totalSpent = withPoints.reduce((s, u) => s + (u.totalSpent || 0), 0);
-    const estimatedEarned = Math.floor(totalSpent / 10);
-    const redeemed = Math.max(0, estimatedEarned - totalIssued);
-    if ($('loy-redeemed')) $('loy-redeemed').textContent = redeemed.toLocaleString();
-    if ($('loy-gold-count')) {
-      // ── ITEM 4: cfg.goldMin ব্যবহার করো (hardcoded 5000 এর পরিবর্তে) ──
-      const gold = withPoints.filter(u => (u.loyaltyPoints || 0) >= cfg.goldMin).length;
-      $('loy-gold-count').textContent = gold + ' Gold';
-    }
-    const el = $('loyalty-members-list');
-    if (el) {
-      el.innerHTML = withPoints.length ? withPoints.map(u => {
-        const pts = u.loyaltyPoints || 0;
-        // ── ITEM 4: configurable tier thresholds (hardcoded এর পরিবর্তে) ──
-        const tier = pts >= cfg.platinumMin ? '💎 Platinum'
-                   : pts >= cfg.goldMin     ? '🥇 Gold'
-                   : pts >= cfg.silverMin   ? '🥈 Silver'
-                   : '🥉 Bronze';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border)">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--dark2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">${(u.name || '?')[0].toUpperCase()}</div>
-          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(u.name)}</div><div style="font-size:11px;color:var(--text3)">${tier} · Orders: ${u.totalOrders || 0}</div></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--gold)">${pts.toLocaleString()} pts</div>
-        </div>`;
-      }).join('') : '<div style="text-align:center;padding:30px;color:var(--text3)">কোনো loyalty member নেই</div>';
-    }
-  } catch (e) { console.error(e); toast('Loyalty data লোড হয়নি', 'warning'); }
-}
-
-/* ── ITEM 4: Tier Settings Save ── */
-async function saveLoyaltyTierSettings() {
-  const silverMin    = parseInt($('ts-silver-min')?.value)    || 1000;
-  const goldMin      = parseInt($('ts-gold-min')?.value)      || 5000;
-  const platinumMin  = parseInt($('ts-platinum-min')?.value)  || 20000;
-  const pointsPerOrder = parseInt($('ts-points-per-order')?.value) || 10;
-
-  // Basic validation
-  if (silverMin >= goldMin || goldMin >= platinumMin) {
-    toast('⚠️ Tier thresholds ascending order এ থাকতে হবে! (Silver < Gold < Platinum)', 'warning');
-    return;
-  }
-
-  const btn = document.querySelector('[onclick="saveLoyaltyTierSettings()"]');
-  const origHtml = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> সংরক্ষণ হচ্ছে...'; }
-
-  try {
-    const res = await fetch('/api/admin?action=loyalty-settings', {
-      method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bronzeMin: 0, silverMin, goldMin, platinumMin, pointsPerOrder }),
-    });
-    const data = await res.json();
-    if (data.ok) {
-      toast('✅ Tier settings save হয়েছে! List refresh হচ্ছে...', 'success');
-      // নতুন threshold দিয়ে loyalty data reload করো
-      loadLoyaltyData();
-    } else {
-      toast(data.error || 'Save হয়নি', 'warning');
-    }
-  } catch (e) {
-    toast('❌ Network error: ' + e.message, 'warning');
-  } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
-  }
-}
-window.saveLoyaltyTierSettings = saveLoyaltyTierSettings;
-
-async function loadReferralData() {
-  const el = $('referral-list');
-  if (el) el.innerHTML = '<div style="text-align:center;padding:30px"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
-  try {
-    const data = await adminFetch('action=referrals&limit=20');
-    if (!data.ok) throw new Error(data.error);
-    const { referrals, summary } = data;
-    if ($('ref-total')) $('ref-total').textContent = (summary?.total || 0).toLocaleString();
-    if ($('ref-success')) $('ref-success').textContent = (summary?.completed || 0).toLocaleString();
-    if ($('ref-conv')) $('ref-conv').textContent = (summary?.conversionRate || 0) + '%';
-    if ($('ref-rev')) $('ref-rev').textContent = fmt(summary?.revenueFromRefs || 0);
-    if (el) {
-      el.innerHTML = (referrals || []).length ? (referrals || []).map(r => `
-        <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border)">
-          <div style="flex:1">
-            <div style="font-weight:600;font-size:13px">${esc(r.referrerUserId?.name || 'User')} <i class="fa-solid fa-arrow-right" style="font-size:10px;color:var(--text3)"></i> ${esc(r.referredUserId?.name || 'New User')}</div>
-            <div style="font-size:11px;color:var(--text3)">Points: ${r.pointsAwarded || 0} · ${fmtDate(r.createdAt)}</div>
-          </div>
-          <span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;background:${r.status === 'completed' ? '#e6faf4' : '#fff8e6'};color:${r.status === 'completed' ? 'var(--green)' : 'var(--gold)'}">${r.status}</span>
-        </div>`).join('')
-      : '<div style="text-align:center;padding:30px;color:var(--text3)">কোনো referral নেই</div>';
-    }
-  } catch (e) {
-    if (el) el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text3)">Referral API: ${e.message}</div>`;
-  }
-
-  // ✅ FIX S9: Referral settings form কে DB থেকে populate করো
-  try {
-    const settingsData = await adminFetch('action=referral-settings');
-    if (settingsData.ok) {
-      const s = settingsData.settings || {};
-      // referral_reward_referrer → ref-reward-pts (referrer এর জন্য points)
-      if ($('ref-reward-pts'))   $('ref-reward-pts').value   = s.referral_reward_referrer ?? 200;
-      // referral_reward_referee → ref-discount-pct (referee/নতুন user এর জন্য reward)
-      if ($('ref-discount-pct')) $('ref-discount-pct').value = s.referral_reward_referee  ?? 10;
-      // referral_min_order → ref-min-order
-      if ($('ref-min-order'))    $('ref-min-order').value    = s.referral_min_order        ?? 500;
-    }
-  } catch (_) {} // settings load fail হলে default values রাখো
-}
-
-/* ═══════════════════════════════════════════
    PRODUCT MODAL
 ═══════════════════════════════════════════ */
 let editingProductId = null;
@@ -3295,6 +2817,13 @@ function openProductModal(prod = null) {
     $('pm-new').checked = !!prod.isNew;
     $('pm-flash').checked = !!prod.isFlash;
     if (prod.img) { uploadedImages = [prod.img]; showImgPreview(uploadedImages); }
+    // 🚚 Custom Delivery Charge — populate from prod.deliveryCharges (থাকলে)
+    $('pm-dc-enabled').checked = !!prod.deliveryCharges?.enabled;
+    $('pm-dc-dhaka-city').value     = prod.deliveryCharges?.dhakaCity     ?? '';
+    $('pm-dc-dhaka-subarea').value  = prod.deliveryCharges?.dhakaSubArea  ?? '';
+    $('pm-dc-dhaka-division').value = prod.deliveryCharges?.dhakaDivision ?? '';
+    $('pm-dc-outside-dhaka').value  = prod.deliveryCharges?.outsideDhaka  ?? '';
+    togglePmDeliveryCharge($('pm-dc-enabled').checked);
     // Edit mode: "পুরনো ছবিও রাখুন" checkbox দেখাও, default unchecked
     const keepOldLabel = $('pm-keep-old-label');
     if (keepOldLabel) keepOldLabel.style.display = 'flex';
@@ -3308,6 +2837,10 @@ function openProductModal(prod = null) {
     $('pm-rating').value = '4.5'; $('pm-viewers').value = '12';
     $('pm-featured').checked = false; $('pm-new').checked = true; $('pm-flash').checked = false;
     $('img-preview-grid').innerHTML = '';
+    // 🚚 Custom Delivery Charge — নতুন product হলে reset (unchecked + ফাঁকা + disabled)
+    $('pm-dc-enabled').checked = false;
+    ['pm-dc-dhaka-city', 'pm-dc-dhaka-subarea', 'pm-dc-dhaka-division', 'pm-dc-outside-dhaka'].forEach(id => { if ($(id)) $(id).value = ''; });
+    togglePmDeliveryCharge(false);
     // Add mode: checkbox লুকাও ও reset করো
     const keepOldLabel = $('pm-keep-old-label');
     if (keepOldLabel) keepOldLabel.style.display = 'none';
@@ -3325,6 +2858,16 @@ function closeProductModal() {
   const modal = $('product-modal');
   if (modal) modal.classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// 🚚 Custom Delivery Charge toggle — checked হলে 4টি field enable হবে, নাহলে disable/greyed-out
+function togglePmDeliveryCharge(enabled) {
+  ['pm-dc-dhaka-city', 'pm-dc-dhaka-subarea', 'pm-dc-dhaka-division', 'pm-dc-outside-dhaka'].forEach(id => {
+    const el = $(id);
+    if (el) el.disabled = !enabled;
+  });
+  const wrap = $('pm-dc-fields');
+  if (wrap) wrap.style.opacity = enabled ? '1' : '.5';
 }
 
 function showImgPreview(urls) {
@@ -3497,6 +3040,13 @@ async function saveProduct() {
     sizes, colors, material, viewers, desc, warranty, sku, videoUrl,
     img, images: allImages,
     isFeatured, isNew, isFlash, isActive: true,
+    deliveryCharges: {
+      enabled: !!$('pm-dc-enabled')?.checked,
+      dhakaCity:     $('pm-dc-dhaka-city')?.value     !== '' ? parseFloat($('pm-dc-dhaka-city').value)     : null,
+      dhakaSubArea:  $('pm-dc-dhaka-subarea')?.value  !== '' ? parseFloat($('pm-dc-dhaka-subarea').value)  : null,
+      dhakaDivision: $('pm-dc-dhaka-division')?.value !== '' ? parseFloat($('pm-dc-dhaka-division').value) : null,
+      outsideDhaka:  $('pm-dc-outside-dhaka')?.value  !== '' ? parseFloat($('pm-dc-outside-dhaka').value)  : null,
+    },
   };
 
   // product-add for new, product-edit for existing (both use POST)
@@ -4104,18 +3654,12 @@ window.reviewAction = reviewAction;
 window.showReplyBox = showReplyBox;
 window.submitReply = submitReply;
 window.approveAllReviews = approveAllReviews;
-window.loadCoupons = loadCoupons;
-window.createCoupon = createCoupon;
-window.toggleCoupon = toggleCoupon;
-window.deleteCoupon = deleteCoupon;
 window.loadFlashSales = loadFlashSales;
 window.createFlashSale = createFlashSale;
 window.deleteFlashSale = deleteFlashSale;
 window.loadBundles = loadBundles;
 window.createBundle = createBundle;
 window.deleteBundle = deleteBundle;
-window.loadLoyaltyData = loadLoyaltyData;
-window.loadReferralData = loadReferralData;
 window.saveSmsConfig = saveSmsConfig;
 window.testSms = testSms;
 window.syncPendingProducts = syncPendingProducts;
@@ -4584,36 +4128,6 @@ window.loadOrders = async function(page = 1) {
   } catch(e) { $('orders-body').innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--brand);padding:30px">Server error: ${e.message}</td></tr>`; }
 };
 
-/* ══════════════════════════════════════════════
-   UPGRADE-A6: Referral Settings DB Save
-══════════════════════════════════════════════ */
-async function saveReferralSettings() {
-  // FIX: Use correct action=referral-settings and correct field names
-  const btn = document.querySelector('[onclick="saveReferralSettings()"]');
-  const origHtml = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
-  const payload = {
-    referral_enabled:         true,
-    referral_reward_referrer: parseInt($('ref-reward-pts')?.value)   || 200,
-    referral_reward_referee:  parseInt($('ref-discount-pct')?.value) || 10,
-    referral_min_order:       parseInt($('ref-min-order')?.value)    || 500,
-    referral_expiry_days:     30,
-  };
-  try {
-    const res = await fetch('/api/admin?action=referral-settings', {
-      method: 'POST',
-      headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (data.ok) toast('✅ Referral settings saved!', 'success');
-    else toast(data.error || 'Save হয়নি', 'warning');
-  } catch(e) { toast('❌ Network error: ' + e.message, 'warning'); }
-  finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
-  }
-}
-window.saveReferralSettings = saveReferralSettings;
 
 /* ══════════════════════════════════════════════
    UPGRADE-A9: Revenue Chart Range Selector

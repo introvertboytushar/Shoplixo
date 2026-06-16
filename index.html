@@ -355,13 +355,10 @@ input,textarea,select{font-family:inherit}
   .hiw-grid{grid-template-columns:1fr 1fr;gap:16px}
   .hiw-grid::before{display:none}
   .footer-grid{grid-template-columns:1fr;gap:28px;padding-bottom:28px}
-  .loyalty-inner{grid-template-columns:1fr}
   .product-grid{grid-template-columns:repeat(2,1fr);gap:12px}
   .cat-grid{grid-template-columns:repeat(3,1fr)}
   .section-row{flex-direction:column;align-items:flex-start;gap:10px}
   .section-row .f-tabs-wrap{overflow-x:auto;width:100%;padding-bottom:4px}
-  .ref-inner{flex-direction:column;gap:8px;text-align:center}
-  .ref-text{font-size:12px}
   .lc-inner{gap:16px}
   .lc-divider{display:none}
   .ck-container{border-radius:var(--r-xl) var(--r-xl) 0 0;max-height:96vh;margin-top:auto;position:fixed;bottom:0;left:0;right:0;width:100%}
@@ -380,7 +377,6 @@ input,textarea,select{font-family:inherit}
   .footer-bottom{flex-direction:column;text-align:center}
   .ft-bottom-links{justify-content:center}
   .nl-box{grid-template-columns:1fr;gap:20px}
-  .lm-tiers{grid-template-columns:1fr 1fr}
   #live-counter .lc-inner{gap:12px;padding:0 12px}
   .trust-strip-inner,.trust-grid{flex-direction:column;gap:16px;align-items:flex-start}
   /* Extra overflow guards */
@@ -406,7 +402,6 @@ input,textarea,select{font-family:inherit}
   .pay-methods-grid{grid-template-columns:1fr 1fr}
   .section-eyebrow{font-size:10px}
   .section-title{font-size:clamp(18px,5vw,26px)}
-  .lm-tiers{grid-template-columns:1fr 1fr}
   .rm-how{grid-template-columns:1fr}
   .loy-benefits{grid-template-columns:1fr}
   #live-counter .lc-item{font-size:12px}
@@ -878,13 +873,6 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 .pib-number:hover{background:linear-gradient(135deg,rgba(228,30,38,.18),rgba(228,30,38,.1));letter-spacing:5px;border-color:var(--brand)}
 .pib-number:active{transform:scale(.98)}
 .pib-note{font-size:12px;color:var(--text3);text-align:center;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:5px}
-/* Coupon */
-.coupon-row{display:flex;gap:10px;align-items:flex-end}
-.coupon-row input{flex:1;padding:11px 15px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:14px;outline:none;transition:var(--t)}
-.coupon-row input:focus{border-color:var(--brand)}
-.coupon-row button{background:var(--dark2);color:#fff;padding:11px 18px;border-radius:var(--r-sm);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:var(--t)}
-.coupon-row button:hover{background:var(--brand)}
-#coupon-msg{font-size:12px;margin-top:7px;display:none}
 /* Order summary */
 .order-items-list{max-height:160px;overflow-y:auto;margin-bottom:12px}
 .oi-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:center}
@@ -1238,9 +1226,6 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 .price-anchor .pa-save{font-size:11px;background:var(--green-light);color:var(--green);padding:2px 7px;border-radius:3px;font-weight:700}
 /* --- Wishlist count nudge on product card --- */
 .pc-wish-count{font-size:10px;color:var(--brand);display:flex;align-items:center;gap:3px;position:absolute;top:8px;left:8px;background:rgba(255,255,255,.9);padding:2px 6px;border-radius:var(--r-full);font-weight:700;backdrop-filter:blur(4px)}
-/* --- Coupon reveal animation --- */
-.coupon-reveal{animation:revealCoupon .5s cubic-bezier(.34,1.56,.64,1) forwards}
-@keyframes revealCoupon{from{opacity:0;transform:scale(.8) rotate(-3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
 
 /* ===== ORDER SUCCESS IMPROVEMENTS ===== */
 .os-actions{display:flex;flex-direction:column;gap:8px;margin-top:16px}
@@ -1587,163 +1572,18 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .notif-btn{position:relative}
 .notif-dot{position:absolute;top:8px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--brand);border:2px solid #fff;animation:badge-pop .3s ease}
 
-/* ══════════════════════════════════════════════
-   SHOPLIXO v4 — LOYALTY POINTS + REFERRAL +
-   FLASH SALE SCHEDULER + PRO POLISH
-══════════════════════════════════════════════ */
+/* ── FLASH SALE SCHEDULER TIMER ── */
 
-/* ── LOYALTY POINTS ── */
-.loyalty-bar{background:linear-gradient(90deg,#2D1B6E,#0D0D1A,#6B0F1A);padding:10px 0;border-bottom:1px solid rgba(255,184,0,.2);position:relative;overflow:hidden}
-.loyalty-bar::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 100px,rgba(255,184,0,.02) 100px,rgba(255,184,0,.02) 101px)}
-.lb-inner{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap}
-.lb-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:rgba(255,255,255,.8)}
-.lb-item i{color:var(--gold)}
-.lb-pts{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--gold)}
-.lb-progress-wrap{display:flex;align-items:center;gap:8px}
-.lb-tier-badge{padding:2px 9px;border-radius:var(--r-full);font-size:10px;font-weight:800;letter-spacing:.5px}
-.lb-bronze{background:rgba(205,127,50,.2);color:#CD7F32;border:1px solid rgba(205,127,50,.4)}
-.lb-silver{background:rgba(192,192,192,.2);color:#C0C0C0;border:1px solid rgba(192,192,192,.4)}
-.lb-gold{background:rgba(255,184,0,.15);color:var(--gold);border:1px solid rgba(255,184,0,.4)}
-.lb-platinum{background:rgba(229,228,226,.15);color:#E5E4E2;border:1px solid rgba(229,228,226,.4)}
 
-/* Loyalty Modal */
-#loyalty-modal{position:fixed;inset:0;z-index:6500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--t)}
-#loyalty-modal.open{opacity:1;visibility:visible}
-.lm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px)}
-.lm-card{background:#fff;border-radius:var(--r-2xl);max-width:520px;width:100%;position:relative;z-index:1;box-shadow:var(--shadow-xl);max-height:90vh;overflow-y:auto}
-.lm-head{background:linear-gradient(135deg,#2D1B6E,#0D0D1A);padding:24px;border-radius:var(--r-2xl) var(--r-2xl) 0 0;text-align:center}
-.lm-head-crown{font-size:48px;display:block;margin-bottom:8px}
-.lm-head-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
-.lm-head-sub{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
-.lm-body{padding:22px}
-.lm-points-big{text-align:center;background:linear-gradient(135deg,var(--gold-light),#fffdf5);border-radius:var(--r-xl);padding:20px;margin-bottom:18px;border:2px solid rgba(255,184,0,.3)}
-.lm-pts-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--gold);line-height:1}
-.lm-pts-lbl{font-size:13px;color:var(--text2);font-weight:600;margin-top:4px}
-.lm-tier-section{margin-bottom:18px}
-.lm-tier-title{font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
-.lm-tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.lm-tier-card{border-radius:var(--r-lg);padding:12px 8px;text-align:center;border:2px solid var(--border);transition:var(--t)}
-.lm-tier-card.current{border-color:var(--gold);background:var(--gold-light)}
-.ltc-icon{font-size:24px;display:block;margin-bottom:6px}
-.ltc-name{font-size:11px;font-weight:700;color:var(--dark)}
-.ltc-req{font-size:10px;color:var(--text3);margin-top:2px}
-.ltc-benefit{font-size:10px;color:var(--green);margin-top:4px;font-weight:600}
-.lm-earn-section{margin-bottom:18px}
-.lm-earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.lm-earn-item{background:var(--bg2);border-radius:var(--r-lg);padding:14px;display:flex;align-items:center;gap:10px;border:1px solid var(--border)}
-.lei-icon{width:36px;height:36px;border-radius:var(--r);background:var(--brand-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.lei-icon i{color:var(--brand)}
-.lei-pts{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gold)}
-.lei-lbl{font-size:11px;color:var(--text3);margin-top:1px}
-.lm-redeem-section{background:var(--green-light);border-radius:var(--r-xl);padding:16px;border:1px solid rgba(0,197,138,.2)}
-.lm-redeem-title{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:10px;display:flex;align-items:center;gap:7px}
-.lm-redeem-row{display:flex;gap:10px;align-items:center}
-.lm-redeem-inp{flex:1;padding:10px 14px;border:1.5px solid rgba(0,197,138,.3);border-radius:var(--r-sm);font-size:14px;outline:none;background:#fff;transition:var(--t)}
-.lm-redeem-inp:focus{border-color:var(--green)}
-.lm-redeem-btn{background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:var(--t)}
-.lm-redeem-btn:hover{background:#00a576}
-.lm-history{margin-top:16px}
-.lm-hist-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
-.lm-hist-item:last-child{border:none}
-.lhp{font-weight:700}
-.lhp.earn{color:var(--green)}.lhp.redeem{color:var(--brand)}
-
-/* ── REFERRAL PROGRAM ── */
-#referral-modal{position:fixed;inset:0;z-index:6500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--t)}
-#referral-modal.open{opacity:1;visibility:visible}
-.rm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(5px)}
-.rm-card{background:#fff;border-radius:var(--r-2xl);max-width:500px;width:100%;position:relative;z-index:1;box-shadow:var(--shadow-xl)}
-.rm-head{background:linear-gradient(135deg,#0C2A6E,var(--dark2));padding:24px;border-radius:var(--r-2xl) var(--r-2xl) 0 0;text-align:center}
-.rm-head-emoji{font-size:52px;display:block;margin-bottom:8px}
-.rm-head-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
-.rm-head-sub{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
-.rm-body{padding:24px}
-.rm-how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-.rm-step{text-align:center;padding:14px 10px;background:var(--bg2);border-radius:var(--r-xl);border:1px solid var(--border)}
-.rm-step-num{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
-.rm-step i{font-size:22px;display:block;margin-bottom:6px}
-.rm-step-title{font-size:12px;font-weight:700;color:var(--dark)}
-.rm-step-sub{font-size:11px;color:var(--text3);margin-top:3px}
-.rm-link-box{background:var(--dark2);border-radius:var(--r-xl);padding:18px;margin-bottom:18px}
-.rm-link-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
-.rm-link-row{display:flex;gap:8px;align-items:center}
-.rm-link-inp{flex:1;padding:10px 14px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#fff;font-size:12px;outline:none;font-family:inherit}
-.rm-copy-btn{background:var(--gold);color:var(--dark);padding:10px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:var(--t)}
-.rm-copy-btn:hover{background:#e6a800}
-.rm-share-row{display:flex;gap:8px;justify-content:center}
-.rm-share-btn{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r-full);font-size:12px;font-weight:700;border:none;cursor:pointer;transition:var(--t)}
-.rm-wa{background:#25D366;color:#fff}.rm-fb{background:#1877F2;color:#fff}
-.rm-tg{background:#229ED9;color:#fff}.rm-copy-link{background:var(--bg3);color:var(--dark)}
-.rm-share-btn:hover{opacity:.85}
-.rm-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
-.rm-stat{background:var(--bg2);border-radius:var(--r-lg);padding:14px;text-align:center;border:1px solid var(--border)}
-.rm-stat-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--dark)}
-.rm-stat-lbl{font-size:11px;color:var(--text3);margin-top:2px}
-
-/* ── LOYALTY SECTION ON HOME PAGE ── */
-.loyalty-section{background:linear-gradient(135deg,#2D1B6E 0%,#0D0D1A 50%,#6B0F1A 100%);padding:52px 0;position:relative;overflow:hidden}
-.loyalty-section::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
-.loyalty-inner{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.loy-text{color:#fff}
-.loy-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(255,184,0,.15);color:var(--gold);padding:5px 14px;border-radius:var(--r-full);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;border:1px solid rgba(255,184,0,.3)}
-.loy-title{font-family:'Syne',sans-serif;font-size:clamp(22px,3vw,38px);font-weight:800;line-height:1.1;margin-bottom:14px}
-.loy-title .hl{color:var(--gold)}
-.loy-desc{font-size:15px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:24px}
-.loy-benefits{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
-.loy-benefit{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.8)}
-.loy-benefit i{color:var(--gold);font-size:16px}
-.loy-cta{display:flex;gap:12px;flex-wrap:wrap}
-.btn-loy-join{background:linear-gradient(135deg,var(--gold),#ff6b35);color:var(--dark);padding:13px 26px;border-radius:var(--r-full);font-size:14px;font-weight:800;border:none;cursor:pointer;transition:var(--t);display:flex;align-items:center;gap:7px}
-.btn-loy-join:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,184,0,.3)}
-.btn-loy-ref{background:rgba(255,255,255,.1);color:#fff;padding:13px 22px;border-radius:var(--r-full);font-size:14px;font-weight:600;border:1.5px solid rgba(255,255,255,.2);cursor:pointer;transition:var(--t);display:flex;align-items:center;gap:7px}
-.btn-loy-ref:hover{background:rgba(255,255,255,.18)}
-.loy-tiers-display{display:flex;flex-direction:column;gap:12px}
-.ltd-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-xl);padding:16px 18px;display:flex;align-items:center;gap:14px;transition:var(--t)}
-.ltd-item:hover{background:rgba(255,255,255,.1)}
-.ltd-icon{font-size:28px;flex-shrink:0}
-.ltd-info{flex:1}
-.ltd-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:2px}
-.ltd-req{font-size:12px;color:rgba(255,255,255,.5)}
-.ltd-arrow{color:rgba(255,255,255,.3);font-size:14px}
-.ltd-item.tier-gold{border-color:rgba(255,184,0,.4);background:rgba(255,184,0,.08)}
-.ltd-item.tier-platinum{border-color:rgba(229,228,226,.4);background:rgba(229,228,226,.05)}
-@media(max-width:768px){.loyalty-inner{grid-template-columns:1fr}.loy-tiers-display{display:none}}
-
-/* ── REFERRAL STRIP ── */
-.ref-strip{background:linear-gradient(90deg,#0C2A6E,#1877F2);padding:14px 0;border-bottom:2px solid rgba(255,255,255,.1)}
-.ref-inner{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
-.ref-text{font-size:13px;font-weight:600;color:#fff}
-.ref-text strong{color:var(--gold)}
-.btn-ref-strip{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);padding:6px 16px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer;border:none;cursor:pointer;transition:var(--t)}
-.btn-ref-strip:hover{background:rgba(255,255,255,.25)}
 
 /* ── FLASH SALE SCHEDULER TIMER ── */
 .fs-scheduled-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,184,0,.15);color:var(--gold);padding:4px 12px;border-radius:var(--r-full);font-size:11px;font-weight:700;margin-left:12px;border:1px solid rgba(255,184,0,.3)}
 
-/* ── CHECKOUT LOYALTY REDEEM ── */
-.ck-loyalty-box{background:linear-gradient(135deg,var(--gold-light),#fffdf5);border:2px solid rgba(255,184,0,.4);border-radius:var(--r-lg);padding:14px;margin-bottom:14px}
-.ck-loy-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px;display:flex;align-items:center;gap:6px}
-.ck-loy-title i{color:var(--gold)}
-.ck-loy-pts{font-size:12px;color:var(--text2);margin-bottom:10px}
-.ck-loy-pts strong{color:var(--gold);font-family:'Syne',sans-serif;font-size:15px}
-.ck-loy-redeem-row{display:flex;gap:8px;align-items:center}
-.ck-loy-redeem-row input{flex:1;padding:9px 12px;border:1.5px solid rgba(255,184,0,.3);border-radius:var(--r-sm);font-size:13px;outline:none;background:#fff;font-family:inherit}
-.ck-loy-redeem-row input:focus{border-color:var(--gold)}
-.ck-loy-apply{background:var(--gold);color:var(--dark);padding:9px 14px;border-radius:var(--r-sm);font-size:12px;font-weight:800;border:none;cursor:pointer;white-space:nowrap;transition:var(--t)}
-.ck-loy-apply:hover{background:#e6a800}
-.ck-loy-msg{font-size:11px;margin-top:6px;display:none}
 
-/* ── LOYALTY HEADER POINTS CHIP ── */
-.h-pts-chip{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,#2D1B6E,#1A1A2E);color:var(--gold);padding:6px 12px;border-radius:var(--r-full);font-size:12px;font-weight:700;cursor:pointer;transition:var(--t);border:1px solid rgba(255,184,0,.2)}
-.h-pts-chip:hover{background:linear-gradient(135deg,#3D2B8E,#2A2A4E)}
-.h-pts-chip i{font-size:13px}
 
 /* ── LIVE CHAT UPGRADE ── */
 .chat-notif-dot{position:absolute;top:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--brand);border:2px solid #fff;animation:badge-pop .3s ease}
 
-/* ── PRODUCT CARD POINTS ── */
-.pc-earn-pts{font-size:10px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:3px;margin-top:3px}
-.pc-earn-pts i{font-size:10px}
 
 /* ── FLASH SALE COUNTDOWN RING ── */
 .cd-ring-wrap{position:relative;width:54px;height:54px;flex-shrink:0}
@@ -2034,8 +1874,6 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .pdp-trust-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .pdp-trust-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;background:var(--bg2);padding:9px 12px;border-radius:var(--r-full);flex:1;min-width:110px;border:1px solid var(--border);transition:var(--t)}
 .pdp-trust-item i{color:var(--green)}
-.pdp-loyalty-box{background:var(--gold-light);border:1px solid rgba(255,184,0,.3);border-radius:var(--r-lg);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);font-weight:600}
-.pdp-loyalty-box i{color:var(--gold);font-size:18px}
 .pdp-tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:0;overflow-x:auto;scrollbar-width:none;background:var(--bg);position:sticky;top:63px;z-index:5}
 .pdp-tabs::-webkit-scrollbar{display:none}
 .pdp-tab{padding:14px 22px;font-size:14px;font-weight:700;color:var(--text3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:var(--t);letter-spacing:.2px}
@@ -2272,7 +2110,7 @@ html, body {
 /* All sections must stay within viewport */
 section, header, footer,
 .payment-showcase, #ann-bar, #live-counter,
-.ref-strip, #mob-search-bar {
+#mob-search-bar {
   overflow-x: hidden !important;
   max-width: 100vw !important;
 }
@@ -2293,9 +2131,6 @@ section, header, footer,
   .hero-title { font-size: 15px !important; }
 }
 @media (max-width: 992px) {
-  /* Referral strip text wrap */
-  .ref-inner { flex-direction: column !important; gap: 8px !important; text-align: center !important; }
-  .ref-text { font-size: 12px !important; }
   .ann-slide { padding: 0 28px !important; font-size: 12px !important; }
   /* Pay grid 3 cols on tablet */
   .pay-grid { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
@@ -2363,7 +2198,6 @@ table { table-layout: fixed; width: 100% !important; }
   .pc-urgency{font-size:9px!important;margin-bottom:3px}
   .pc-watchers{font-size:9px!important;margin-bottom:6px}
   .pc-sold-today{font-size:9px!important}
-  .pc-earn-pts{font-size:9px!important;margin-bottom:4px}
   .pc-delivery{font-size:9px!important;margin-bottom:6px}
   .pc-price{font-size:15px!important}
   .pc-orig{font-size:11px}
@@ -2422,6 +2256,12 @@ table { table-layout: fixed; width: 100% !important; }
 .psh-logout-btn:hover{background:var(--brand-light);color:var(--brand);border-color:var(--brand)}
 
 /* ── ADDRESS SUGGESTION BOX ── */
+.addr-chip-list{display:flex;gap:8px;overflow-x:auto;padding:10px 14px 10px;margin-bottom:10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.addr-chip-list::-webkit-scrollbar{display:none}
+.addr-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--r-full);border:1.5px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:var(--t);white-space:nowrap;flex-shrink:0}
+.addr-chip:hover{border-color:var(--brand);background:var(--brand-light);color:var(--brand)}
+.addr-chip.default{border-color:var(--green);background:var(--green-light);color:#085041}
+.addr-chip i{font-size:11px}
 .addr-suggestions{background:#fff;border:1.5px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);max-height:200px;overflow-y:auto;z-index:200;margin-top:4px}
 .addr-suggestion-item{padding:10px 14px;cursor:pointer;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;transition:background .15s}
 .addr-suggestion-item:hover{background:var(--bg2)}
@@ -2521,7 +2361,6 @@ table { table-layout: fixed; width: 100% !important; }
 [data-theme="dark"] .pdp-size-btn,[data-theme="dark"] .pdp-color-btn{background:var(--bg3)!important;color:var(--text2)!important;border-color:var(--border2)!important}
 [data-theme="dark"] .pdp-payment-row{background:var(--bg3)!important}
 [data-theme="dark"] .pdp-payment-badge{background:var(--bg2)!important;border-color:var(--border)!important;color:var(--text2)}
-[data-theme="dark"] .pdp-loyalty-box{background:rgba(255,184,0,.07)!important;border-color:rgba(255,184,0,.2)!important}
 [data-theme="dark"] .related-card{background:var(--card-bg)!important;border-color:var(--border)!important}
 [data-theme="dark"] .pdp-sec-btn{background:var(--bg2)!important;border-color:var(--border2)!important;color:var(--text2)!important}
 [data-theme="dark"] .pdp-qty-ctrl{background:var(--bg3)!important;border-color:var(--border2)!important}
@@ -2585,16 +2424,6 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
 </div>
 
 
-
-<!-- REFERRAL STRIP (always visible) -->
-<div class="ref-strip" id="ref-strip">
-  <div class="container">
-    <div class="ref-inner">
-      <span class="ref-text">🎁 বন্ধুকে Refer করুন — তারা <strong>10% ছাড়</strong> পাবে, আপনি পাবেন <strong>৳200 ক্যাশব্যাক!</strong></span>
-      <button class="btn-ref-strip" onclick="openReferralModal()"><i class="fa-solid fa-share-nodes"></i> Refer করুন</button>
-    </div>
-  </div>
-</div>
 
 
 <!-- MOBILE SEARCH BAR -->
@@ -2674,7 +2503,6 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
       <div class="header-actions">
         <button class="hamburger" onclick="openMobileMenu()"><span></span><span></span><span></span></button>
         <div id="header-user-btn"><button class="btn-login-header" onclick="openAuth('login')"><i class="fa-solid fa-right-to-bracket"></i> Login</button></div>
-        <div class="h-pts-chip" id="hdr-pts-chip" style="display:none" onclick="openLoyaltyModal()"><i class="fa-solid fa-crown"></i><span id="hdr-pts-val">0</span> pts</div>
         <button id="theme-toggle" onclick="toggleTheme()" title="Dark/Light Mode টগল করুন"
           style="width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;transition:var(--t);flex-shrink:0"
           aria-label="Toggle Dark Mode">
@@ -3201,36 +3029,6 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
   </div>
 </div>
 
-<!-- ══ LOYALTY POINTS PROGRAM ══ -->
-<section class="loyalty-section fade-up">
-  <div class="container">
-    <div class="loyalty-inner">
-      <div class="loy-text">
-        <div class="loy-eyebrow"><i class="fa-solid fa-crown"></i> Loyalty Program</div>
-        <h2 class="loy-title">কেনার সাথে <span class="hl">Points</span> আয় করুন —<br>পরে <span class="hl">Cash Discount</span> পান!</h2>
-        <p class="loy-desc">প্রতিটি কেনাকাটায় Points পাবেন। Points জমা হলে পরবর্তী অর্ডারে ব্যবহার করুন। যত বেশি কিনবেন, তত বেশি সুবিধা পাবেন!</p>
-        <div class="loy-benefits">
-          <div class="loy-benefit"><i class="fa-solid fa-star"></i> প্রতি ৳100 তে 10 Points</div>
-          <div class="loy-benefit"><i class="fa-solid fa-gift"></i> Birthday তে 2× Points</div>
-          <div class="loy-benefit"><i class="fa-solid fa-user-plus"></i> Registration তে 100 Points</div>
-          <div class="loy-benefit"><i class="fa-solid fa-share-nodes"></i> Referral এ 200 Points</div>
-          <div class="loy-benefit"><i class="fa-solid fa-comment"></i> Review দিলে 25 Points</div>
-          <div class="loy-benefit"><i class="fa-solid fa-infinity"></i> Points expire হয় না!</div>
-        </div>
-        <div class="loy-cta">
-          <button class="btn-loy-join" onclick="currentUser?openLoyaltyModal():openAuth('register')"><i class="fa-solid fa-crown"></i> এখনই Join করুন</button>
-          <button class="btn-loy-ref" onclick="openReferralModal()"><i class="fa-solid fa-users"></i> বন্ধুকে Refer করুন</button>
-        </div>
-      </div>
-      <div class="loy-tiers-display fade-up">
-        <div class="ltd-item" id="ltd-bronze"><div class="ltd-icon">🥉</div><div class="ltd-info"><div class="ltd-name">Bronze Member</div><div class="ltd-req">0 - 999 Points</div><div style="font-size:11px;color:var(--gold);margin-top:3px">Free Delivery + 1× Points</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
-        <div class="ltd-item" id="ltd-silver"><div class="ltd-icon">🥈</div><div class="ltd-info"><div class="ltd-name">Silver Member</div><div class="ltd-req">1000 - 4999 Points</div><div style="font-size:11px;color:var(--gold);margin-top:3px">5% Extra Discount + 1.25× Points</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
-        <div class="ltd-item tier-gold" id="ltd-gold"><div class="ltd-icon">🥇</div><div class="ltd-info"><div class="ltd-name">Gold Member</div><div class="ltd-req">5000 - 19999 Points</div><div style="font-size:11px;color:var(--gold);margin-top:3px">10% Extra Discount + 1.5× Points + Priority Support</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
-        <div class="ltd-item tier-platinum" id="ltd-platinum"><div class="ltd-icon">💎</div><div class="ltd-info"><div class="ltd-name">Platinum Member</div><div class="ltd-req">20000+ Points</div><div style="font-size:11px;color:#E5E4E2;margin-top:3px">15% Discount + 2× Points + VIP Support + Early Access</div></div><i class="fa-solid fa-chevron-right ltd-arrow"></i></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- NEWSLETTER -->
 <section class="newsletter">
@@ -3606,7 +3404,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
       <!-- ── CUSTOMER INFO ── -->
       <div class="ck-sec">
         <div class="ck-sec-title"><i class="fa-solid fa-user"></i> আপনার তথ্য
-          <span id="ck-autofill-hint" style="margin-left:auto;font-size:11px;color:var(--green);font-weight:600;cursor:pointer;display:none" onclick="autofillFromProfile()"><i class="fa-solid fa-magic-wand-sparkles"></i> Auto-fill</span>
+          <span id="ck-autofill-link" style="margin-left:auto;font-size:11px;color:var(--green);font-weight:600;cursor:pointer;display:none" onclick="autofillFromProfile()"><i class="fa-solid fa-magic-wand-sparkles"></i> Auto-fill</span>
         </div>
         <div class="form-r">
           <div id="ck-autofill-hint" class="ck-autofill-banner">
@@ -3800,25 +3598,8 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
           <div class="form-g" style="margin-top:10px"><label>Transaction ID *</label><input id="ck-trx" placeholder="e.g. 8N7A2XQR09"></div>
         </div>
       </div>
-      <!-- Coupon -->
-      <div class="ck-sec">
-        <div class="ck-sec-title"><i class="fa-solid fa-tag"></i> Coupon Code</div>
-        <div class="coupon-row"><input id="ck-coupon" placeholder="Coupon code লিখুন..."><button onclick="applyCoupon()">Apply</button></div>
-        <div id="coupon-msg"></div>
-      </div>
-      <!-- Loyalty Points Redeem -->
-      <div class="ck-sec" id="ck-loyalty-section" style="display:none">
-        <div class="ck-sec-title"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> Loyalty Points</div>
-        <div class="ck-loyalty-box">
-          <div class="ck-loy-title"><i class="fa-solid fa-star"></i> আপনার Points ব্যবহার করুন</div>
-          <div class="ck-loy-pts">আপনার কাছে আছে: <strong id="ck-loy-balance">0</strong> Points (= <span id="ck-loy-taka">৳0</span>)</div>
-          <div class="ck-loy-redeem-row">
-            <input type="number" id="ck-loy-inp" placeholder="কতটি Points ব্যবহার করবেন?" min="0">
-            <button class="ck-loy-apply" onclick="applyLoyaltyPoints()">Apply</button>
-          </div>
-          <div class="ck-loy-msg" id="ck-loy-msg"></div>
-        </div>
-      </div>
+
+
       <!-- Summary -->
       <div class="ck-sec">
         <div class="ck-sec-title"><i class="fa-solid fa-bag-shopping"></i> Order Summary</div>
@@ -3826,9 +3607,9 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         <div class="ot-rows">
           <div class="ot-row"><span>Subtotal</span><span id="ck-sub">৳0</span></div>
           <div class="ot-row"><span>Delivery Charge</span><span id="ck-ship" style="color:var(--green);font-weight:600">ফ্রি</span></div>
-          <div class="ot-row" id="disc-row" style="display:none;color:var(--green)"><span>Discount</span><span id="disc-val">-৳0</span></div>
           <div class="ot-total"><span>Total</span><span id="ck-total">৳0</span></div>
         </div>
+        <div id="ck-free-ship-hint" style="display:none;margin-top:8px;font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:8px 12px;border-radius:var(--r-sm);text-align:center"></div>
       </div>
       <button class="btn-place" onclick="placeOrder()"><i class="fa-solid fa-check-circle"></i> Order Confirm করুন</button>
       <div class="ck-trust"><i class="fa-solid fa-shield-halved"></i> আপনার তথ্য সম্পূর্ণ নিরাপদ ও এনক্রিপ্টেড</div>
@@ -4276,9 +4057,7 @@ let buyNowItem = null;
 let wishlist = JSON.parse(localStorage.getItem('slx_wish')||'[]');
 let currentUser = JSON.parse(localStorage.getItem('slx_user')||'null');
 let selPayment = 'cod';
-let discount = 0;      // percent-type coupon এর জন্য (0-100)
-let discountFlat = 0;  // flat-type coupon এর জন্য (টাকার পরিমাণ)
-const COUPONS = {LIXA20:20,LIXA25:25,NEWSLIXA10:10,SAVE15:15,SHOPLIXO5:5}; // fallback only
+let currentShippingEstimate = null; // TASK 2: API shipping estimate cache
 
 const $ = id => document.getElementById(id);
 const fmt = n => '৳' + Number(n).toLocaleString('en-IN');
@@ -4295,7 +4074,6 @@ function pCard(p) {
   const saved = p.orig > p.price ? p.orig - p.price : 0;
   const pricePerDay = Math.round(p.price / 365);
   const waMsg = encodeURIComponent(`আমি "${p.name}" order করতে চাই\nমূল্য: ৳${p.price}\nসাইট: shoplixo.shop`);
-  const earnPts = Math.round(p.price / 10);
   const stockPct = p.stock <= 20 ? Math.round((p.stock/20)*100) : 100;
   const stockClass = p.stock <= 3 ? 'low stock-critical' : p.stock <= 8 ? 'mid' : 'high';
   const inCompare = compareList.map(String).includes(String(p.id));
@@ -4325,7 +4103,6 @@ function pCard(p) {
       <div class="pc-watchers" style="display:none"></div>
       <div class="pc-sold-today" style="display:none"></div>
       <div class="pc-price-row"><span class="pc-price">${fmt(p.price)}</span>${p.orig>p.price?`<span class="pc-orig">${fmt(p.orig)}</span>`:''}</div>
-      <div class="pc-earn-pts"><i class="fa-solid fa-crown"></i> কিনলে +${earnPts} Loyalty Points পাবেন</div>
       <div class="pc-delivery"><i class="fa-solid fa-truck-fast"></i> ${getDeliveryText()}</div>
       <div class="pc-actions-row">
         <button class="pc-size-btn" onclick="event.stopPropagation();openSizeChart('${p.cat}')"><i class="fa-solid fa-ruler"></i> Size Chart</button>
@@ -4555,7 +4332,6 @@ function injectBreadcrumbSchema(p) {
 function renderProductDetailPage(p) {
   const d = pct(p.price, p.orig);
   const saved = p.orig > p.price ? p.orig - p.price : 0;
-  const earnPts = Math.round(p.price / 10);
   const wished = wishlist.map(String).includes(String(p.id));
   const images = (p.images && p.images.length > 1) ? p.images : [p.img];
   const sizes = p.sizes || ['S','M','L','XL','XXL'];
@@ -4759,7 +4535,12 @@ function renderProductDetailPage(p) {
         <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
             <span>🚚 Standard Delivery</span>
-            <span style="color:var(--green);font-weight:600">${isFreeDelivery ? 'FREE' : '৳50–৳70 (এলাকা ভিত্তিক)'} · ${fmt(d3)}–${fmt(d5)}</span>
+            <span style="color:var(--green);font-weight:600">${
+            isFreeDelivery ? 'FREE' :
+            (p.deliveryCharges?.enabled && p.deliveryCharges?.tiers) ?
+              `ঢাকা শহর: ৳${p.deliveryCharges.tiers.dhakaCity||60} · সাব-এরিয়া: ৳${p.deliveryCharges.tiers.dhakaSubArea||70} · বিভাগ: ৳${p.deliveryCharges.tiers.dhakaDivision||80} · সারাদেশ: ৳${p.deliveryCharges.tiers.outsideDhaka||120}` :
+              '৳৫০–৳১২০ (এলাকা ভিত্তিক)'
+          } · ${fmt(d3)}–${fmt(d5)}</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
             <span>💳 Payment</span>
@@ -4795,11 +4576,6 @@ function renderProductDetailPage(p) {
       <div class="pdp-trust-item"><i class="fa-solid fa-lock"></i> Secure Payment</div>
     </div>
 
-    <!-- Loyalty -->
-    <div class="pdp-loyalty-box">
-      <i class="fa-solid fa-crown"></i>
-      <span>এই পণ্য কিনলে <strong style="color:var(--gold)">+${earnPts} Loyalty Points</strong> পাবেন!</span>
-    </div>
   </div>
 
   <!-- Tabs: Description + Reviews -->
@@ -5638,8 +5414,11 @@ function openCheckout(skipCartCheck){
     if(!cart.length){showToast('Cart খালি! কিছু যোগ করুন।','exclamation');return;}
     buyNowItem=null; // স্বাভাবিক "Cart দেখুন ও Checkout" — পুরো cart দিয়ে order হবে
   }
-  closeCart(); ckRefresh();
+  closeCart();
+  currentShippingEstimate = null; // reset for fresh estimate (before first render)
+  ckRefresh();
   $('checkout-modal').classList.add('open'); document.body.style.overflow='hidden';
+  setTimeout(updateCheckoutDeliveryCharge, 150); // fetch API estimate after DOM settles
   if(currentUser){if($('ck-name'))$('ck-name').value=currentUser.name||'';if($('ck-phone'))$('ck-phone').value=currentUser.phone||'';}
   // Always ensure payment number is set correctly from CFG (not placeholder)
   const pn=$('pay-number');
@@ -5654,10 +5433,8 @@ function closeCheckout(){buyNowItem=null;$('checkout-modal').classList.remove('o
 function ckRefresh(){
   const items=getOrderItems();
   const t=getOrderTotal();
-  const ship=getDeliveryCharge(t);
-  // FIX: flat coupon (discountFlat) এবং percent coupon (discount) আলাদাভাবে handle করা
-  const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
-  const fin=Math.max(0, t+ship-discAmt);
+  const ship = (typeof currentShippingEstimate === 'number') ? currentShippingEstimate : getDeliveryCharge(t);
+  const fin=Math.max(0, t+ship);
   $('ck-items').innerHTML=items.map(c=>`<div class="oi-item">
     <img class="oi-img" src="${c.img}" alt="${c.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${c.id}/46/56'">
     <div style="flex:1"><div class="oi-name">${c.name}</div><div class="oi-meta">×${c.qty} · Size: ${c.size}</div></div>
@@ -5665,8 +5442,6 @@ function ckRefresh(){
   </div>`).join('');
   $('ck-sub').textContent=fmt(t);
   $('ck-ship').textContent=ship===0?'বিনামূল্যে 🎉':fmt(ship);
-  if(discAmt>0){$('disc-row').style.display='flex';$('disc-val').textContent='-'+fmt(discAmt);}
-  else { const dr=$('disc-row'); if(dr) dr.style.display='none'; }
   $('ck-total').textContent=fmt(fin);
 }
 
@@ -5684,57 +5459,6 @@ function selPay(m,el){
     const num = CFG[m];
     const isReal = num && /^01[3-9]\d{8}$/.test(String(num).replace(/\s|-/g,''));
     $('pay-number').textContent = isReal ? num : '01516511889';
-  }
-}
-
-async function applyCoupon(){
-  const code=$('ck-coupon').value.trim().toUpperCase();
-  const msg=$('coupon-msg'); msg.style.display='block';
-  if(!code){ msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ Coupon code লিখুন</span>`; return; }
-  const btn=document.querySelector('.coupon-row button');
-  if(btn){ btn.disabled=true; btn.textContent='চেক করছে...'; }
-  try{
-    const res=await fetch(`/api/commerce?module=coupon`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code, subtotal:getOrderTotal()})
-    });
-    const data=await res.json();
-    if(data.ok && (data.discount>0 || data.discountAmt>0)){
-      // FIX: percent ও flat coupon আলাদাভাবে handle করা
-      if(data.type === 'flat'){
-        discountFlat = data.discountAmt || data.discount;
-        discount = 0;
-        msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ৳${discountFlat} ছাড় applied!</span>`;
-      } else {
-        discount = data.discount;
-        discountFlat = 0;
-        msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
-      }
-      ckRefresh();
-    } else {
-      // API returned error — try local fallback (percent only)
-      if(COUPONS[code]){
-        discount=COUPONS[code]; discountFlat=0;
-        msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
-        ckRefresh();
-      } else {
-        discount=0; discountFlat=0;
-        msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ ${data.error||'Invalid coupon'}</span>`;
-      }
-    }
-  } catch(e){
-    // Network error — fallback to local
-    if(COUPONS[code]){
-      discount=COUPONS[code]; discountFlat=0;
-      msg.innerHTML=`<span style="color:var(--green);font-weight:600">✅ ${discount}% ছাড় applied!</span>`;
-      ckRefresh();
-    } else {
-      discount=0; discountFlat=0;
-      msg.innerHTML=`<span style="color:var(--brand);font-weight:600">❌ Invalid coupon</span>`;
-    }
-  } finally {
-    if(btn){ btn.disabled=false; btn.textContent='Apply'; }
   }
 }
 
@@ -5908,6 +5632,63 @@ async function apiGet(endpoint, params = {}) {
 }
 
 /* ════════════════════════════════════════════
+   TASK 2 — DYNAMIC DELIVERY CHARGE (API-based)
+   ════════════════════════════════════════════ */
+
+async function fetchDeliveryEstimate() {
+  const dist = $('ck-district')?.value || '';
+  if (!dist) return null;
+  const upazila = (typeof getUpazilaValue === 'function') ? getUpazilaValue() : ($('ck-upazila')?.value || '');
+  const orderItems = getOrderItems();
+  const items = orderItems.map(i => ({ productId: i.id, price: i.price, qty: i.qty }));
+  try {
+    const r = await apiPost('orders?action=shipping-estimate', { items, district: dist, upazila });
+    if (r.ok) return r;
+  } catch (e) { console.warn('shipping-estimate failed', e); }
+  return null;
+}
+
+async function updateCheckoutDeliveryCharge() {
+  const shipEl = $('ck-ship');
+  if (!shipEl) return;
+  shipEl.textContent = '...';
+  shipEl.style.color = '';
+  const est = await fetchDeliveryEstimate();
+  if (!est) {
+    const t = getOrderTotal();
+    const fallback = getDeliveryCharge(t);
+    currentShippingEstimate = fallback;
+    shipEl.textContent = fallback === 0 ? 'বিনামূল্যে 🎉' : fmt(fallback);
+    shipEl.style.color = fallback === 0 ? 'var(--green)' : '';
+    $('ck-total').textContent = fmt(Math.max(0, t + fallback));
+    const hintEl = document.getElementById('ck-free-ship-hint');
+    if (hintEl) hintEl.style.display = 'none';
+    return;
+  }
+  currentShippingEstimate = est.shipping;
+  if (est.shipping === 0) {
+    shipEl.textContent = 'ফ্রি 🎉';
+    shipEl.style.color = 'var(--green)';
+  } else {
+    shipEl.textContent = fmt(est.shipping);
+    shipEl.style.color = '';
+  }
+  const t = getOrderTotal();
+  $('ck-sub').textContent = fmt(t);
+  $('ck-total').textContent = fmt(Math.max(0, t + est.shipping));
+  const hint = document.getElementById('ck-free-ship-hint');
+  if (hint) {
+    const needed = est.freeShippingMin && est.shipping > 0 ? est.freeShippingMin - est.subtotal : 0;
+    if (needed > 0) {
+      hint.textContent = `আর মাত্র ${fmt(needed)} যোগ করলে ফ্রি ডেলিভারি পাবেন!`;
+      hint.style.display = 'block';
+    } else {
+      hint.style.display = 'none';
+    }
+  }
+}
+
+/* ════════════════════════════════════════════
    PLACE ORDER — Connected to /api/orders
    ════════════════════════════════════════════ */
 async function placeOrder(){
@@ -5952,10 +5733,8 @@ async function placeOrder(){
 
   const orderItems=getOrderItems();
   const t=getOrderTotal();
-  const ship=getDeliveryCharge(t);
-  // FIX: flat ও percent coupon উভয়ের জন্য সঠিক discAmt গণনা
-  const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
-  const fin=Math.max(0, t+ship-discAmt);
+  const ship = (typeof currentShippingEstimate === 'number') ? currentShippingEstimate : getDeliveryCharge(t);
+  const fin=Math.max(0, t+ship);
 
   // ShurjoPay online payment
   if(selPayment === 'online') {
@@ -6001,8 +5780,6 @@ async function placeOrder(){
     payment: selPayment,
     trxId: $('ck-trx')?.value||'',
     items: orderItems.map(i=>({id:i.id,name:i.name,price:i.price,orig:i.orig,img:i.img,qty:i.qty,size:i.size||'',color:i.color||'',cat:i.cat||''})),
-    discountPct: discount,
-    couponCode: $('ck-coupon')?.value||'',
     gpsLocation,
     fingerprint,
     clientMeta,
@@ -6026,7 +5803,7 @@ async function placeOrder(){
 
     // "এখনই কিনুন/অর্ডার করুন" দিয়ে order হলে cart অপরিবর্তিত থাকবে; cart checkout হলে cart খালি হবে
     if(buyNowItem){ buyNowItem=null; } else { cart=[]; }
-    discount=0; discountFlat=0; saveCart();
+    saveCart();
     closeCheckout();
     $('os-id').textContent=oid;
     $('order-success').classList.add('open');
@@ -6042,7 +5819,7 @@ async function placeOrder(){
     const orders=JSON.parse(localStorage.getItem('slx_orders')||'[]');
     orders.push(order); localStorage.setItem('slx_orders',JSON.stringify(orders));
     if(buyNowItem){ buyNowItem=null; } else { cart=[]; }
-    discount=0; discountFlat=0; saveCart();
+    saveCart();
     closeCheckout();
     $('os-id').textContent=oid;
     $('order-success').classList.add('open');
@@ -6379,11 +6156,6 @@ function updateUserUI(){
     const mbnUser = document.querySelector('#mob-bottom-nav .mbn-item:last-child');
     if(mbnUser) mbnUser.onclick = (e)=>{e.stopPropagation();openProfileModal();document.querySelectorAll('.mbn-item').forEach(b=>b.classList.remove('active'));mbnUser.classList.add('active');};
 
-    // ── Points chip
-    const pts = currentUser.loyaltyPoints || 0;
-    if($('hdr-pts-chip')){ $('hdr-pts-chip').style.display='flex'; }
-    if($('hdr-pts-val')){ $('hdr-pts-val').textContent = pts; }
-
     // ── Admin detection (currentUser.isAdmin used elsewhere e.g. review delete)
     const adminEmails=['introvertboytushar@gmail.com','admin@shoplixo.shop','nayemislamtushar@gmail.com'];
     if(adminEmails.includes((currentUser.email||'').toLowerCase())||currentUser.isAdmin){ currentUser.isAdmin=true; }
@@ -6404,7 +6176,6 @@ function updateUserUI(){
     const mbnAv = $('mbn-avatar');
     if(mbnAv) mbnAv.outerHTML = `<i class="fa-solid fa-user" id="mbn-user-ic"></i>`;
     const htrReg = $('htr-reg-btn'); if(htrReg) htrReg.style.display='';
-    if($('hdr-pts-chip')) $('hdr-pts-chip').style.display='none';
   }
 }
 
@@ -6420,13 +6191,10 @@ function openProfileModal(){
   if($('psh-avatar')) $('psh-avatar').textContent = initials;
   if($('psh-name'))   $('psh-name').textContent   = currentUser.name || fn;
   if($('psh-phone'))  $('psh-phone').textContent  = currentUser.phone || currentUser.email || '';
-  if($('psh-tier'))   $('psh-tier').textContent   = currentUser.loyaltyTier ? currentUser.loyaltyTier.charAt(0).toUpperCase()+currentUser.loyaltyTier.slice(1) : 'Bronze';
-
   // Stats
   const orders = JSON.parse(localStorage.getItem('slx_orders')||'[]').filter(o=>o.phone===currentUser.phone||o.userId===currentUser.phone);
   const totalSpent = orders.reduce((s,o)=>s+(o.total||0),0);
   if($('psh-orders')) $('psh-orders').textContent = orders.length;
-  if($('psh-points')) $('psh-points').textContent = currentUser.loyaltyPoints || 0;
   if($('psh-spent'))  $('psh-spent').textContent  = '৳'+totalSpent.toLocaleString('en-IN');
   if($('psh-order-badge') && orders.length) $('psh-order-badge').textContent = orders.length;
   if($('psh-wish-badge') && wishlist.length) $('psh-wish-badge').textContent = wishlist.length;
@@ -7205,6 +6973,7 @@ function onDistrictChange(){
     }
   }
   buildFullAddress();
+  updateCheckoutDeliveryCharge();
 }
 
 function onUpazilaChange(){
@@ -7226,6 +6995,7 @@ function onUpazilaChange(){
     if(unionSelectWrap) unionSelectWrap.style.display='';
     if(unionCustomWrap) unionCustomWrap.style.display='none';
     buildFullAddress();
+    updateCheckoutDeliveryCharge();
     return;
   }
 
@@ -7238,6 +7008,7 @@ function onUpazilaChange(){
     if(unionSelectWrap) unionSelectWrap.style.display='none';
     if(unionCustomWrap) unionCustomWrap.style.display='block';
     buildFullAddress();
+    updateCheckoutDeliveryCharge();
     return;
   }
 
@@ -7263,6 +7034,7 @@ function onUpazilaChange(){
   unionSel.appendChild(customOpt);
 
   buildFullAddress();
+  updateCheckoutDeliveryCharge();
 }
 
 function onUnionChange(){
@@ -7588,7 +7360,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   // Autofill if user logged in
   if(currentUser){
-    const hint=$('ck-autofill-hint'); if(hint) hint.style.display='inline-flex';
+    const hint=$('ck-autofill-link'); if(hint) hint.style.display='inline-flex';
   }
 });
 
@@ -7655,7 +7427,6 @@ function validateCkPhone(input){
           </div>
           <input id="cm-title" placeholder="রিভিউ এর শিরোনাম (optional)" style="width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;margin-bottom:8px;font-family:inherit;transition:var(--t)" onfocus="this.style.borderColor='var(--brand)'" onblur="this.style.borderColor='var(--border2)'">
           <textarea id="cm-text" placeholder="আপনার অভিজ্ঞতা শেয়ার করুন — এই পণ্যটি কেমন লাগলো? Size, quality, delivery সম্পর্কে বলুন।"></textarea>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="fa-solid fa-gift" style="color:var(--gold)"></i> রিভিউ দিলে <strong style="color:var(--brand)">25 Loyalty Points</strong> পাবেন!</div>
           <button class="cm-submit" onclick="submitComment()"><i class="fa-solid fa-paper-plane"></i> রিভিউ পাঠান</button>
         </div>
       </div>
@@ -7729,85 +7500,6 @@ function updateStarUI(n) {
   });
 }
 
-function loadComments(pid) {
-  const list = document.getElementById('cm-list');
-  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...</div>';
-  
-  // Try API first
-  fetch('/api/comments?productId=' + pid + '&limit=20')
-    .then(r => r.json())
-    .then(data => {
-      if(data && data.comments && data.comments.length) {
-        renderCommentList(list, pid, data.comments.map(c => ({
-          name: c.customerName || 'User',
-          text: c.body || c.text,
-          title: c.title || '',
-          rating: c.rating || 5,
-          date: new Date(c.createdAt).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}),
-          likes: c.helpfulCount || 0,
-          isVerified: c.isVerifiedPurchase,
-          _id: c._id
-        })));
-        return;
-      }
-      throw new Error('no api data');
-    })
-    .catch(() => {
-      // Fallback to localStorage
-      const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-      const comments = (allComments[pid] || []).filter(c => !c.hidden);
-      renderCommentList(list, pid, comments);
-    });
-}
-
-function renderCommentList(list, pid, comments) {
-  if (!comments.length) {
-    list.innerHTML = '<div class="cm-empty"><i class="fa-regular fa-comment-dots" style="font-size:36px;color:var(--border2);display:block;text-align:center;margin-bottom:10px"></i><p style="text-align:center;color:var(--text3)">এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!</p></div>';
-    return;
-  }
-  
-  // Rating summary
-  const avgRating = (comments.reduce((s,c) => s + (c.rating||5), 0) / comments.length).toFixed(1);
-  const dist = [5,4,3,2,1].map(n => ({ n, count: comments.filter(c=>(c.rating||5)===n).length }));
-  
-  list.innerHTML = `
-    <div class="cm-rating-summary" style="background:var(--bg2);border-radius:var(--r-lg);padding:16px;margin-bottom:16px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
-      <div style="text-align:center">
-        <div style="font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:var(--dark);line-height:1">${avgRating}</div>
-        <div>${starsHTML(parseFloat(avgRating))}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">${comments.length}টি রিভিউ</div>
-      </div>
-      <div style="flex:1;min-width:160px">
-        ${dist.map(d => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-          <span style="font-size:11px;font-weight:700;width:10px">${d.n}</span>
-          <i class="fa-solid fa-star" style="font-size:10px;color:var(--gold)"></i>
-          <div style="flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
-            <div style="width:${comments.length ? (d.count/comments.length*100) : 0}%;height:100%;background:var(--gold);border-radius:3px;transition:.4s"></div>
-          </div>
-          <span style="font-size:11px;color:var(--text3);width:18px">${d.count}</span>
-        </div>`).join('')}
-      </div>
-    </div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:10px;letter-spacing:.5px">সকল রিভিউ (${comments.length})</div>` +
-    comments.map((c, i) => `
-    <div class="comment-item" id="cm-item-${pid}-${i}">
-      <div class="ci-head">
-        <div class="ci-avatar" style="background:${['#E41E26','#0066FF','#00C58A','#FFB800','#7C3AED'][i%5]}">${(c.name||'A')[0].toUpperCase()}</div>
-        <div style="flex:1">
-          <div class="ci-name">${c.name || 'Anonymous'} ${c.isVerified ? '<span class="verified-badge"><i class="fa-solid fa-check-circle"></i> Verified Purchase</span>' : ''}</div>
-          <div class="ci-date">${c.date || ''}</div>
-        </div>
-        <div class="ci-stars">${starsHTML(c.rating||5)}</div>
-      </div>
-      ${c.title ? `<div style="font-weight:700;font-size:14px;color:var(--dark);margin-bottom:5px">${c.title}</div>` : ''}
-      <div class="ci-text">${c.text}</div>
-      <div class="ci-actions">
-        <button class="ci-action-btn" onclick="likeComment(${pid},${i},this)"><i class="fa-regular fa-thumbs-up"></i> <span>${c.likes || 0}</span> Helpful</button>
-        ${currentUser && currentUser.isAdmin ? `<button class="ci-action-btn" style="color:var(--brand)" onclick="adminDeleteComment(${pid},${i})"><i class="fa-solid fa-trash"></i> Remove</button>` : ''}
-      </div>
-    </div>`).join('');
-}
-
 function submitComment() {
   if (!currentUser) { showToast('আগে Login করুন!', 'exclamation'); return; }
   const text = document.getElementById('cm-text').value.trim();
@@ -7854,35 +7546,27 @@ function submitComment() {
     if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> রিভিউ পাঠান'; }
     loadComments(currentCommentPid);
     updateCommentCount(currentCommentPid);
-    showToast('রিভিউ পাঠানো হয়েছে! ধন্যবাদ 🎉 আপনি 25 Points পেয়েছেন!', 'star');
-    
-    // Award loyalty points
-    if(currentUser) {
-      const pts = parseInt(localStorage.getItem('slx_pts_'+currentUser.phone)||'0');
-      localStorage.setItem('slx_pts_'+currentUser.phone, pts+25);
-    }
+    showToast('রিভিউ পাঠানো হয়েছে! ধন্যবাদ 🎉', 'star');
   });
 }
 
-function likeComment(pid, idx, btn) {
-  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-  if (!allComments[pid] || !allComments[pid][idx]) return;
-  allComments[pid][idx].likes = (allComments[pid][idx].likes || 0) + 1;
-  localStorage.setItem('slx_comments', JSON.stringify(allComments));
-  const countEl = btn.querySelector('span');
-  if (countEl) countEl.textContent = allComments[pid][idx].likes;
-  btn.style.color = 'var(--brand)';
-}
-
-function adminDeleteComment(pid, idx) {
-  if (!confirm('এই রিভিউটি hide করবেন?')) return;
-  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-  if (allComments[pid] && allComments[pid][idx]) {
-    allComments[pid][idx].hidden = true;
-    localStorage.setItem('slx_comments', JSON.stringify(allComments));
-    loadComments(pid);
-    updateCommentCount(pid);
-    showToast('রিভিউ hide করা হয়েছে!', 'trash');
+async function likeComment(commentId, btn) {
+  if (!commentId || btn.disabled) return;
+  btn.disabled = true;
+  try {
+    const r = await apiPost('content?module=comments&action=helpful', { commentId });
+    if (r.ok) {
+      const countEl = btn.querySelector('span');
+      if (countEl) countEl.textContent = r.helpfulCount;
+      btn.style.color = r.helpful ? 'var(--brand)' : '';
+      btn.querySelector('i').className = r.helpful ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
+    } else {
+      showToast(r.error || 'কিছু সমস্যা হয়েছে', 'exclamation');
+    }
+  } catch (e) {
+    showToast('Network সমস্যা হয়েছে', 'exclamation');
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -8347,7 +8031,7 @@ function filterSearchResults(results, sort) {
 /* ━━━ COMMENTS — MongoDB API ━━━ */
 async function loadCommentsFromAPI(pid) {
   try {
-    const r = await apiGet(`comments?productId=${pid}`);
+    const r = await apiGet('content', { module: 'comments', productId: pid, limit: 50 });
     if (r.ok && r.comments) return r.comments;
   } catch (e) { console.warn('Comments API offline, using localStorage'); }
   // Fallback to localStorage
@@ -8358,7 +8042,7 @@ async function loadCommentsFromAPI(pid) {
 async function submitCommentToAPI(pid, data) {
   try {
     const token = localStorage.getItem('slx_token') || '';
-    const r = await apiPost(`comments?productId=${pid}`, { ...data, token });
+    const r = await apiPost('content?module=comments', { ...data, productId: pid, token });
     if (r.ok) return { ok: true, comment: r.comment };
   } catch (e) { console.warn('Comments API offline'); }
   // Fallback: save locally
@@ -8434,8 +8118,7 @@ async function loadComments(pid) {
         <div class="ci-text">${body}</div>
         ${imgsHTML}
         <div class="ci-actions">
-          <button class="ci-action-btn" onclick="likeComment('${pid}',${i},this)"><i class="fa-regular fa-thumbs-up"></i> <span>${c.helpfulCount||c.likes||0}</span> Helpful</button>
-          ${currentUser?.isAdmin ? `<button class="ci-action-btn" style="color:var(--brand)" onclick="adminDeleteComment('${pid}',${i})"><i class="fa-solid fa-trash"></i> Remove</button>` : ''}
+          <button class="ci-action-btn" onclick="likeComment('${String(c._id)}', this)"><i class="fa-regular fa-thumbs-up"></i> <span>${c.helpfulCount||c.likes||0}</span> Helpful</button>
         </div>
         ${c.reply?.text ? `<div style="background:var(--bg2);border-left:3px solid var(--brand);margin-top:10px;padding:8px 12px;border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:12px"><strong style="color:var(--brand)">Shoplixo:</strong> ${c.reply.text}</div>` : ''}
       </div>`;
@@ -8702,103 +8385,7 @@ function renderRecentlyViewedV2() {
 }
 </script>
 
-<!-- ══ LOYALTY MODAL ══ -->
-<div id="loyalty-modal">
-  <div class="lm-backdrop" onclick="closeLoyaltyModal()"></div>
-  <div class="lm-card">
-    <div class="lm-head">
-      <span class="lm-head-crown">👑</span>
-      <div class="lm-head-title">আপনার Loyalty Rewards</div>
-      <div class="lm-head-sub" id="lm-tier-text">Bronze Member</div>
-    </div>
-    <div class="lm-body">
-      <div class="lm-points-big">
-        <div class="lm-pts-num" id="lm-pts-num">0</div>
-        <div class="lm-pts-lbl">Total Points (= <span id="lm-pts-taka">৳0</span> সমতুল্য)</div>
-        <div style="margin-top:10px">
-          <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
-            <div id="lm-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),#ff6b35);border-radius:4px;width:0%;transition:width .8s ease"></div>
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-top:5px;text-align:center" id="lm-next-tier-text">পরবর্তী tier এর জন্য আরো 1000 Points দরকার</div>
-        </div>
-      </div>
-      <div class="lm-tier-section">
-        <div class="lm-tier-title">Tier Benefits</div>
-        <div class="lm-tiers">
-          <div class="lm-tier-card" id="lm-t-bronze"><div class="ltc-icon">🥉</div><div class="ltc-name">Bronze</div><div class="ltc-req">0+ pts</div><div class="ltc-benefit">1× Points</div></div>
-          <div class="lm-tier-card" id="lm-t-silver"><div class="ltc-icon">🥈</div><div class="ltc-name">Silver</div><div class="ltc-req">1000 pts</div><div class="ltc-benefit">+5% Disc</div></div>
-          <div class="lm-tier-card" id="lm-t-gold"><div class="ltc-icon">🥇</div><div class="ltc-name">Gold</div><div class="ltc-req">5000 pts</div><div class="ltc-benefit">+10% Disc</div></div>
-          <div class="lm-tier-card" id="lm-t-platinum"><div class="ltc-icon">💎</div><div class="ltc-name">Platinum</div><div class="ltc-req">20000 pts</div><div class="ltc-benefit">+15% Disc</div></div>
-        </div>
-      </div>
-      <div class="lm-earn-section">
-        <div class="lm-tier-title">Points কিভাবে আয় করবেন</div>
-        <div class="lm-earn-grid">
-          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-bag-shopping"></i></div><div><div class="lei-pts">10 pts</div><div class="lei-lbl">প্রতি ৳100 কেনাকাটায়</div></div></div>
-          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-user-plus"></i></div><div><div class="lei-pts">100 pts</div><div class="lei-lbl">Registration বোনাস</div></div></div>
-          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-comment"></i></div><div><div class="lei-pts">25 pts</div><div class="lei-lbl">প্রতিটি Review এ</div></div></div>
-          <div class="lm-earn-item"><div class="lei-icon"><i class="fa-solid fa-share-nodes"></i></div><div><div class="lei-pts">200 pts</div><div class="lei-lbl">বন্ধুকে Refer করুন</div></div></div>
-        </div>
-      </div>
-      <div class="lm-redeem-section">
-        <div class="lm-redeem-title"><i class="fa-solid fa-coins" style="color:var(--gold)"></i> Points Redeem করুন</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">100 Points = ৳10 ছাড় (Checkout এ apply করুন)</div>
-        <div class="lm-redeem-row">
-          <input type="number" class="lm-redeem-inp" id="lm-redeem-inp" placeholder="Points পরিমাণ লিখুন..." min="100">
-          <button class="lm-redeem-btn" onclick="redeemPoints()"><i class="fa-solid fa-check"></i> Apply</button>
-        </div>
-        <div id="lm-redeem-msg" style="font-size:11px;margin-top:6px;display:none"></div>
-      </div>
-      <div class="lm-history" id="lm-history">
-        <div class="lm-tier-title" style="margin-top:16px">Points History</div>
-        <div id="lm-hist-list"></div>
-      </div>
-    </div>
-    <div style="padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px">
-      <button onclick="openReferralModal()" style="flex:1;background:linear-gradient(135deg,#0C2A6E,#1877F2);color:#fff;padding:11px;border-radius:var(--r-full);font-size:13px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px"><i class="fa-solid fa-users"></i> Refer করুন</button>
-      <button onclick="closeLoyaltyModal()" style="background:var(--bg2);color:var(--text2);padding:11px 20px;border-radius:var(--r-full);font-size:13px;font-weight:600;border:none;cursor:pointer">বন্ধ</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ REFERRAL MODAL ══ -->
-<div id="referral-modal">
-  <div class="rm-backdrop" onclick="closeReferralModal()"></div>
-  <div class="rm-card">
-    <div class="rm-head">
-      <span class="rm-head-emoji">🎁</span>
-      <div class="rm-head-title">বন্ধুকে Refer করুন</div>
-      <div class="rm-head-sub">আপনি ৳200 পাবেন, বন্ধু পাবে 10% ছাড়!</div>
-    </div>
-    <button onclick="closeReferralModal()" style="position:absolute;top:14px;right:14px;color:rgba(255,255,255,.6);font-size:20px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
-    <div class="rm-body">
-      <div class="rm-how">
-        <div class="rm-step"><div class="rm-step-num">1</div><i class="fa-solid fa-link"></i><div class="rm-step-title">Link শেয়ার করুন</div><div class="rm-step-sub">নিচের unique link টি বন্ধুকে পাঠান</div></div>
-        <div class="rm-step"><div class="rm-step-num">2</div><i class="fa-solid fa-bag-shopping"></i><div class="rm-step-title">বন্ধু কিনুক</div><div class="rm-step-sub">বন্ধু প্রথম অর্ডার করুক (৳500+)</div></div>
-        <div class="rm-step"><div class="rm-step-num">3</div><i class="fa-solid fa-money-bill-wave"></i><div class="rm-step-title">আপনি পাবেন ৳200!</div><div class="rm-step-sub">Loyalty Points হিসেবে automatically</div></div>
-      </div>
-      <div class="rm-link-box">
-        <div class="rm-link-label">আপনার Unique Referral Link</div>
-        <div class="rm-link-row">
-          <input type="text" class="rm-link-inp" id="rm-link-inp" readonly>
-          <button class="rm-copy-btn" onclick="copyReferralLink()"><i class="fa-regular fa-copy"></i> Copy</button>
-        </div>
-        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">👆 এই লিংকটি বন্ধুকে পাঠান</div>
-      </div>
-      <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:10px;text-align:center">Share করুন:</div>
-      <div class="rm-share-row">
-        <button class="rm-share-btn rm-wa" onclick="shareRef('whatsapp')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
-        <button class="rm-share-btn rm-fb" onclick="shareRef('facebook')"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
-        <button class="rm-share-btn rm-tg" onclick="shareRef('telegram')"><i class="fa-brands fa-telegram"></i> Telegram</button>
-      </div>
-      <div class="rm-stats-row">
-        <div class="rm-stat"><div class="rm-stat-num" id="rm-total-ref">0</div><div class="rm-stat-lbl">মোট Referral</div></div>
-        <div class="rm-stat"><div class="rm-stat-num" id="rm-success-ref">0</div><div class="rm-stat-lbl">সফল Referral</div></div>
-        <div class="rm-stat"><div class="rm-stat-num" id="rm-earned-ref">৳0</div><div class="rm-stat-lbl">মোট আয়</div></div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ══ NOTIFICATION PANEL ══ -->
 
 <!-- ══ NOTIFICATION PANEL ══ -->
 <div id="notif-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3499;opacity:0;visibility:hidden;transition:var(--t)" onclick="closeNotifPanel()"></div>
@@ -8816,244 +8403,6 @@ function renderRecentlyViewedV2() {
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════
-   SHOPLIXO v4 — LOYALTY POINTS + REFERRAL + NOTIFICATIONS
-══════════════════════════════════════════════════════ */
-
-/* ── LOYALTY POINTS SYSTEM ── */
-const POINTS_PER_TAKA = 0.1; // 10 points per ৳100
-const TAKA_PER_POINT = 0.1;  // 100 points = ৳10
-const TIER_THRESHOLDS = { bronze:0, silver:1000, gold:5000, platinum:20000 };
-const TIER_DISCOUNTS  = { bronze:0, silver:5, gold:10, platinum:15 };
-const TIER_MULTIPLIERS= { bronze:1, silver:1.25, gold:1.5, platinum:2 };
-
-function getLoyaltyData() {
-  return JSON.parse(localStorage.getItem('slx_loyalty') || JSON.stringify({
-    points: 0, totalEarned: 0, tier: 'bronze', history: [], redeemedDiscount: 0
-  }));
-}
-function saveLoyaltyData(d){ localStorage.setItem('slx_loyalty', JSON.stringify(d)); }
-
-function getUserTier(pts){
-  if(pts >= TIER_THRESHOLDS.platinum) return 'platinum';
-  if(pts >= TIER_THRESHOLDS.gold) return 'gold';
-  if(pts >= TIER_THRESHOLDS.silver) return 'silver';
-  return 'bronze';
-}
-
-function earnPoints(amount, reason='Purchase') {
-  if(!currentUser) return;
-  const d = getLoyaltyData();
-  const tier = getUserTier(d.points);
-  const multiplier = TIER_MULTIPLIERS[tier] || 1;
-  const pts = Math.floor(amount * POINTS_PER_TAKA * multiplier);
-  if(pts <= 0) return;
-  d.points += pts;
-  d.totalEarned += pts;
-  d.tier = getUserTier(d.points);
-  d.history.unshift({ type:'earn', pts, reason, date: new Date().toISOString(), balance: d.points });
-  d.history = d.history.slice(0, 50);
-  saveLoyaltyData(d);
-  updateLoyaltyUI();
-  addNotification('points', `🌟 +${pts} Points অর্জন!`, `${reason} — মোট: ${d.points} Points`);
-  // Tier upgrade notification
-  const newTier = getUserTier(d.points);
-  if(newTier !== tier){
-    const tierNames = {bronze:'Bronze 🥉', silver:'Silver 🥈', gold:'Gold 🥇', platinum:'Platinum 💎'};
-    showToast(`🎉 Congratulations! আপনি ${tierNames[newTier]} Member হয়েছেন!`, 'crown');
-    addNotification('promo', `🎉 Tier Upgrade!`, `আপনি ${tierNames[newTier]} Member হয়েছেন! নতুন সুবিধা পাচ্ছেন।`);
-  }
-  return pts;
-}
-
-function redeemPoints() {
-  if(!currentUser){ showToast('Login করুন!', 'exclamation'); return; }
-  const inp = document.getElementById('lm-redeem-inp');
-  const msg = document.getElementById('lm-redeem-msg');
-  const pts = parseInt(inp?.value || 0);
-  const d = getLoyaltyData();
-  if(!pts || pts < 100){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">কমপক্ষে 100 Points redeem করুন!</span>'; return; }
-  if(pts > d.points){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">পর্যাপ্ত Points নেই!</span>'; return; }
-  // Apply discount
-  const taka = Math.floor(pts * TAKA_PER_POINT);
-  d.redeemedDiscount = (d.redeemedDiscount || 0) + taka;
-  d.points -= pts;
-  d.history.unshift({ type:'redeem', pts:-pts, reason:'Checkout Discount', date: new Date().toISOString(), balance: d.points });
-  saveLoyaltyData(d);
-  updateLoyaltyUI();
-  closeLoyaltyModal();
-  showToast(`${pts} Points redeem! ৳${taka} ছাড় আপনার পরবর্তী checkout এ!`, 'coins');
-  inp.value = '';
-  msg.style.display = 'none';
-}
-
-function applyLoyaltyPoints() {
-  if(!currentUser) return;
-  const inp = document.getElementById('ck-loy-inp');
-  const msg = document.getElementById('ck-loy-msg');
-  const pts = parseInt(inp?.value || 0);
-  const d = getLoyaltyData();
-  if(!pts || pts < 100){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">কমপক্ষে 100 Points দিন!</span>'; return; }
-  if(pts > d.points){ msg.style.display='block'; msg.innerHTML='<span style="color:var(--brand)">পর্যাপ্ত Points নেই!</span>'; return; }
-  const taka = Math.floor(pts * TAKA_PER_POINT);
-  window._loyaltyPtsUsed = pts;
-  window._loyaltyDiscount = taka;
-  msg.style.display='block';
-  msg.innerHTML=`<span style="color:var(--green)">✅ ${pts} Points apply হয়েছে! ৳${taka} ছাড় পাবেন</span>`;
-  ckRefresh();
-}
-
-function updateLoyaltyUI() {
-  if(!currentUser) return;
-  const d = getLoyaltyData();
-  const tier = getUserTier(d.points);
-  const tierNames = {bronze:'Bronze 🥉',silver:'Silver 🥈',gold:'Gold 🥇',platinum:'Platinum 💎'};
-  // Header chip
-  const chip = document.getElementById('hdr-pts-chip');
-  const chipVal = document.getElementById('hdr-pts-val');
-  if(chip){ chip.style.display='flex'; }
-  if(chipVal) chipVal.textContent = d.points.toLocaleString('en-IN');
-  // Loyalty bar
-  const bar = document.getElementById('loyalty-bar');
-  if(bar) bar.style.display = 'block';
-  const lbPts = document.getElementById('lb-points');
-  if(lbPts) lbPts.textContent = d.points.toLocaleString('en-IN');
-  const lbBadge = document.getElementById('lb-tier-badge');
-  if(lbBadge){
-    lbBadge.textContent = tierNames[tier].split(' ')[0];
-    lbBadge.className = 'lb-tier-badge lb-' + tier;
-  }
-  // Modal
-  const lmNum = document.getElementById('lm-pts-num');
-  if(lmNum) lmNum.textContent = d.points.toLocaleString('en-IN');
-  const lmTaka = document.getElementById('lm-pts-taka');
-  if(lmTaka) lmTaka.textContent = '৳' + Math.floor(d.points * TAKA_PER_POINT).toLocaleString('en-IN');
-  const lmTierText = document.getElementById('lm-tier-text');
-  if(lmTierText) lmTierText.textContent = tierNames[tier] + ' Member';
-  // Progress bar
-  const tiers = ['bronze','silver','gold','platinum'];
-  const idx = tiers.indexOf(tier);
-  const nextTier = tiers[idx+1];
-  if(nextTier){
-    const nextReq = TIER_THRESHOLDS[nextTier];
-    const currReq = TIER_THRESHOLDS[tier];
-    const pct = Math.min(100, ((d.points - currReq) / (nextReq - currReq)) * 100);
-    const pb = document.getElementById('lm-progress-bar');
-    if(pb) pb.style.width = pct + '%';
-    const nt = document.getElementById('lm-next-tier-text');
-    if(nt) nt.textContent = `${nextTier.charAt(0).toUpperCase()+nextTier.slice(1)} হতে আর ${(nextReq-d.points).toLocaleString('en-IN')} Points দরকার`;
-  }
-  // Tier cards
-  ['bronze','silver','gold','platinum'].forEach(t => {
-    const el = document.getElementById('lm-t-'+t);
-    if(el) el.classList.toggle('current', t===tier);
-  });
-  // History
-  const histList = document.getElementById('lm-hist-list');
-  if(histList){
-    histList.innerHTML = d.history.slice(0,8).map(h=>`
-      <div class="lm-hist-item">
-        <div><i class="fa-solid fa-${h.type==='earn'?'plus':'minus'}" style="color:${h.type==='earn'?'var(--green)':'var(--brand)'}"></i> <span style="color:var(--text2)">${h.reason}</span></div>
-        <span class="lhp ${h.type}">${h.type==='earn'?'+':''}${h.pts} pts</span>
-      </div>`).join('') || '<div style="color:var(--text3);font-size:12px;text-align:center;padding:10px">কোনো history নেই</div>';
-  }
-  // Checkout loyalty section
-  const ckSec = document.getElementById('ck-loyalty-section');
-  if(ckSec && d.points >= 100){ ckSec.style.display='block'; }
-  const ckBal = document.getElementById('ck-loy-balance');
-  if(ckBal) ckBal.textContent = d.points.toLocaleString('en-IN');
-  const ckTaka = document.getElementById('ck-loy-taka');
-  if(ckTaka) ckTaka.textContent = '৳' + Math.floor(d.points * TAKA_PER_POINT).toLocaleString('en-IN');
-}
-
-function openLoyaltyModal(){
-  if(!currentUser){ showToast('Loyalty Program এ Join করতে Login করুন!','crown'); openAuth('login'); return; }
-  updateLoyaltyUI();
-  document.getElementById('loyalty-modal').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function closeLoyaltyModal(){ document.getElementById('loyalty-modal').classList.remove('open'); document.body.style.overflow=''; }
-
-/* Grant 100 points on register */
-const _origUpdateUserUI = window.updateUserUI;
-window.updateUserUI = function(){
-  if(_origUpdateUserUI) _origUpdateUserUI();
-  if(currentUser){
-    updateLoyaltyUI();
-    const d = getLoyaltyData();
-    if(d.history.length === 0){
-      earnPoints(0,'Registration Bonus');
-      // Force 100 pts for registration
-      const d2 = getLoyaltyData();
-      d2.points = 100; d2.totalEarned = 100;
-      d2.history = [{type:'earn',pts:100,reason:'Registration Bonus',date:new Date().toISOString(),balance:100}];
-      saveLoyaltyData(d2);
-      updateLoyaltyUI();
-    }
-    // Show referral strip based on login
-    const refStrip = document.getElementById('ref-strip');
-    if(refStrip && currentUser) refStrip.style.display='block';
-  }
-};
-
-/* ── REFERRAL PROGRAM ── */
-function getReferralCode(){
-  if(!currentUser) return '';
-  const name = (currentUser.name||'user').toLowerCase().replace(/\s+/g,'').slice(0,8);
-  const phone = (currentUser.phone||'').slice(-4);
-  return 'REF-' + name + phone;
-}
-
-function getReferralData(){
-  return JSON.parse(localStorage.getItem('slx_referral') || JSON.stringify({ totalRefs:0, successRefs:0, earned:0 }));
-}
-
-function openReferralModal(){
-  if(!currentUser){ showToast('Referral link পেতে Login করুন!','share-nodes'); openAuth('login'); return; }
-  const code = getReferralCode();
-  const link = `${window.location.origin}?ref=${code}`;
-  const inp = document.getElementById('rm-link-inp');
-  if(inp) inp.value = link;
-  // Stats
-  const rd = getReferralData();
-  const rt = document.getElementById('rm-total-ref'); if(rt) rt.textContent = rd.totalRefs;
-  const rs = document.getElementById('rm-success-ref'); if(rs) rs.textContent = rd.successRefs;
-  const re = document.getElementById('rm-earned-ref'); if(re) re.textContent = '৳' + rd.earned;
-  document.getElementById('referral-modal').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function closeReferralModal(){ document.getElementById('referral-modal').classList.remove('open'); document.body.style.overflow=''; }
-
-function copyReferralLink(){
-  const code = getReferralCode();
-  const link = `${window.location.origin}?ref=${code}`;
-  navigator.clipboard?.writeText(link).then(()=>showToast('Referral link copied! 🔗','copy')).catch(()=>showToast('Link: '+link,'copy'));
-}
-
-function shareRef(platform){
-  const code = getReferralCode();
-  const link = `${window.location.origin}?ref=${code}`;
-  const msg = `🛍️ Shoplixo তে অর্ডার করুন — Bangladesh এর সেরা online shop!\n🎁 আমার referral link ব্যবহার করলে আপনি 10% ছাড় পাবেন!\n\n${link}`;
-  const urls = {
-    whatsapp: `https://wa.me/?text=${encodeURIComponent(msg)}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`,
-    telegram: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(msg)}`
-  };
-  if(urls[platform]) window.open(urls[platform],'_blank');
-}
-
-// Check referral code on page load
-document.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const ref = urlParams.get('ref');
-  if(ref && ref.startsWith('REF-')){
-    localStorage.setItem('slx_ref_code', ref);
-    showToast('Referral code applied! পরবর্তী অর্ডারে 10% ছাড় পাবেন! 🎁', 'gift');
-    // Add coupon for referral
-    setTimeout(()=>{ COUPONS['REFERRAL10'] = 10; }, 500);
-  }
-});
-
 /* ── NOTIFICATIONS ── */
 let notifications = JSON.parse(localStorage.getItem('slx_notifs') || '[]');
 
@@ -9209,38 +8558,7 @@ function closeNotifPanel(){
   document.body.style.overflow='';
 }
 
-/* ── OVERRIDE placeOrder to earn points ── */
-const _origPlaceOrder = window.placeOrder;
-window.placeOrder = async function(){
-  await _origPlaceOrder();
-  // Earn points after successful order (check if order success shown)
-  setTimeout(()=>{
-    if(document.getElementById('order-success').classList.contains('open') && currentUser){
-      const orderTotal = total();
-      const ptsEarned = earnPoints(orderTotal, 'Order Placed');
-      // Add points notification
-      addNotification('order', '📦 Order সফল!', `আপনার order confirm হয়েছে। +${ptsEarned||0} Points অর্জন করেছেন!`);
-      updateLoyaltyUI();
-    }
-  }, 500);
-};
 
-/* ── OVERRIDE ckRefresh to include loyalty discount ── */
-const _origCkRefresh = window.ckRefresh;
-window.ckRefresh = function(){
-  const t=getOrderTotal();
-  const ship=getDeliveryCharge(t);
-  // FIX: flat ও percent coupon উভয় type handle করা
-  const discAmt = discountFlat > 0 ? Math.min(discountFlat, t) : Math.round(t*discount/100);
-  const loyDisc = window._loyaltyDiscount || 0;
-  const fin=Math.max(0, t+ship-discAmt-loyDisc);
-  if(_origCkRefresh) _origCkRefresh();
-  // Update total with loyalty discount
-  if(loyDisc > 0){
-    const ckTotal = document.getElementById('ck-total');
-    if(ckTotal) ckTotal.textContent='৳'+fin.toLocaleString('en-IN');
-  }
-};
 
 /* ━━━ ADVANCED FILTER SYSTEM ━━━ */
 let advFilter = {
@@ -9472,7 +8790,6 @@ document.getElementById('quick-sort')?.addEventListener('change', function(){
     <div style="margin-bottom:8px">
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px"><i class="fa-brands fa-youtube" style="color:#FF0000"></i> Video Review URL (Optional)</div>
       <input id="cm-video-url" type="url" placeholder="YouTube বা Facebook video link দিন..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)">
-      <div style="font-size:11px;color:var(--text3);margin-top:4px"><i class="fa-solid fa-circle-info"></i> Video review দিলে +50 bonus Loyalty Points পাবেন!</div>
     </div>
   `;
   ta.insertAdjacentElement('afterend', videoField);
@@ -9496,7 +8813,6 @@ window.submitComment = async function(){
       if(colorVal) comments[comments.length-1].color = colorVal;
       allComments[currentCommentPid]=comments;
       localStorage.setItem('slx_comments',JSON.stringify(allComments));
-      if(currentUser){ earnPoints(1250,'Video Review Submitted'); showToast('+50 Bonus Points Video Review এর জন্য! 🎬','video'); }
     }
   }
   // Clear extra fields
@@ -9506,45 +8822,487 @@ window.submitComment = async function(){
   return result;
 };
 
-/* ━━━ REFERRAL CODE IN CHECKOUT ━━━ */
-(function addReferralToCheckout(){
-  const couponSec = document.querySelector('#checkout-modal .ck-sec');
-  if(!couponSec) return;
-  const refDiv = document.createElement('div');
-  refDiv.className='ck-sec';
-  refDiv.id='ck-ref-section';
-  refDiv.innerHTML=`
-    <div class="ck-sec-title"><i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Referral Code</div>
-    <div class="coupon-row">
-      <input id="ck-ref-inp" placeholder="বন্ধুর Referral Code দিন..." style="text-transform:uppercase">
-      <button onclick="applyReferralCode()" style="background:var(--green);color:#fff;padding:11px 18px;border-radius:var(--r-sm);font-size:13px;font-weight:700;border:none;cursor:pointer;white-space:nowrap">Apply</button>
-    </div>
-    <div id="ref-msg" style="font-size:12px;margin-top:7px;display:none"></div>
-  `;
-  couponSec.insertAdjacentElement('afterend', refDiv);
-  // Pre-fill if referral code from URL stored
-  const storedRef = localStorage.getItem('slx_ref_code');
-  if(storedRef){
-    const inp = document.getElementById('ck-ref-inp');
-    if(inp){ inp.value=storedRef; setTimeout(applyReferralCode,500); }
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Override wishlist open to use panel
+  const wishBtn = document.querySelector('.h-btn:nth-child(3)');
+  if (wishBtn) wishBtn.onclick = openWishlistPanel;
+  
+  // Override renderAll to also render bundles
+  const origRA = window.renderAll;
+  window.renderAll = function() {
+    if (origRA) origRA();
+    renderBundles();
+    setTimeout(initAllZoom, 200);
+  };
+  
+  // Init size chart on first open
+  setTimeout(() => openSizeChart('shirts'), 100);
+  
+  // Update compare bar if needed
+  updateCompareBar();
+  
+  // Render recently viewed improvements
+  renderRecentlyViewedV2();
+});
+
+function renderRecentlyViewedV2() {
+  const rv = JSON.parse(localStorage.getItem('slx_rv') || '[]');
+  const sec = document.getElementById('recently-viewed');
+  const grid = document.getElementById('rv-grid');
+  if (!sec || !rv.length) return;
+  sec.classList.add('show');
+  if (grid) {
+    grid.innerHTML = rv.slice(0,8).map(pid => {
+      const p = PRODUCTS.find(x => x.id === pid);
+      if (!p) return '';
+      return `<div class="rv-card" onclick="openProductPage('${p.id}')">
+        <img class="rv-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/150/120'">
+        <div class="rv-body">
+          <div class="rv-name">${p.name}</div>
+          <div class="rv-price">৳${p.price.toLocaleString('en-IN')}</div>
+        </div>
+      </div>`;
+    }).join('');
   }
+}
+</script>
+
+<!-- ══ NOTIFICATION PANEL ══ -->
+<div id="notif-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3499;opacity:0;visibility:hidden;transition:var(--t)" onclick="closeNotifPanel()"></div>
+<div id="notif-panel">
+  <div class="np-head">
+    <div class="np-title"><i class="fa-regular fa-bell"></i> Notifications</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:11px;color:rgba(255,255,255,.4);cursor:pointer" onclick="markAllRead()">সব পড়া হয়েছে</span>
+      <button onclick="closeNotifPanel()" style="color:rgba(255,255,255,.6);font-size:18px;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+  <div class="np-body" id="np-body">
+    <div style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-regular fa-bell" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>কোনো notification নেই</p></div>
+  </div>
+</div>
+
+<script>
+/* ── NOTIFICATIONS ── */
+let notifications = JSON.parse(localStorage.getItem('slx_notifs') || '[]');
+
+function saveNotifications(){
+  localStorage.setItem('slx_notifs', JSON.stringify(notifications));
+}
+
+function addNotification(type, title, text){
+  notifications.unshift({ type, title, text, time: new Date().toISOString(), read: false, id: Date.now() });
+  notifications = notifications.slice(0, 20);
+  saveNotifications();
+  updateNotifDot();
+  renderNotifications();
+}
+
+/* ── SERVER (ADMIN BROADCAST) NOTIFICATIONS ── */
+async function fetchServerNotifications(){
+  try{
+    const userId = currentUser?._id || '';
+    const res = await fetch(`/api/content?action=notifications${userId ? '&userId='+userId : ''}`)
+      .then(r=>r.json());
+
+    if(res.ok && res.notifications?.length){
+      // Server notifications কে local 'notifications' array এ merge করো
+      const serverNotifs = res.notifications.map(n => ({
+        id: 'srv_' + n.id,
+        serverId: n.id,
+        type: n.type === 'promo' ? 'promo' : n.type === 'order' ? 'order' : 'points',
+        title: `${n.icon || '🔔'} ${n.title}`,
+        text: n.message,
+        time: n.createdAt,
+        read: n.isRead,
+        link: n.link || '',
+        isServer: true,
+      }));
+
+      // Existing local notifications এর সাথে merge করো — duplicate (serverId
+      // অনুযায়ী) এড়িয়ে যাও, সর্বশেষ গুলো উপরে রাখো
+      const existingServerIds = new Set(notifications.filter(n=>n.serverId).map(n=>n.serverId));
+      const newOnes = serverNotifs.filter(n=>!existingServerIds.has(n.serverId));
+
+      if(newOnes.length){
+        notifications = [...newOnes, ...notifications];
+        saveNotifications();
+        updateNotifDot();
+        renderNotifications();
+      }
+    }
+  }catch(e){ /* silent fail — UX block করবে না */ }
+}
+
+// Page load এর পরে একবার fetch করো
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(fetchServerNotifications, 1500);
+});
+
+// প্রতি ৩ মিনিটে নতুন broadcast notification check করো (polling)
+setInterval(fetchServerNotifications, 3 * 60 * 1000);
+
+function updateNotifDot(){
+  const dot = document.getElementById('notif-dot');
+  const unread = notifications.filter(n=>!n.read).length;
+  if(dot) dot.style.display = unread > 0 ? 'block' : 'none';
+}
+
+function renderNotifications(){
+  const body = document.getElementById('np-body');
+  if(!body) return;
+  if(!notifications.length){
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)"><i class="fa-regular fa-bell" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>কোনো notification নেই</p></div>';
+    return;
+  }
+  const typeIcons = { order:'ni-order', points:'ni-points', promo:'ni-promo' };
+  const icons = { order:'fa-receipt', points:'fa-star', promo:'fa-tag' };
+  body.innerHTML = notifications.map(n => `
+    <div class="notif-item" onclick='handleNotifClick(${JSON.stringify(n.id)})' style="${n.link?'cursor:pointer':''}">
+      <div class="ni-icon ${typeIcons[n.type]||'ni-promo'}"><i class="fa-solid ${icons[n.type]||'fa-bell'}"></i></div>
+      <div class="ni-text">
+        <div class="ni-title">${n.title}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4">${n.text}</div>
+        <div class="ni-time">${new Date(n.time).toLocaleString('bn-BD',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      ${!n.read ? '<div class="ni-unread"></div>' : ''}
+    </div>`).join('');
+}
+
+/* Notification item ক্লিক হ্যান্ডলার — read করে এবং থাকলে link এ navigate করে */
+function handleNotifClick(id){
+  const notif = notifications.find(n=>n.id===id);
+  if(!notif) return;
+  markRead(id);
+  if(!notif.link) return;
+  if(notif.link.startsWith('/category/')){
+    const cat = notif.link.replace('/category/','');
+    closeNotifPanel();
+    filterCat(cat);
+  } else if(notif.link.startsWith('/product/')){
+    closeNotifPanel();
+    loadProductBySlug(notif.link.replace('/product/',''));
+  } else if(notif.link.startsWith('http')){
+    window.open(notif.link, '_blank');
+  } else {
+    window.location.href = notif.link;
+  }
+}
+
+function markRead(id){
+  const n = notifications.find(n=>n.id===id);
+  if(n) n.read = true;
+  saveNotifications();
+  updateNotifDot();
+  renderNotifications();
+
+  // Server notification হলে, backend এও mark-as-read করো
+  if(n?.isServer && n?.serverId && currentUser?._id){
+    fetch('/api/content?action=notifications-read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser._id, notificationIds: [n.serverId] })
+    }).catch(()=>{});
+  }
+}
+
+function markAllRead(){
+  const unreadServerIds = notifications.filter(n=>!n.read && n.isServer && n.serverId).map(n=>n.serverId);
+  notifications.forEach(n=>n.read=true);
+  saveNotifications();
+  updateNotifDot();
+  renderNotifications();
+
+  // Logged-in user হলে server notification গুলোও mark-as-read করো
+  if(unreadServerIds.length && currentUser?._id){
+    fetch('/api/content?action=notifications-read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: currentUser._id, notificationIds: unreadServerIds })
+    }).catch(()=>{});
+  }
+}
+
+function openNotifPanel(){
+  renderNotifications();
+  document.getElementById('notif-panel').classList.add('open');
+  document.getElementById('notif-overlay').style.opacity='1';
+  document.getElementById('notif-overlay').style.visibility='visible';
+  document.body.style.overflow='hidden';
+  markAllRead();
+}
+function closeNotifPanel(){
+  document.getElementById('notif-panel').classList.remove('open');
+  document.getElementById('notif-overlay').style.opacity='0';
+  document.getElementById('notif-overlay').style.visibility='hidden';
+  document.body.style.overflow='';
+}
+
+
+
+/* ━━━ ADVANCED FILTER SYSTEM ━━━ */
+let advFilter = {
+  sort: 'default',
+  minPrice: 0,
+  maxPrice: 12000,
+  rating: 0,
+  colors: [],
+  sizes: [],
+  inStock: false,
+  flashOnly: false,
+  featuredOnly: false,
+};
+let currentFilterCat = 'all';
+
+function openAdvFilter(){
+  // Update counts
+  const rc45 = document.getElementById('rc-45');
+  const rc4 = document.getElementById('rc-4');
+  const rc3 = document.getElementById('rc-3');
+  if(rc45) rc45.textContent = PRODUCTS.filter(p=>p.rating>=4.5).length + ' টি';
+  if(rc4) rc4.textContent = PRODUCTS.filter(p=>p.rating>=4).length + ' টি';
+  if(rc3) rc3.textContent = PRODUCTS.filter(p=>p.rating>=3).length + ' টি';
+  updateAfdResultCount();
+  document.getElementById('adv-filter-drawer').classList.add('open');
+  document.getElementById('adv-filter-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeAdvFilter(){
+  document.getElementById('adv-filter-drawer').classList.remove('open');
+  document.getElementById('adv-filter-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function selectSort(el,val){
+  document.querySelectorAll('.sort-opt').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  advFilter.sort = val;
+  document.getElementById('quick-sort').value = val;
+  updateAfdResultCount();
+}
+function clearSort(){ selectSort(document.querySelector('.sort-opt[data-sort="default"]'),'default'); }
+function selectRating(el,val){
+  document.querySelectorAll('.rating-opt').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  advFilter.rating = val;
+  updateAfdResultCount();
+}
+function clearRating(){ selectRating(document.querySelector('.rating-opt[data-rating="0"]'),0); }
+function toggleColor(el,color){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')){ if(!advFilter.colors.includes(color)) advFilter.colors.push(color); }
+  else { advFilter.colors = advFilter.colors.filter(c=>c!==color); }
+  updateAfdResultCount();
+}
+function clearColors(){
+  document.querySelectorAll('.color-opt').forEach(c=>c.classList.remove('active'));
+  advFilter.colors=[];
+  updateAfdResultCount();
+}
+function toggleSize(el,size){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')){ if(!advFilter.sizes.includes(size)) advFilter.sizes.push(size); }
+  else { advFilter.sizes = advFilter.sizes.filter(s=>s!==size); }
+  updateAfdResultCount();
+}
+function clearSizes(){
+  document.querySelectorAll('.size-opt').forEach(s=>s.classList.remove('active'));
+  advFilter.sizes=[];
+  updateAfdResultCount();
+}
+function updateRangeSlider(){
+  const minEl = document.getElementById('range-min');
+  const maxEl = document.getElementById('range-max');
+  let minVal = parseInt(minEl.value);
+  let maxVal = parseInt(maxEl.value);
+  if(minVal > maxVal){ const tmp=minVal; minVal=maxVal; maxVal=tmp; }
+  advFilter.minPrice = minVal;
+  advFilter.maxPrice = maxVal;
+  document.getElementById('price-min').value = minVal;
+  document.getElementById('price-max').value = maxVal;
+  const fill = document.getElementById('range-fill');
+  if(fill){
+    const pct1 = (minVal/12000)*100;
+    const pct2 = (maxVal/12000)*100;
+    fill.style.left = pct1+'%';
+    fill.style.width = (pct2-pct1)+'%';
+  }
+  updateAfdResultCount();
+}
+function syncPriceRange(){
+  const minVal = parseInt(document.getElementById('price-min').value)||0;
+  const maxVal = parseInt(document.getElementById('price-max').value)||12000;
+  document.getElementById('range-min').value = minVal;
+  document.getElementById('range-max').value = maxVal;
+  advFilter.minPrice = minVal;
+  advFilter.maxPrice = maxVal;
+  updateRangeSlider();
+}
+function resetPriceFilter(){
+  advFilter.minPrice=0; advFilter.maxPrice=12000;
+  document.getElementById('price-min').value=0;
+  document.getElementById('price-max').value=12000;
+  document.getElementById('range-min').value=0;
+  document.getElementById('range-max').value=12000;
+  updateRangeSlider();
+}
+function getFilteredProducts(){
+  // ✅ FIX: 'all' shows ALL active products, not just featured
+  const P = window.PRODUCTS || PRODUCTS;
+  let base = currentFilterCat==='all'
+    ? P.filter(p=>p.isActive!==false)
+    : P.filter(p=>p.cat===currentFilterCat && p.isActive!==false);
+  // Price filter
+  if(advFilter.minPrice>0 || advFilter.maxPrice<12000)
+    base = base.filter(p=>p.price>=advFilter.minPrice && p.price<=advFilter.maxPrice);
+  // Rating filter
+  if(advFilter.rating>0) base = base.filter(p=>p.rating>=advFilter.rating);
+  // Color filter
+  if(advFilter.colors.length)
+    base = base.filter(p=>p.colors && advFilter.colors.some(c=>p.colors.some(pc=>pc.toLowerCase().includes(c.toLowerCase()))));
+  // Size filter
+  if(advFilter.sizes.length)
+    base = base.filter(p=>p.sizes && advFilter.sizes.some(s=>p.sizes.includes(s)));
+  // Availability
+  if(document.getElementById('avail-instock') && document.getElementById('avail-instock').checked)
+    base = base.filter(p=>p.stock>0);
+  if(document.getElementById('avail-flash') && document.getElementById('avail-flash').checked)
+    base = base.filter(p=>p.isFlash);
+  if(document.getElementById('avail-featured') && document.getElementById('avail-featured').checked)
+    base = base.filter(p=>p.isFeatured);
+  // Sort — featured products always come first in default sort
+  const sort = document.getElementById('quick-sort')?.value || advFilter.sort;
+  if(sort==='price-low') base.sort((a,b)=>a.price-b.price);
+  else if(sort==='price-high') base.sort((a,b)=>b.price-a.price);
+  else if(sort==='rating') base.sort((a,b)=>b.rating-a.rating);
+  else if(sort==='popular') base.sort((a,b)=>b.reviews-a.reviews);
+  else if(sort==='newest') base = base.filter(p=>p.isNew).concat(base.filter(p=>!p.isNew));
+  else if(sort==='discount') base.sort((a,b)=>{
+    const da=(a.orig&&a.price)?(a.orig-a.price)/a.orig:0;
+    const db=(b.orig&&b.price)?(b.orig-b.price)/b.orig:0;
+    return db-da;
+  });
+  else {
+    // Default: featured products first
+    base.sort((a,b)=>{
+      if(a.isFeatured && !b.isFeatured) return -1;
+      if(!a.isFeatured && b.isFeatured) return 1;
+      return 0;
+    });
+  }
+  return base;
+}
+function updateAfdResultCount(){
+  const cnt = getFilteredProducts().length;
+  const el = document.getElementById('afd-result-count');
+  if(el) el.textContent = cnt + ' পণ্য';
+}
+function applyAdvFilter(){
+  const results = getFilteredProducts();
+  // Count active filters
+  let activeCount=0;
+  if(advFilter.minPrice>0||advFilter.maxPrice<12000) activeCount++;
+  if(advFilter.rating>0) activeCount++;
+  if(advFilter.colors.length) activeCount+=advFilter.colors.length;
+  if(advFilter.sizes.length) activeCount++;
+  const badge = document.getElementById('filter-active-count');
+  if(badge){ badge.textContent=activeCount||''; badge.style.display=activeCount?'inline-flex':'none'; }
+  const txt = document.getElementById('adv-filter-result-txt');
+  if(txt) txt.innerHTML = results.length > 0
+    ? `<span class="frb-count">${results.length}টি পণ্য</span> পাওয়া গেছে`
+    : '<span style="color:var(--brand)">কোনো পণ্য পাওয়া যায়নি</span>';
+  renderGrid('main-grid', results, 20);
+}
+function resetAllFilters(){
+  advFilter = { sort:'default',minPrice:0,maxPrice:12000,rating:0,colors:[],sizes:[],inStock:false,flashOnly:false,featuredOnly:false };
+  document.querySelectorAll('.sort-opt').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.sort-opt[data-sort="default"]')?.classList.add('active');
+  document.querySelectorAll('.rating-opt').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.rating-opt[data-rating="0"]')?.classList.add('active');
+  document.querySelectorAll('.color-opt,.size-opt').forEach(s=>s.classList.remove('active'));
+  resetPriceFilter();
+  const chks=['avail-instock','avail-flash','avail-featured'];
+  chks.forEach(id=>{ const el=document.getElementById(id); if(el) el.checked=false; });
+  const qs = document.getElementById('quick-sort');
+  if(qs) qs.value='default';
+  const badge = document.getElementById('filter-active-count');
+  if(badge) badge.style.display='none';
+  const txt = document.getElementById('adv-filter-result-txt');
+  const P = window.PRODUCTS || PRODUCTS;
+  if(txt) txt.textContent=`${P.length}টি পণ্য দেখাচ্ছে`;
+  // ✅ FIX: Show ALL products on reset, not just featured
+  const featured = P.filter(p=>p.isFeatured && p.isActive!==false);
+  const nonFeatured = P.filter(p=>!p.isFeatured && p.isActive!==false);
+  const allSorted = [...featured, ...nonFeatured];
+  const el=$('main-grid'); if(el) el.removeAttribute('data-loaded');
+  renderGrid('main-grid', allSorted.length ? allSorted : P, 20);
+  showToast('Filter reset করা হয়েছে', 'rotate-left');
+}
+// Hook quick-sort into filter
+document.getElementById('quick-sort')?.addEventListener('change', function(){
+  advFilter.sort = this.value;
+  applyAdvFilter();
+});
+
+/* ━━━ VIDEO REVIEW SUPPORT ━━━ */
+(function patchCommentForm(){
+  const writeForm = document.getElementById('cm-write-form');
+  if(!writeForm) return;
+  const ta = writeForm.querySelector('#cm-text');
+  if(!ta) return;
+  // Insert video URL field after textarea
+  const videoField = document.createElement('div');
+  videoField.style.cssText = 'margin-top:10px';
+  videoField.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px">আপনার Size</div>
+        <select id="cm-size" style="width:100%;padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;background:#fff;transition:var(--t)">
+          <option value="">Size select করুন</option>
+          <option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option>
+          <option>28</option><option>30</option><option>32</option><option>34</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px">Color</div>
+        <input id="cm-color" type="text" placeholder="যেমন: Black, Red..." style="width:100%;padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)">
+      </div>
+    </div>
+    <div style="margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px"><i class="fa-brands fa-youtube" style="color:#FF0000"></i> Video Review URL (Optional)</div>
+      <input id="cm-video-url" type="url" placeholder="YouTube বা Facebook video link দিন..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)">
+    </div>
+  `;
+  ta.insertAdjacentElement('afterend', videoField);
 })();
 
-function applyReferralCode(){
-  const inp = document.getElementById('ck-ref-inp');
-  const msg = document.getElementById('ref-msg');
-  if(!inp||!msg) return;
-  const code = inp.value.trim().toUpperCase();
-  if(!code){ msg.textContent='Referral code দিন!'; msg.style.color='var(--brand)'; msg.style.display='block'; return; }
-  if(!code.startsWith('REF-')){ msg.textContent='Invalid referral code format (REF-XXXXX হওয়া উচিত)'; msg.style.color='var(--brand)'; msg.style.display='block'; return; }
-  if(!COUPONS['REFERRAL10']) COUPONS['REFERRAL10']=10;
-  discount=10;
-  msg.innerHTML='✅ Referral code applied! আপনি <strong>10% ছাড়</strong> পাবেন!';
-  msg.style.color='var(--green)'; msg.style.display='block';
-  if(typeof ckRefresh==='function') ckRefresh();
-  showToast('Referral code applied! 10% ছাড় পাচ্ছেন! 🎉','gift');
-  localStorage.setItem('slx_ref_code', code);
-}
+// Patch submitComment to include video
+const _origSC = window.submitComment;
+window.submitComment = async function(){
+  // Capture extra fields before original submit
+  const videoUrl = document.getElementById('cm-video-url')?.value?.trim()||'';
+  const sizeVal = document.getElementById('cm-size')?.value?.trim()||'';
+  const colorVal = document.getElementById('cm-color')?.value?.trim()||'';
+  const result = await _origSC();
+  // Patch last comment with video
+  if(videoUrl && currentCommentPid){
+    const allComments = JSON.parse(localStorage.getItem('slx_comments')||'{}');
+    const comments = allComments[currentCommentPid]||[];
+    if(comments.length>0){
+      comments[comments.length-1].videoUrl = videoUrl;
+      if(sizeVal) comments[comments.length-1].size = sizeVal;
+      if(colorVal) comments[comments.length-1].color = colorVal;
+      allComments[currentCommentPid]=comments;
+      localStorage.setItem('slx_comments',JSON.stringify(allComments));
+    }
+  }
+  // Clear extra fields
+  if(document.getElementById('cm-video-url')) document.getElementById('cm-video-url').value='';
+  if(document.getElementById('cm-size')) document.getElementById('cm-size').value='';
+  if(document.getElementById('cm-color')) document.getElementById('cm-color').value='';
+  return result;
+};
 
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', ()=>{
@@ -9553,29 +9311,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Init price range slider fill
   updateRangeSlider();
   if(currentUser) {
-    updateLoyaltyUI();
     // Add default notifications for new users
     if(notifications.length === 0){
       addNotification('promo', '🎉 স্বাগতম Shoplixo তে!', 'প্রথম অর্ডারে LIXA20 কোড ব্যবহার করুন — 20% ছাড়!');
-      addNotification('points', '⭐ 100 Bonus Points!', 'Registration এর জন্য আপনি 100 Bonus Points পেয়েছেন!');
     }
   }
 });
 
-/* Loyalty pts chip in header after login */
-const _origUpdateUI2 = window.updateUserUI;
 
-/* Intercept successful review submission to award points */
-const _origSubmitComment = window.submitComment;
-window.submitComment = async function(){
-  const before = document.querySelectorAll('.comment-item').length;
-  await _origSubmitComment();
-  const after = document.querySelectorAll('.comment-item').length;
-  if(after > before && currentUser){
-    earnPoints(250, 'Review Submitted'); // 250 purchase value = 25 pts
-    showToast('+25 Loyalty Points অর্জন রিভিউ দেওয়ার জন্য! ⭐', 'star');
-  }
-};
 
 /* ══════════════════════════════════════════════
    v5 ULTRA PRO — NEW FEATURE FUNCTIONS
@@ -10266,153 +10009,6 @@ function removeFromWishlist(pid) {
 document.querySelector('.wlp-overlay')?.addEventListener('click', closeWishlistPanel);
 
 
-/* ════════════════════════════════════════════════════════
-   10. LOYALTY POINTS SYSTEM (Full implementation)
-════════════════════════════════════════════════════════ */
-const LOYALTY = {
-  getPoints: () => {
-    const user = JSON.parse(localStorage.getItem('slx_user') || 'null');
-    if(!user) return 0;
-    return JSON.parse(localStorage.getItem(`slx_pts_${user.phone || user.email}`) || '0');
-  },
-  addPoints: (amount) => {
-    const user = JSON.parse(localStorage.getItem('slx_user') || 'null');
-    if(!user) return;
-    const key = `slx_pts_${user.phone || user.email}`;
-    const cur = JSON.parse(localStorage.getItem(key) || '0');
-    const earned = Math.floor(amount / 10);
-    localStorage.setItem(key, cur + earned);
-    addNotification('points', '🌟 Points অর্জন!', `আপনি ${earned} Points অর্জন করেছেন!`);
-    showToast(`🌟 +${earned} Loyalty Points অর্জন!`, 'crown');
-    updateLoyaltyUI();
-    return earned;
-  },
-  getTier: (pts) => {
-    if(pts >= 20000) return { name: 'Platinum', icon: '💎', class: 'lb-platinum', discount: 15 };
-    if(pts >= 5000)  return { name: 'Gold',     icon: '🥇', class: 'lb-gold',     discount: 10 };
-    if(pts >= 1000)  return { name: 'Silver',   icon: '🥈', class: 'lb-silver',   discount: 5  };
-    return                  { name: 'Bronze',   icon: '🥉', class: 'lb-bronze',   discount: 0  };
-  },
-};
-
-function updateLoyaltyUI() {
-  const pts = LOYALTY.getPoints();
-  const tier = LOYALTY.getTier(pts);
-  const bar = document.getElementById('loyalty-bar');
-  const lbPts = document.getElementById('lb-points');
-  const lbTier = document.getElementById('lb-tier-badge');
-  const hdrChip = document.getElementById('hdr-pts-chip');
-  const hdrPts = document.getElementById('hdr-pts-val');
-  const ckSec = document.getElementById('ck-loyalty-section');
-  const ckBal = document.getElementById('ck-loy-balance');
-  const ckTaka = document.getElementById('ck-loy-taka');
-
-  const user = JSON.parse(localStorage.getItem('slx_user') || 'null');
-  if(user) {
-    if(bar) bar.style.display = 'block';
-    if(lbPts) lbPts.textContent = pts;
-    if(lbTier) { lbTier.textContent = tier.name; lbTier.className = `lb-tier-badge ${tier.class}`; }
-    if(hdrChip) hdrChip.style.display = 'flex';
-    if(hdrPts) hdrPts.textContent = pts;
-    if(ckSec) ckSec.style.display = 'block';
-    if(ckBal) ckBal.textContent = pts;
-    if(ckTaka) ckTaka.textContent = '৳' + Math.floor(pts / 10);
-  }
-}
-
-function openLoyaltyModal() {
-  const modal = document.getElementById('loyalty-modal');
-  if(!modal) return;
-  const pts = LOYALTY.getPoints();
-  const tier = LOYALTY.getTier(pts);
-  const numEl = modal.querySelector('.lm-pts-num');
-  if(numEl) numEl.textContent = pts;
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-  // Render history
-  const hist = JSON.parse(localStorage.getItem('slx_pts_history') || '[]');
-  const histEl = modal.querySelector('.lm-history');
-  if(histEl) {
-    histEl.innerHTML = hist.slice(-8).reverse().map(h => `
-      <div class="lm-hist-item">
-        <div><div style="font-weight:600;font-size:13px">${h.desc}</div><div style="font-size:11px;color:var(--text3)">${new Date(h.date).toLocaleDateString('bn-BD')}</div></div>
-        <div class="lhp ${h.type}">${h.type === 'earn' ? '+' : '-'}${h.points} pts</div>
-      </div>
-    `).join('') || '<div style="text-align:center;padding:20px;color:var(--text3)">কোনো history নেই।</div>';
-  }
-}
-
-function closeLoyaltyModal() {
-  document.getElementById('loyalty-modal')?.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function applyLoyaltyPoints() {
-  const inp = document.getElementById('ck-loy-inp');
-  const msg = document.getElementById('ck-loy-msg');
-  if(!inp || !msg) return;
-  const pts = parseInt(inp.value) || 0;
-  const avail = LOYALTY.getPoints();
-  if(pts <= 0) { msg.style.display = 'block'; msg.style.color = 'var(--brand)'; msg.textContent = 'কতটি Points ব্যবহার করবেন?'; return; }
-  if(pts > avail) { msg.style.display = 'block'; msg.style.color = 'var(--brand)'; msg.textContent = `আপনার কাছে শুধু ${avail} Points আছে।`; return; }
-  const discount = Math.floor(pts / 10);
-  msg.style.display = 'block'; msg.style.color = 'var(--green)';
-  msg.textContent = `✅ ${pts} Points = ৳${discount} ছাড় apply হয়েছে!`;
-  window._loyaltyDiscount = { pts, taka: discount };
-  if(typeof ckRefresh === 'function') ckRefresh();
-  showToast(`🌟 ${pts} Points দিয়ে ৳${discount} ছাড় পেয়েছেন!`, 'crown');
-}
-
-// Award points on successful order
-const _origPlaceOrderLoyalty = window.placeOrder;
-window.placeOrder = async function() {
-  const t = typeof total === 'function' ? total() : 0;
-  await _origPlaceOrderLoyalty.apply(this, arguments);
-  // Award points based on order total
-  if(t > 0 && typeof currentUser !== 'undefined' && currentUser) {
-    const earned = LOYALTY.addPoints(t);
-    const key = `slx_pts_${currentUser.phone || currentUser.email}`;
-    const pts = parseInt(localStorage.getItem(key) || '0');
-    // Save to history
-    const hist = JSON.parse(localStorage.getItem('slx_pts_history') || '[]');
-    hist.push({ type: 'earn', points: earned, desc: 'অর্ডার সম্পন্ন', date: Date.now() });
-    localStorage.setItem('slx_pts_history', JSON.stringify(hist));
-  }
-};
-
-// Initialize on load
-document.addEventListener('DOMContentLoaded', updateLoyaltyUI);
-
-
-/* ════════════════════════════════════════════════════════
-   11. REFERRAL PROGRAM
-════════════════════════════════════════════════════════ */
-function openReferralModal() {
-  const modal = document.getElementById('referral-modal');
-  if(!modal) return;
-  modal.classList.add('open');
-  document.body.style.overflow = 'hidden';
-  // Generate referral link
-  const user = JSON.parse(localStorage.getItem('slx_user') || 'null');
-  const code = user ? `SLX${(user.phone || user.email || 'GUEST').replace(/\D/g,'').slice(-6)}` : 'SLXGUEST';
-  const link = `https://shoplixo.shop/?ref=${code}`;
-  const inp = modal.querySelector('.rm-link-inp');
-  if(inp) inp.value = link;
-}
-
-function closeReferralModal() {
-  document.getElementById('referral-modal')?.classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function copyReferralLink() {
-  const inp = document.querySelector('#referral-modal .rm-link-inp');
-  if(!inp) return;
-  navigator.clipboard?.writeText(inp.value).then(() => showToast('Link copy হয়েছে!', 'link'));
-  inp.select();
-  document.execCommand('copy');
-}
-
 
 /* ════════════════════════════════════════════════════════
    12. AUTOFILL FROM PROFILE IN CHECKOUT
@@ -10471,57 +10067,134 @@ window.placeOrder = async function() {
 };
 
 /* ── ADDRESS AUTOFILL IN CHECKOUT ── */
-function initCheckoutAddressHelper(){
-  const addrInput = document.getElementById('ck-address');
+
+/* Fetch saved addresses from server (JWT-authenticated) */
+async function loadServerAddresses() {
+  if (!currentUser) return [];
+  try {
+    const r = await apiGet('auth?action=addresses');
+    if (r.ok && Array.isArray(r.addresses)) return r.addresses;
+  } catch (e) { console.warn('loadServerAddresses failed', e); }
+  return [];
+}
+
+/* Apply an address object to checkout form fields */
+function _applyAddressToForm(addr, user) {
+  if (user) {
+    if (document.getElementById('ck-name')) document.getElementById('ck-name').value = addr.name || user.name || '';
+    if (document.getElementById('ck-phone')) document.getElementById('ck-phone').value = addr.phone || user.phone || '';
+    if (document.getElementById('ck-email')) document.getElementById('ck-email').value = user.email || '';
+  }
   const distInput = document.getElementById('ck-district');
+  if (distInput && addr.district) { distInput.value = addr.district; onDistrictChange(); }
+  setTimeout(() => {
+    const upEl = document.getElementById('ck-upazila');
+    if (upEl && addr.upazila) { upEl.value = addr.upazila; onUpazilaChange(); }
+    const addrEl = document.getElementById('ck-address');
+    if (addrEl && addr.address) addrEl.value = addr.address;
+    updateCheckoutDeliveryCharge();
+  }, 200);
+}
+
+/* Called when user clicks an address chip */
+function _applyChipAddress(idx) {
+  const addrs = window._checkoutAddrs || [];
+  const user = window._checkoutAddrUser || currentUser;
+  const addr = addrs[idx];
+  if (!addr) return;
+  _applyAddressToForm(addr, user);
+  showToast(`Address "${addr.label || addr.district || 'নির্বাচিত'}" fill হয়েছে! ✅`, 'location-dot');
+  document.querySelectorAll('.addr-chip').forEach((c, i) => c.classList.toggle('default', i === idx));
+}
+
+async function initCheckoutAddressHelper(){
+  const addrInput = document.getElementById('ck-address');
   if(!addrInput) return;
 
-  // Auto-fill button in checkout
-  const banner = document.getElementById('ck-autofill-hint');
-  const savedAddrs = JSON.parse(localStorage.getItem('slx_addresses')||'[]');
-  const legacyAddr = JSON.parse(localStorage.getItem('slx_saved_address')||'null');
-  const user = JSON.parse(localStorage.getItem('slx_user')||'null');
+  const user = currentUser || JSON.parse(localStorage.getItem('slx_user')||'null');
 
-  if(banner && (savedAddrs.length>0 || legacyAddr) && user){
-    banner.style.display = 'flex';
-    const lastAddr = savedAddrs[0] || legacyAddr;
-    const span = banner.querySelector('span');
-    if(span) span.textContent = `Last: ${lastAddr.district||''} — এটি ব্যবহার করুন?`;
-    banner.onclick = () => {
-      if(document.getElementById('ck-name') && user) document.getElementById('ck-name').value = user.name||'';
-      if(document.getElementById('ck-phone') && user) document.getElementById('ck-phone').value = user.phone||'';
-      if(document.getElementById('ck-email') && user) document.getElementById('ck-email').value = user.email||'';
-      if(distInput) distInput.value = lastAddr.district||'';
-      if(document.getElementById('ck-upazila')) document.getElementById('ck-upazila').value = lastAddr.upazila||'';
-      if(addrInput) addrInput.value = lastAddr.address||'';
-      showToast('আগের address auto-fill হয়েছে! ✅','magic-wand-sparkles');
-      banner.style.display='none';
-    };
+  // ── Merge: server addresses (logged-in) + localStorage addresses ──
+  const lsAddrs = JSON.parse(localStorage.getItem('slx_addresses')||'[]');
+  const legacyAddr = JSON.parse(localStorage.getItem('slx_saved_address')||'null');
+  let serverAddrs = [];
+  if (user) serverAddrs = await loadServerAddresses();
+
+  // Deduplicate by district+address key
+  const seen = new Set();
+  const allAddrs = [];
+  for (const a of [...serverAddrs, ...lsAddrs]) {
+    const key = (a.district||'') + '|' + (a.address||'');
+    if (!seen.has(key)) { seen.add(key); allAddrs.push(a); }
+  }
+  if (legacyAddr) {
+    const key = (legacyAddr.district||'') + '|' + (legacyAddr.address||'');
+    if (!seen.has(key)) { seen.add(key); allAddrs.push(legacyAddr); }
   }
 
-  // Live address suggestions as user types
-  if(savedAddrs.length > 0){
+  const banner = document.getElementById('ck-autofill-hint');
+
+  if (allAddrs.length === 0) {
+    if (banner) banner.style.display = 'none';
+  } else if (allAddrs.length === 1) {
+    // Single address — show existing banner UX
+    const addr = allAddrs[0];
+    if (banner) {
+      banner.style.display = 'flex';
+      const span = banner.querySelector('span');
+      if (span) span.textContent = `Last: ${addr.label || addr.district || ''} — এটি ব্যবহার করুন?`;
+      banner.onclick = () => {
+        _applyAddressToForm(addr, user);
+        showToast('আগের address auto-fill হয়েছে! ✅', 'magic-wand-sparkles');
+        banner.style.display = 'none';
+      };
+    }
+    // Auto-prefill if marked default
+    if (addr.isDefault) _applyAddressToForm(addr, user);
+  } else {
+    // Multiple addresses — horizontal chip list
+    const defaultIdx = allAddrs.findIndex(a => a.isDefault);
+    window._checkoutAddrs = allAddrs;
+    window._checkoutAddrUser = user;
+    const chips = allAddrs.map((a, i) => {
+      const label = a.label || a.district || `Address ${i+1}`;
+      const isDef = i === defaultIdx;
+      return `<button class="addr-chip${isDef ? ' default' : ''}" onclick="_applyChipAddress(${i})">
+        <i class="fa-solid fa-location-dot"></i> ${label}${isDef ? ' ✓' : ''}
+      </button>`;
+    }).join('');
+    const chipList = document.createElement('div');
+    chipList.className = 'addr-chip-list';
+    chipList.id = 'addr-chip-list';
+    chipList.innerHTML = chips;
+    if (banner) banner.replaceWith(chipList);
+    // Auto-prefill default
+    if (defaultIdx >= 0) {
+      _applyAddressToForm(allAddrs[defaultIdx], user);
+      showToast(`Address "${allAddrs[defaultIdx].label || allAddrs[defaultIdx].district}" auto-fill হয়েছে।`, 'location-dot');
+    }
+  }
+
+  // ── Live address suggestions as user types ──
+  if (allAddrs.length > 0) {
     const suggBox = document.createElement('div');
     suggBox.className = 'addr-suggestions';
     suggBox.style.cssText = 'display:none;position:absolute;left:0;right:0;top:100%;z-index:200';
     const wrapper = addrInput.parentElement;
-    if(wrapper){ wrapper.style.position='relative'; wrapper.appendChild(suggBox); }
-
-    addrInput.addEventListener('input', ()=>{
+    if (wrapper) { wrapper.style.position = 'relative'; wrapper.appendChild(suggBox); }
+    addrInput.addEventListener('input', () => {
       const val = addrInput.value.toLowerCase();
-      if(val.length < 2){ suggBox.style.display='none'; return; }
-      const matches = savedAddrs.filter(a=>(a.address||'').toLowerCase().includes(val));
-      if(!matches.length){ suggBox.style.display='none'; return; }
-      suggBox.innerHTML = matches.slice(0,3).map(a=>`
-        <div class="addr-suggestion-item" onclick="fillAddress('${a.address.replace(/'/g,"\'")}','${(a.district||'').replace(/'/g,"\'")}','${(a.upazila||'').replace(/'/g,"\'")}')">
+      if (val.length < 2) { suggBox.style.display = 'none'; return; }
+      const matches = allAddrs.filter(a => (a.address||'').toLowerCase().includes(val));
+      if (!matches.length) { suggBox.style.display = 'none'; return; }
+      suggBox.innerHTML = matches.slice(0, 3).map(a => `
+        <div class="addr-suggestion-item" onclick="fillAddress('${(a.address||'').replace(/'/g,"\\'")}','${(a.district||'').replace(/'/g,"\\'")}','${(a.upazila||'').replace(/'/g,"\\'")}')">
           <i class="fa-solid fa-location-dot"></i>
-          <span>${a.district||''} ${a.upazila?'› '+a.upazila:''} — ${a.address}</span>
+          <span>${a.district||''} ${a.upazila ? '› '+a.upazila : ''} — ${a.address}</span>
         </div>
       `).join('');
       suggBox.style.display = 'block';
     });
-
-    document.addEventListener('click', e=>{ if(!suggBox.contains(e.target)&&e.target!==addrInput) suggBox.style.display='none'; });
+    document.addEventListener('click', e => { if (!suggBox.contains(e.target) && e.target !== addrInput) suggBox.style.display = 'none'; });
   }
 }
 
@@ -10530,8 +10203,11 @@ function fillAddress(addr, district, upazila){
   const distEl = document.getElementById('ck-district');
   const upEl   = document.getElementById('ck-upazila');
   if(addrEl) addrEl.value = addr;
-  if(distEl) distEl.value = district;
-  if(upEl)   upEl.value   = upazila;
+  if(distEl){ distEl.value = district; onDistrictChange(); }
+  setTimeout(()=>{
+    if(upEl && upazila){ upEl.value = upazila; onUpazilaChange(); }
+    updateCheckoutDeliveryCharge();
+  }, 200);
   // Hide suggestion box
   document.querySelectorAll('.addr-suggestions').forEach(b=>b.style.display='none');
   showToast('Address fill হয়েছে!','location-dot');
@@ -10600,25 +10276,7 @@ function sendWaBundle(bundle) {
 /* ════════════════════════════════════════════════════════
    INIT ALL V6 FEATURES
 ════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-  // Check if referral code in URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const ref = urlParams.get('ref');
-  if(ref) {
-    localStorage.setItem('slx_ref_code', ref);
-    showToast(`Referral Code <b>${ref}</b> দিয়ে কিনলে 10% ছাড় পাবেন!`, 'gift');
-  }
 
-  // Apply referral discount at checkout
-  const _origCkRefreshV6 = window.ckRefresh;
-  window.ckRefresh = function() {
-    if(_origCkRefreshV6) _origCkRefreshV6.apply(this, arguments);
-    const refCode = localStorage.getItem('slx_ref_code');
-    if(refCode && typeof discount !== 'undefined' && discount === 0) {
-      discount = 10;
-    }
-  };
-});
 
 console.log('%c✅ Shoplixo v6 Ultra Pro — All features loaded!', 'color:#E41E26;font-weight:bold;font-size:14px');
 
@@ -10738,13 +10396,11 @@ function refreshProductsGlobal() {
         <div class="psh-info">
           <div class="psh-name" id="psh-name">—</div>
           <div class="psh-phone" id="psh-phone"></div>
-          <div class="psh-tier"><i class="fa-solid fa-crown"></i> <span id="psh-tier">Bronze</span></div>
         </div>
         <button onclick="closeProfileModal()" style="width:32px;height:32px;border-radius:50%;background:var(--bg2);border:none;cursor:pointer;font-size:16px;color:var(--text2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="psh-stats">
         <div class="psh-stat"><div class="psh-stat-val" id="psh-orders">0</div><div class="psh-stat-lbl">Orders</div></div>
-        <div class="psh-stat"><div class="psh-stat-val" id="psh-points" style="color:var(--gold)">0</div><div class="psh-stat-lbl">Points</div></div>
         <div class="psh-stat"><div class="psh-stat-val" id="psh-spent" style="font-size:14px">৳0</div><div class="psh-stat-lbl">Spent</div></div>
       </div>
     </div>
@@ -10764,11 +10420,6 @@ function refreshProductsGlobal() {
         <div class="mi-icon" style="background:var(--brand-light)"><i class="fa-solid fa-heart" style="color:var(--brand)"></i></div>
         <span class="mi-label">Wishlist</span>
         <span class="mi-badge" id="psh-wish-badge" style="background:var(--brand-light);color:var(--brand)"></span>
-        <i class="fa-solid fa-chevron-right mi-arrow"></i>
-      </div>
-      <div class="psh-menu-item" onclick="openLoyaltyModal();closeProfileModal()">
-        <div class="mi-icon" style="background:var(--gold-light)"><i class="fa-solid fa-crown" style="color:var(--gold)"></i></div>
-        <span class="mi-label">Loyalty Points & Rewards</span>
         <i class="fa-solid fa-chevron-right mi-arrow"></i>
       </div>
       <div class="psh-menu-item" onclick="openEditProfile()">
