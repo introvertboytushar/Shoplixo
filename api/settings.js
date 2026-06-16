@@ -22,7 +22,7 @@
  *  DELETE /api/settings?key=xxx           → Remove a custom (non-default) key
  *
  *  ── Settings Groups ──────────────────────────────────────────
- *  general · shipping · payment · loyalty · display · seo
+ *  general · shipping · payment · display · seo
  *  social · business · features · inventory · integrations [NEW v2]
  * ══════════════════════════════════════════════════════════════
  */
@@ -54,8 +54,9 @@ const DEFAULT_SETTINGS = [
   { key: 'currency',         value: 'BDT',                                group: 'general',  label: 'Currency',               type: 'string'  },
 
   // ── Shipping ───────────────────────────────────────────────
-  { key: 'shipping_dhaka',        value: 60,   group: 'shipping', label: 'Dhaka City Shipping (৳)',            type: 'number'  },
-  { key: 'shipping_dhaka_sub',    value: 90,   group: 'shipping', label: 'Dhaka Division (Sub-area) Shipping (৳)', type: 'number'  },
+  { key: 'shipping_dhaka',         value: 60,   group: 'shipping', label: 'Dhaka City Shipping (৳)',                                               type: 'number'  },
+  { key: 'shipping_dhaka_subarea', value: 75,   group: 'shipping', label: 'Dhaka Sub-area (Savar/Keraniganj/Dhamrai/Nawabganj/Dohar) Shipping (৳)', type: 'number'  },
+  { key: 'shipping_dhaka_sub',     value: 90,   group: 'shipping', label: 'Dhaka Division (Other Districts) Shipping (৳)',                          type: 'number'  },
   { key: 'shipping_outside',      value: 120,  group: 'shipping', label: 'Outside Dhaka Shipping (৳)',         type: 'number'  },
   { key: 'shipping_free_above',   value: 1000, group: 'shipping', label: 'Free Shipping Minimum (৳)', type: 'number'  },
   { key: 'shipping_free_enabled', value: true, group: 'shipping', label: 'Free Shipping Enable',      type: 'boolean' },
@@ -68,16 +69,6 @@ const DEFAULT_SETTINGS = [
   { key: 'rocket_number', value: '01XXXXXXXXX',                           group: 'payment', label: 'Rocket Number', type: 'string' },
   { key: 'upay_number',   value: '01XXXXXXXXX',                           group: 'payment', label: 'Upay Number',   type: 'string' },
   { key: 'payment_note',  value: 'Payment করার পর Transaction ID দিন।', group: 'payment', label: 'Payment Note',  type: 'text'   },
-
-  // ── Loyalty ────────────────────────────────────────────────
-  { key: 'points_per_taka',   value: 0.1,  group: 'loyalty', label: 'Points per ৳1 spent',       type: 'number'  },
-  { key: 'taka_per_point',    value: 0.5,  group: 'loyalty', label: '৳ value per 1 point',       type: 'number'  },
-  { key: 'min_redeem_points', value: 100,  group: 'loyalty', label: 'Minimum Redeem Points',     type: 'number'  },
-  { key: 'max_redeem_pct',    value: 20,   group: 'loyalty', label: 'Max Redeem % of order',     type: 'number'  },
-  { key: 'referral_points',   value: 200,  group: 'loyalty', label: 'Referral Reward Points',    type: 'number'  },
-  { key: 'referral_bonus',    value: 100,  group: 'loyalty', label: 'Referred User Bonus',       type: 'number'  },
-  { key: 'register_points',   value: 50,   group: 'loyalty', label: 'Registration Bonus Points', type: 'number'  },
-  { key: 'loyalty_enabled',   value: true, group: 'loyalty', label: 'Loyalty Program Enable',    type: 'boolean' },
 
   // ── Display / Banners ──────────────────────────────────────
   { key: 'hero_banner_1',      value: '',    group: 'display', label: 'Hero Banner 1 (Desktop)', type: 'string'  },
@@ -115,7 +106,6 @@ const DEFAULT_SETTINGS = [
   { key: 'feature_compare',    value: true,  group: 'features', label: 'Product Compare',    type: 'boolean' },
   { key: 'feature_flash',      value: true,  group: 'features', label: 'Flash Sale',          type: 'boolean' },
   { key: 'feature_bundle',     value: true,  group: 'features', label: 'Bundle Offers',       type: 'boolean' },
-  { key: 'feature_affiliate',  value: false, group: 'features', label: 'Affiliate Program',   type: 'boolean' },
   { key: 'feature_newsletter', value: true,  group: 'features', label: 'Newsletter',          type: 'boolean' },
   { key: 'feature_chat',       value: false, group: 'features', label: 'Live Chat Widget',    type: 'boolean' },
   { key: 'feature_tracking',   value: true,  group: 'features', label: 'Order Tracking',      type: 'boolean' },
@@ -147,12 +137,12 @@ const PUBLIC_KEYS = [
   'hero_banner_1','hero_banner_2','hero_mobile_banner',
   'meta_title','meta_description','meta_keywords','og_image',
   'facebook_url','instagram_url','youtube_url','whatsapp_no','tiktok_url',
-  'shipping_dhaka','shipping_dhaka_sub','shipping_outside','shipping_free_above','shipping_free_enabled',
+  'shipping_dhaka','shipping_dhaka_subarea','shipping_dhaka_sub','shipping_outside','shipping_free_above','shipping_free_enabled',
   'shipping_express_fee','cod_available',
   'bkash_number','nagad_number','rocket_number','upay_number','payment_note',
   'feature_reviews','feature_wishlist','feature_compare','feature_flash',
   'feature_bundle','feature_newsletter','feature_chat','feature_tracking','feature_return',
-  'loyalty_enabled','return_policy_days','low_stock_alert','out_stock_hide',
+  'return_policy_days','low_stock_alert','out_stock_hide',
   // Integrations — public app config (SEC-3: FB App ID via API)
   'cloudinary_cloud_name','cloudinary_upload_preset',
   'fb_app_id','google_client_id','google_analytics_id','facebook_pixel_id',
@@ -180,8 +170,9 @@ function normalizeSettings(raw) {
     shippingCost:           raw.shipping_dhaka,
     shippingOutside:        raw.shipping_outside,
     freeShippingMin:        raw.shipping_free_above,
-    // ✅ NEW: 3-tier delivery charge — clear names for index.html / admin.html
+    // ✅ NEW: 4-tier delivery charge — clear names for index.html / admin.html
     shippingDhakaCity:      raw.shipping_dhaka,
+    shippingDhakaSubArea:   raw.shipping_dhaka_subarea,
     shippingDhakaSub:       raw.shipping_dhaka_sub,
     shippingOutsideDhaka:   raw.shipping_outside,
     freeShippingEnabled:    raw.shipping_free_enabled,
@@ -213,22 +204,12 @@ function normalizeSettings(raw) {
     youtubeUrl:             raw.youtube_url,
     whatsappNumber:         raw.whatsapp_no,
     tiktokUrl:              raw.tiktok_url,
-    // Loyalty (UPGRADE-A6)
-    loyaltyEnabled:         raw.loyalty_enabled,
-    pointsPerTaka:          raw.points_per_taka,
-    takaPerPoint:           raw.taka_per_point,
-    minRedeemPoints:        raw.min_redeem_points,
-    maxRedeemPct:           raw.max_redeem_pct,
-    referralPoints:         raw.referral_points,
-    referralBonus:          raw.referral_bonus,
-    registerPoints:         raw.register_points,
     // Features
     featureReviews:         raw.feature_reviews,
     featureWishlist:        raw.feature_wishlist,
     featureCompare:         raw.feature_compare,
     featureFlash:           raw.feature_flash,
     featureBundle:          raw.feature_bundle,
-    featureAffiliate:       raw.feature_affiliate,
     featureNewsletter:      raw.feature_newsletter,
     featureChat:            raw.feature_chat,
     featureTracking:        raw.feature_tracking,
@@ -252,7 +233,7 @@ function normalizeSettings(raw) {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ADMIN-SAVE MAP: camelCase payload key → { dbKey, group }
    Accepts the normalized payload from admin panel settings forms
-   (UPGRADE-A1 Site Settings UI, UPGRADE-A6 Loyalty/Referral)
+   (UPGRADE-A1 Site Settings UI)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const ADMIN_SAVE_MAP = {
   siteName:               { key: 'site_name',               group: 'general'      },
@@ -268,8 +249,9 @@ const ADMIN_SAVE_MAP = {
   freeShippingMin:        { key: 'shipping_free_above',      group: 'shipping'     },
   freeShippingEnabled:    { key: 'shipping_free_enabled',    group: 'shipping'     },
   shippingExpressFee:     { key: 'shipping_express_fee',     group: 'shipping'     },
-  // ✅ NEW: 3-tier delivery charge — alias mappings (same DB keys as above)
+  // ✅ NEW: 4-tier delivery charge — alias mappings (same DB keys as above)
   shippingDhakaCity:      { key: 'shipping_dhaka',           group: 'shipping'     },
+  shippingDhakaSubArea:   { key: 'shipping_dhaka_subarea',   group: 'shipping'     },
   shippingDhakaSub:        { key: 'shipping_dhaka_sub',       group: 'shipping'     },
   shippingOutsideDhaka:    { key: 'shipping_outside',         group: 'shipping'     },
   codAvailable:           { key: 'cod_available',            group: 'shipping'     },
@@ -295,14 +277,6 @@ const ADMIN_SAVE_MAP = {
   metaDescription:        { key: 'meta_description',         group: 'seo'          },
   metaKeywords:           { key: 'meta_keywords',            group: 'seo'          },
   ogImage:                { key: 'og_image',                 group: 'seo'          },
-  loyaltyEnabled:         { key: 'loyalty_enabled',          group: 'loyalty'      },
-  pointsPerTaka:          { key: 'points_per_taka',          group: 'loyalty'      },
-  takaPerPoint:           { key: 'taka_per_point',           group: 'loyalty'      },
-  minRedeemPoints:        { key: 'min_redeem_points',        group: 'loyalty'      },
-  maxRedeemPct:           { key: 'max_redeem_pct',           group: 'loyalty'      },
-  referralPoints:         { key: 'referral_points',          group: 'loyalty'      },
-  referralBonus:          { key: 'referral_bonus',           group: 'loyalty'      },
-  registerPoints:         { key: 'register_points',          group: 'loyalty'      },
   cloudinaryCloudName:    { key: 'cloudinary_cloud_name',    group: 'integrations' },
   cloudinaryUploadPreset: { key: 'cloudinary_upload_preset', group: 'integrations' },
   fbAppId:                { key: 'fb_app_id',                group: 'integrations' },
@@ -447,8 +421,8 @@ module.exports = async (req, res) => {
       return res.json({ ok: true, updated: results, message: `✅ ${results.length}টি setting update হয়েছে!` });
     }
 
-    /* ── Admin panel batch save — camelCase keys (UPGRADE-A1 & A6) ─
-       Accepts: { siteName, shippingCost, bkashNumber, loyaltyEnabled, ... }
+    /* ── Admin panel batch save — camelCase keys (UPGRADE-A1) ──
+       Accepts: { siteName, shippingCost, shippingDhakaSubArea, bkashNumber, ... }
        Maps to DB snake_case keys automatically                           */
     if (req.method === 'POST' && action === 'admin-save') {
       const body    = req.body || {};

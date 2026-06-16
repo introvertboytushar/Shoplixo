@@ -31,18 +31,7 @@
  *  ── CUSTOMERS ────────────────────────────────────────────────
  *  GET  ?action=customers          → Users list (search, sort, paginate) [UPGRADED — online/login fields]
  *  POST ?action=customer-ban       → User ban/unban (isBanned field)  [FIXED]
- *  POST ?action=customer-adjust-points → Loyalty points manual adjust [UPGRADED]
  *  POST ?action=customer-force-logout  → Force logout a user          [NEW]
- *
- *  ── LOYALTY TIER SETTINGS ────────────────────────────────────
- *  GET  ?action=loyalty-settings   → বর্তমান tier thresholds পড়ো    [NEW]
- *  POST ?action=loyalty-settings   → tier thresholds save করো        [NEW]
- *
- *  ── COUPONS ──────────────────────────────────────────────────
- *  GET  ?action=coupons            → Coupon list
- *  POST ?action=coupon             → Coupon তৈরি / আপডেট
- *  POST ?action=coupon-delete      → Coupon মুছুন
- *  POST ?action=toggle-coupon      → Coupon on/off
  *
  *  ── REVIEWS ──────────────────────────────────────────────────
  *  GET  ?action=reviews            → All reviews
@@ -82,11 +71,6 @@
  *  GET  ?action=inventory          → Inventory log
  *  POST ?action=inventory-add      → Manual stock entry
  *
- *  ── REFERRALS ────────────────────────────────────────────────
- *  GET  ?action=referrals          → Referral tracking data
- *  GET  ?action=referral-settings  → Referral/loyalty settings      [NEW]
- *  POST ?action=referral-settings  → Save referral/loyalty settings [NEW]
- *
  *  ── NOTIFICATIONS ────────────────────────────────────────────
  *  POST ?action=notify-broadcast   → Broadcast notification
  *
@@ -102,10 +86,10 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const {
-  connectDB, Order, User, Product, Comment, Newsletter, Coupon,
-  FlashSale, Bundle, AbandonedCart, LoyaltyTxn, SiteStats,
-  Supplier, InventoryLog, ReturnRequest, Notification, Affiliate,
-  Referral, SiteSettings, getSetting, setSetting, getSettings,
+  connectDB, Order, User, Product, Comment, Newsletter,
+  FlashSale, Bundle, AbandonedCart, SiteStats,
+  Supplier, InventoryLog, ReturnRequest, Notification,
+  SiteSettings, getSetting, setSetting, getSettings,
 } = require('./_db');
 const {
   handleCors, isAdmin, sanitize, sendEmail, sendSMS, isEmailConfigured,
@@ -390,6 +374,21 @@ module.exports = async (req, res) => {
         weight:    b.weight ? parseFloat(b.weight) : undefined,
         seoTitle:  sanitize(b.seoTitle  || '', 200),
         seoDesc:   sanitize(b.seoDesc   || '', 500),
+        deliveryCharges: (() => {
+          const dc = b.deliveryCharges || {};
+          const safeNum = v => {
+            if (v === undefined || v === '') return null;
+            const n = parseFloat(v);
+            return Number.isNaN(n) ? null : n;
+          };
+          return {
+            enabled:       Boolean(dc.enabled),
+            dhakaCity:     safeNum(dc.dhakaCity),
+            dhakaSubArea:  safeNum(dc.dhakaSubArea),
+            dhakaDivision: safeNum(dc.dhakaDivision),
+            outsideDhaka:  safeNum(dc.outsideDhaka),
+          };
+        })(),
       });
 
       return res.status(201).json({ ok: true, product, message: '✅ Product সফলভাবে যোগ হয়েছে!' });
@@ -430,6 +429,22 @@ module.exports = async (req, res) => {
         updates.colors = Array.isArray(b.colors) ? b.colors : String(b.colors).split(',').map(s => s.trim());
       if (b.tags !== undefined)
         updates.tags   = Array.isArray(b.tags)   ? b.tags   : String(b.tags).split(',').map(s => s.trim());
+
+      if (b.deliveryCharges !== undefined) {
+        const dc = b.deliveryCharges || {};
+        const safeNum = v => {
+          if (v === undefined || v === '') return null;
+          const n = parseFloat(v);
+          return Number.isNaN(n) ? null : n;
+        };
+        updates.deliveryCharges = {
+          enabled:       Boolean(dc.enabled),
+          dhakaCity:     safeNum(dc.dhakaCity),
+          dhakaSubArea:  safeNum(dc.dhakaSubArea),
+          dhakaDivision: safeNum(dc.dhakaDivision),
+          outsideDhaka:  safeNum(dc.outsideDhaka),
+        };
+      }
 
       const product = await Product.findOneAndUpdate(
         { $or: [{ productId: id }, { _id: id.length === 24 ? id : undefined }] },
@@ -565,12 +580,10 @@ module.exports = async (req, res) => {
           items: o.items, itemCount: o.items.reduce((s, i) => s + i.qty, 0),
           subtotal: o.pricing.subtotal, discount: o.pricing.discount,
           shipping: o.pricing.shipping, total: o.pricing.total,
-          coupon: o.pricing.coupon,
           payment: o.payment.method, payStatus: o.payment.status,
           trxId: o.payment.transactionId,
           status: o.status, tracking: o.tracking,
           statusHistory: o.statusHistory,
-          loyaltyPointsEarned: o.loyaltyPointsEarned,
           createdAt: o.createdAt,
         })),
         pagination: { page, limit, total, pages: Math.ceil(total / limit) },
@@ -624,14 +637,11 @@ module.exports = async (req, res) => {
       const order = await Order.findOneAndUpdate({ orderId: id }, updateObj, { new: true });
       if (!order) return res.status(404).json({ ok: false, error: 'Order পাওয়া যায়নি' });
 
-      // Loyalty points on delivery
       if (status === 'delivered') {
-        const earned = Math.floor((order.pricing.total || 0) / 10);
         await User.findOneAndUpdate(
           { phone: order.customer.phone },
-          { $inc: { totalOrders: 1, totalSpent: order.pricing.total, loyaltyPoints: earned } }
+          { $inc: { totalOrders: 1, totalSpent: order.pricing.total } }
         ).catch(() => {});
-        await Order.findOneAndUpdate({ orderId: id }, { loyaltyPointsEarned: earned });
       }
 
       // Send notifications (non-blocking)
@@ -671,15 +681,14 @@ module.exports = async (req, res) => {
         }
       );
 
-      // Award loyalty points for delivered orders (non-blocking)
+      // Update totalOrders/totalSpent for delivered orders (non-blocking)
       if (status === 'delivered') {
         Order.find({ orderId: { $in: orderIds } }).then(orders => {
           for (const o of orders) {
-            const earned = Math.floor((o.pricing?.total || 0) / 10);
-            if (earned > 0 && o.customer?.phone) {
+            if (o.customer?.phone) {
               User.findOneAndUpdate(
                 { phone: o.customer.phone },
-                { $inc: { totalOrders: 1, totalSpent: o.pricing.total, loyaltyPoints: earned } }
+                { $inc: { totalOrders: 1, totalSpent: o.pricing.total } }
               ).catch(() => {});
             }
           }
@@ -894,7 +903,6 @@ module.exports = async (req, res) => {
         oldest:      { createdAt: 1 },
         orders_hi:   { totalOrders: -1 },
         spent_hi:    { totalSpent: -1 },
-        points_hi:   { loyaltyPoints: -1 },
         name_az:     { name: 1 },
       };
 
@@ -907,7 +915,7 @@ module.exports = async (req, res) => {
           /* FIX (SECTION 3): ipAddress, location, loginHistory — admin panel এ Customer এর
              login info দেখানোর জন্য এই তিনটি field অবশ্যই select এ থাকতে হবে।
              আগে এগুলো missing ছিল, তাই viewLoginHistory() modal সবসময় empty দেখাতো। */
-          .select('name email phone avatar isVerified isBanned banReason bannedAt loginMethod isOnline lastSeen lastLogin loginCount deviceInfo ipAddress location loginHistory createdAt totalOrders totalSpent loyaltyPoints loyaltyTier'),
+          .select('name email phone avatar isVerified isBanned banReason bannedAt loginMethod isOnline lastSeen lastLogin loginCount deviceInfo ipAddress location loginHistory createdAt totalOrders totalSpent'),
         User.countDocuments(query),
       ]);
 
@@ -936,96 +944,6 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, message: ban ? `"${user.name}" ban হয়েছে` : `"${user.name}" unban হয়েছে`, user });
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── MANUAL LOYALTY POINTS ADJUSTMENT (UPGRADED) ───────────
-     POST ?action=customer-adjust-points
-     Body: { userId, amount, reason? }
-     • amount: positive (যোগ) বা negative (বিয়োগ) integer
-     • Final balance কখনো 0 এর নিচে যাবে না (minimum 0)
-     • Abuse prevention: ±১,০০০,০০০ এর বেশি reject করা হবে
-
-     ⚠️  _db.js NOTE:
-     User schema-তে নিচের field টি যোগ করতে হবে যদি না থাকে:
-       loyaltyPointsHistory: [{
-         amount:     Number,
-         reason:     String,
-         adjustedBy: String,           // 'admin'
-         timestamp:  { type: Date, default: Date.now },
-       }]
-  ═══════════════════════════════════════════════════════════ */
-  if (action === 'customer-adjust-points' && req.method === 'POST') {
-    const b = req.body || {};
-    const { userId, amount, reason } = b;
-
-    // ── Input validation ──────────────────────────────────────
-    if (!userId)
-      return res.status(400).json({ ok: false, error: 'userId দিন' });
-    if (!isValidObjectId(userId))
-      return res.status(400).json({ ok: false, error: 'userId ফরম্যাট সঠিক নয়' });
-    if (amount === undefined || amount === null || amount === '')
-      return res.status(400).json({ ok: false, error: 'amount দিন (positive বা negative integer)' });
-
-    const amt = parseInt(amount, 10);
-    if (!Number.isInteger(amt) || isNaN(amt))
-      return res.status(400).json({ ok: false, error: 'amount অবশ্যই integer হতে হবে' });
-    if (amt === 0)
-      return res.status(400).json({ ok: false, error: 'amount শূন্য দেওয়া যাবে না' });
-    if (Math.abs(amt) > 1_000_000)
-      return res.status(400).json({
-        ok: false,
-        error: 'amount সর্বোচ্চ ±১,০০০,০০০ এর মধ্যে হতে হবে (abuse prevention)',
-      });
-
-    try {
-      // ── Step 1: Atomic minimum-0 balance update via aggregation pipeline ──
-      // $max ensures loyaltyPoints কখনো 0 এর নিচে যাবে না — একটি atomic operation এ
-      const user = await User.findByIdAndUpdate(
-        userId,
-        [{
-          $set: {
-            loyaltyPoints: {
-              $max: [0, { $add: ['$loyaltyPoints', amt] }],
-            },
-          },
-        }],
-        { new: true }
-      ).select('name phone loyaltyPoints');
-
-      if (!user)
-        return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
-
-      // ── Step 2: Push to loyaltyPointsHistory array (non-blocking) ──
-      // ⚠️  _db.js এ User schema-তে loyaltyPointsHistory array যোগ করুন
-      User.findByIdAndUpdate(userId, {
-        $push: {
-          loyaltyPointsHistory: {
-            amount:     amt,
-            reason:     sanitize(reason || 'Admin manual adjustment', 300),
-            adjustedBy: 'admin',
-            timestamp:  new Date(),
-          },
-        },
-      }).catch(() => {});
-
-      // ── Step 3: Also log to LoyaltyTxn (backward-compatible) ──
-      LoyaltyTxn.create({
-        userId,
-        type:    amt > 0 ? 'admin_add' : 'admin_deduct',
-        points:  Math.abs(amt),
-        note:    sanitize(reason || 'Admin manual adjustment', 300),
-        balance: user.loyaltyPoints,
-      }).catch(() => {});
-
-      return res.json({
-        ok:         true,
-        newBalance: user.loyaltyPoints,
-        message:    `✅ "${user.name}"-এর loyalty points ${amt > 0 ? '+' : ''}${amt} adjustment হয়েছে। নতুন balance: ${user.loyaltyPoints}`,
-      });
-    } catch (err) {
-      console.error('Adjust points error:', err);
-      return res.status(500).json({ ok: false, error: 'Points adjust হয়নি: ' + err.message });
-    }
-  }
 
   /* ═══════════════════════════════════════════════════════════
      ── CUSTOMER FORCE LOGOUT (NEW — UPGRADE 3) ──────────────
@@ -1121,6 +1039,19 @@ module.exports = async (req, res) => {
     if (!id) return res.status(400).json({ ok: false, error: 'Review ID দিন' });
     const comment = await Comment.findByIdAndDelete(id);
     if (!comment) return res.status(404).json({ ok: false, error: 'Review পাওয়া যায়নি' });
+    // ✅ TASK 3: approved review delete হলে product rating/reviews recalculate করো
+    if (comment.isApproved) {
+      const agg = await Comment.aggregate([
+        { $match: { productId: comment.productId, isApproved: true } },
+        { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } },
+      ]);
+      await Product.updateOne(
+        { productId: comment.productId },
+        agg.length
+          ? { rating: Math.round(agg[0].avg * 10) / 10, reviews: agg[0].count }
+          : { rating: 5, reviews: 0 }
+      );
+    }
     return res.json({ ok: true, message: 'Review delete হয়েছে' });
   }
 
@@ -1216,47 +1147,6 @@ module.exports = async (req, res) => {
     return res.json({ ok: true, message: 'Bundle delete হয়েছে' });
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── COUPONS ──────────────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
-  if (action === 'coupons' && req.method === 'GET') {
-    const coupons = await Coupon.find().sort({ createdAt: -1 }).select('-__v');
-    return res.json({ ok: true, coupons });
-  }
-
-  if (action === 'coupon' && req.method === 'POST') {
-    const b    = req.body || {};
-    const code = sanitize(b.code || '', 30).toUpperCase();
-    if (!code) return res.status(400).json({ ok: false, error: 'Coupon code দিন' });
-    const data = {
-      code, type:        b.type || 'percent',
-      discount:    parseFloat(b.discount || 10),
-      minOrder:    parseFloat(b.minOrder  || 0),
-      maxUses:     parseInt(b.maxUses     || 0),
-      isActive:    b.isActive !== false,
-      description: sanitize(b.description || '', 200),
-    };
-    if (b.expiresAt) data.expiresAt = new Date(b.expiresAt);
-    const coupon = await Coupon.findOneAndUpdate({ code }, { $set: data }, { upsert: true, new: true });
-    return res.json({ ok: true, coupon, message: 'Coupon saved!' });
-  }
-
-  if (action === 'toggle-coupon' && req.method === 'POST') {
-    const code = sanitize(req.body?.code || '', 30).toUpperCase();
-    if (!code) return res.status(400).json({ ok: false, error: 'Code দিন' });
-    const c = await Coupon.findOne({ code });
-    if (!c) return res.status(404).json({ ok: false, error: 'Coupon পাওয়া যায়নি' });
-    c.isActive = !c.isActive;
-    await c.save();
-    return res.json({ ok: true, isActive: c.isActive });
-  }
-
-  if (action === 'coupon-delete' && req.method === 'POST') {
-    const code = sanitize(req.body?.code || '', 30).toUpperCase();
-    const c    = await Coupon.findOneAndDelete({ code });
-    if (!c) return res.status(404).json({ ok: false, error: 'Coupon পাওয়া যায়নি' });
-    return res.json({ ok: true, message: `Coupon "${code}" delete হয়েছে` });
-  }
 
   /* ═══════════════════════════════════════════════════════════
      ── NEWSLETTER ───────────────────────────────────────────
@@ -1458,198 +1348,6 @@ module.exports = async (req, res) => {
     }
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     ── REFERRALS ────────────────────────────────────────────
-  ═══════════════════════════════════════════════════════════ */
-  if (action === 'referrals' && req.method === 'GET') {
-    try {
-      const page  = Math.max(1, parseInt(req.query?.page  || '1'));
-      const limit = Math.min(50, parseInt(req.query?.limit || '20'));
-      const skip  = (page - 1) * limit;
-
-      const [referrals, total, stats] = await Promise.all([
-        Referral.find().sort({ createdAt: -1 }).skip(skip).limit(limit)
-          .populate('referrerUserId', 'name phone').populate('referredUserId', 'name phone').lean(),
-        Referral.countDocuments(),
-        Referral.aggregate([
-          { $group: {
-            _id: '$status', count: { $sum: 1 }, totalPoints: { $sum: '$pointsAwarded' },
-          }},
-        ]),
-      ]);
-
-      const refOrderIds = referrals.filter(r => r.orderId).map(r => r.orderId);
-      const revAgg      = refOrderIds.length ? await Order.aggregate([
-        { $match: { orderId: { $in: refOrderIds }, status: { $nin: ['cancelled', 'refunded'] } } },
-        { $group: { _id: null, total: { $sum: '$pricing.total' } } },
-      ]) : [{ total: 0 }];
-
-      const completedCount = stats.find(s => s._id === 'completed')?.count || 0;
-      const totalCount     = stats.reduce((s, x) => s + x.count, 0);
-
-      return res.json({
-        ok: true, referrals, total,
-        pagination: { page, limit, pages: Math.ceil(total / limit) },
-        summary: {
-          total: totalCount,
-          completed: completedCount,
-          pending: stats.find(s => s._id === 'pending')?.count || 0,
-          conversionRate:   totalCount ? Math.round((completedCount / totalCount) * 100) : 0,
-          revenueFromRefs:  revAgg[0]?.total || 0,
-          totalPointsIssued: stats.reduce((s, x) => s + (x.totalPoints || 0), 0),
-        },
-      });
-    } catch (err) {
-      return res.status(500).json({ ok: false, error: 'Referrals লোড হয়নি: ' + err.message });
-    }
-  }
-
-  /* ── REFERRAL / LOYALTY SETTINGS (NEW — UPGRADE-A6) ──────
-     Previously the Save button was a toast-only stub.
-     Now persists to DB via SiteSettings.
-  ──────────────────────────────────────────────────────────── */
-  if (action === 'referral-settings' && req.method === 'GET') {
-    try {
-      const keys = [
-        'referral_enabled', 'referral_reward_referrer', 'referral_reward_referee',
-        'referral_min_order', 'referral_expiry_days',
-        'loyalty_enabled', 'loyalty_points_per_taka', 'loyalty_redeem_rate',
-        'loyalty_min_redeem', 'loyalty_max_redeem_pct', 'loyalty_expiry_days',
-        'loyalty_signup_bonus', 'loyalty_review_bonus', 'loyalty_birthday_bonus',
-      ];
-      const rawSettings = await getSettings('referral');
-      const loyalSettings = await getSettings('loyalty');
-      return res.json({ ok: true, settings: { ...rawSettings, ...loyalSettings } });
-    } catch (err) {
-      return res.status(500).json({ ok: false, error: 'Referral settings লোড হয়নি' });
-    }
-  }
-
-  if (action === 'referral-settings' && req.method === 'POST') {
-    try {
-      const b = req.body || {};
-
-      // Referral settings
-      const referralEntries = [
-        ['referral_enabled',          Boolean(b.referral_enabled),          { group: 'referral', label: 'Referral Program চালু', type: 'boolean' }],
-        ['referral_reward_referrer',  parseFloat(b.referral_reward_referrer)  || 100, { group: 'referral', label: 'Referrer পয়েন্ট', type: 'number' }],
-        ['referral_reward_referee',   parseFloat(b.referral_reward_referee)   || 50,  { group: 'referral', label: 'Referee পয়েন্ট', type: 'number' }],
-        ['referral_min_order',        parseFloat(b.referral_min_order)        || 500, { group: 'referral', label: 'Minimum Order (৳)', type: 'number' }],
-        ['referral_expiry_days',      parseInt(b.referral_expiry_days)        || 30,  { group: 'referral', label: 'Expiry (দিন)', type: 'number' }],
-      ];
-
-      // Loyalty settings
-      const loyaltyEntries = [
-        ['loyalty_enabled',           Boolean(b.loyalty_enabled),            { group: 'loyalty', label: 'Loyalty Program চালু', type: 'boolean' }],
-        ['loyalty_points_per_taka',   parseFloat(b.loyalty_points_per_taka)  || 1,   { group: 'loyalty', label: 'প্রতি ১০ টাকায় পয়েন্ট', type: 'number' }],
-        ['loyalty_redeem_rate',       parseFloat(b.loyalty_redeem_rate)      || 1,   { group: 'loyalty', label: 'Redeem: ১ পয়েন্ট = ১ টাকা', type: 'number' }],
-        ['loyalty_min_redeem',        parseInt(b.loyalty_min_redeem)         || 200, { group: 'loyalty', label: 'Minimum Redeem পয়েন্ট', type: 'number' }],
-        ['loyalty_max_redeem_pct',    parseInt(b.loyalty_max_redeem_pct)     || 20,  { group: 'loyalty', label: 'Max Redeem % per order', type: 'number' }],
-        ['loyalty_expiry_days',       parseInt(b.loyalty_expiry_days)        || 365, { group: 'loyalty', label: 'Points Expiry (দিন)', type: 'number' }],
-        ['loyalty_signup_bonus',      parseInt(b.loyalty_signup_bonus)       || 50,  { group: 'loyalty', label: 'Signup Bonus', type: 'number' }],
-        ['loyalty_review_bonus',      parseInt(b.loyalty_review_bonus)       || 20,  { group: 'loyalty', label: 'Review Bonus', type: 'number' }],
-        ['loyalty_birthday_bonus',    parseInt(b.loyalty_birthday_bonus)     || 100, { group: 'loyalty', label: 'Birthday Bonus', type: 'number' }],
-      ];
-
-      await batchSetSettings([...referralEntries, ...loyaltyEntries]);
-      return res.json({ ok: true, message: '✅ Referral ও Loyalty settings সংরক্ষিত হয়েছে!' });
-    } catch (err) {
-      return res.status(500).json({ ok: false, error: 'Settings save হয়নি: ' + err.message });
-    }
-  }
-
-  /* ═══════════════════════════════════════════════════════════
-     ── LOYALTY TIER SETTINGS (NEW) ──────────────────────────
-     GET  ?action=loyalty-settings  → বর্তমান tier thresholds পড়ো
-     POST ?action=loyalty-settings  → নতুন thresholds save করো
-
-     Settings structure (key: 'loyaltyConfig'):
-     {
-       bronzeMin:      0,      // Bronze শুরু
-       silverMin:    1000,     // Silver শুরু
-       goldMin:      5000,     // Gold শুরু
-       platinumMin: 20000,     // Platinum শুরু
-       pointsPerOrder:  10,    // প্রতি order এ points
-     }
-     SiteSettings collection এ upsert হয় (key: loyaltyConfig)
-  ═══════════════════════════════════════════════════════════ */
-  if (action === 'loyalty-settings' && req.method === 'GET') {
-    try {
-      // Default values — settings না থাকলে এই values return হবে
-      const LOYALTY_DEFAULTS = {
-        bronzeMin:      0,
-        silverMin:    1000,
-        goldMin:      5000,
-        platinumMin: 20000,
-        pointsPerOrder:  10,
-      };
-
-      const raw = await getSetting('loyaltyConfig').catch(() => null);
-      if (raw?.value) {
-        let saved;
-        try {
-          saved = typeof raw.value === 'object' ? raw.value : JSON.parse(raw.value);
-        } catch {
-          saved = {};
-        }
-        return res.json({ ok: true, settings: { ...LOYALTY_DEFAULTS, ...saved } });
-      }
-
-      // Settings DB তে নেই — default values return করো
-      return res.json({ ok: true, settings: LOYALTY_DEFAULTS });
-    } catch (err) {
-      console.error('Loyalty settings GET error:', err);
-      return res.status(500).json({ ok: false, error: 'Loyalty settings লোড হয়নি: ' + err.message });
-    }
-  }
-
-  if (action === 'loyalty-settings' && req.method === 'POST') {
-    try {
-      const b = req.body || {};
-
-      // ── Validate করো: সব field non-negative integer হতে হবে ──
-      const REQUIRED_FIELDS = ['bronzeMin', 'silverMin', 'goldMin', 'platinumMin', 'pointsPerOrder'];
-      const parsed = {};
-      for (const field of REQUIRED_FIELDS) {
-        if (b[field] === undefined || b[field] === null || b[field] === '')
-          return res.status(400).json({ ok: false, error: `${field} দিন` });
-        const v = parseInt(b[field], 10);
-        if (!Number.isInteger(v) || isNaN(v) || v < 0)
-          return res.status(400).json({ ok: false, error: `${field} অবশ্যই non-negative integer হতে হবে` });
-        parsed[field] = v;
-      }
-
-      // ── Ordered threshold check: bronze < silver < gold < platinum ──
-      const { bronzeMin, silverMin, goldMin, platinumMin } = parsed;
-      if (!(bronzeMin < silverMin))
-        return res.status(400).json({
-          ok: false,
-          error: `bronzeMin (${bronzeMin}) অবশ্যই silverMin (${silverMin}) এর চেয়ে ছোট হতে হবে`,
-        });
-      if (!(silverMin < goldMin))
-        return res.status(400).json({
-          ok: false,
-          error: `silverMin (${silverMin}) অবশ্যই goldMin (${goldMin}) এর চেয়ে ছোট হতে হবে`,
-        });
-      if (!(goldMin < platinumMin))
-        return res.status(400).json({
-          ok: false,
-          error: `goldMin (${goldMin}) অবশ্যই platinumMin (${platinumMin}) এর চেয়ে ছোট হতে হবে`,
-        });
-
-      // ── SiteSettings collection এ upsert করো (key: loyaltyConfig) ──
-      await setSetting('loyaltyConfig', JSON.stringify(parsed), {
-        group: 'loyalty',
-        label: 'Loyalty Tier Configuration',
-        type:  'json',
-      });
-
-      return res.json({ ok: true, message: '✅ Loyalty settings সংরক্ষিত হয়েছে!' });
-    } catch (err) {
-      console.error('Loyalty settings POST error:', err);
-      return res.status(500).json({ ok: false, error: 'Loyalty settings save হয়নি: ' + err.message });
-    }
-  }
 
   /* ═══════════════════════════════════════════════════════════
      ── BROADCAST NOTIFICATION ───────────────────────────────
@@ -1672,8 +1370,6 @@ module.exports = async (req, res) => {
       let smsSent = 0;
       if (b.channel === 'sms' || b.channel === 'all') {
         const query = { isActive: true, 'notificationPrefs.sms': true };
-        if (b.segment === 'loyal') query.loyaltyPoints = { $gte: 1000 };
-        if (b.segment === 'gold')  query.loyaltyPoints = { $gte: 5000 };
         const users = await User.find(query).select('phone').limit(100);
         for (const u of users) {
           try { await sendSMS(u.phone, `${b.title}: ${b.message} — Shoplixo`); smsSent++; } catch {}
@@ -1971,17 +1667,14 @@ module.exports = async (req, res) => {
       'orders', 'order', 'status', 'order-bulk-status', 'payment-verify',
       'order-delete', 'order-bulk-delete',
       'returns', 'return-update',
-      'customers', 'customer-ban', 'customer-adjust-points', 'customer-force-logout',
+      'customers', 'customer-ban', 'customer-force-logout',
       'reviews', 'review-approve', 'review-delete', 'review-reply',
       'flash-sales', 'flash-sale-add', 'flash-sale-del',
       'bundles', 'bundle-add', 'bundle-edit', 'bundle-delete',
-      'coupons', 'coupon', 'toggle-coupon', 'coupon-delete',
       'newsletter', 'newsletter-del', 'newsletter-campaign',
       'abandoned',
       'suppliers', 'supplier-add', 'supplier-edit', 'supplier-delete',
       'inventory', 'inventory-add',
-      'referrals', 'referral-settings',
-      'loyalty-settings',
       'notify-broadcast',
       'upload-image',
       'system-status',

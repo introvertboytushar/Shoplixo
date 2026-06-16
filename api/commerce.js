@@ -1,24 +1,10 @@
 /**
  * ══════════════════════════════════════════════════════════════
  *  SHOPLIXO — /api/commerce
- *  Merged: Coupon · Newsletter · Loyalty · Bundle · Flash Sale
- *
- *  ── COUPON ───────────────────────────────────────────────────
- *  POST /api/commerce?module=coupon              → Validate coupon
- *  GET  /api/commerce?module=coupon&code=xxx     → Check coupon
+ *  Merged: Newsletter · Bundle · Flash Sale
  *
  *  ── NEWSLETTER ───────────────────────────────────────────────
- *  POST /api/commerce?module=newsletter          → Subscribe (welcome coupon)
- *
- *  ── LOYALTY ──────────────────────────────────────────────────
- *  GET  /api/commerce?module=loyalty                      → My points
- *  GET  /api/commerce?module=loyalty&action=history       → Tx history
- *  GET  /api/commerce?module=loyalty&action=leaderboard   → Top earners
- *  POST /api/commerce?module=loyalty&action=redeem        → Redeem points
- *  POST /api/commerce?module=loyalty&action=deduct        → Deduct points
- *  POST /api/commerce?module=loyalty&action=earn          → Earn points
- *  POST /api/commerce?module=loyalty&action=refer         → Get referral code
- *  POST /api/commerce?module=loyalty&action=apply-referral→ Apply referral
+ *  POST /api/commerce?module=newsletter          → Subscribe
  *
  *  ── BUNDLE ───────────────────────────────────────────────────
  *  GET    /api/commerce?module=bundle            → All active bundles
@@ -46,7 +32,7 @@
  */
 
 const {
-  connectDB, Coupon, Newsletter, User, LoyaltyTxn, Referral,
+  connectDB, Newsletter, User,
   Bundle, Product, FlashSale,
 } = require('./_db');
 const {
@@ -55,25 +41,9 @@ const {
 } = require('./_helpers');
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   LOYALTY CONFIG
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const POINTS_PER_TAKA   = 0.1;
-const TAKA_PER_POINT    = 0.5;
-const MIN_REDEEM_POINTS = 100;
-const MAX_REDEEM_PCT    = 20;
-const REFERRAL_POINTS   = 200;
-const REFERRAL_BONUS    = 100;
-
-function generateReferralCode(name, phone) {
-  const n = name.replace(/\s+/g, '').toUpperCase().slice(0, 4);
-  const p = phone.slice(-4);
-  return `${n}${p}`;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    NEWSLETTER WELCOME EMAIL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function newsletterWelcomeEmail(email, name, couponCode) {
+function newsletterWelcomeEmail(email, name) {
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
@@ -84,12 +54,7 @@ function newsletterWelcomeEmail(email, name, couponCode) {
     <div style="font-size:40px;margin-bottom:12px">🎁</div>
     <h2 style="color:#1A1A2E;margin-bottom:8px">ধন্যবাদ Subscribe করার জন্য!</h2>
     ${name ? `<p style="color:#666">স্বাগতম, ${name}!</p>` : ''}
-    <p style="color:#666;margin-top:8px">আপনার জন্য একটি বিশেষ উপহার:</p>
-    <div style="background:#fff0f0;border:2px dashed #E41E26;border-radius:12px;padding:24px;margin:24px 0">
-      <div style="font-size:13px;color:#888;margin-bottom:8px">আপনার Exclusive Coupon Code</div>
-      <div style="font-family:monospace;font-size:28px;font-weight:800;color:#E41E26;letter-spacing:4px">${couponCode}</div>
-      <div style="font-size:13px;color:#888;margin-top:8px">প্রথম অর্ডারে 10% ছাড়</div>
-    </div>
+    <p style="color:#666;margin-top:8px">এখন থেকে exclusive offers ও নতুন product update সবার আগে পাবেন।</p>
     <a href="${process.env.SITE_URL || 'https://shoplixo.shop'}"
        style="display:inline-block;background:#E41E26;color:#fff;padding:12px 32px;border-radius:999px;font-weight:700;text-decoration:none">
       এখনই Shop করুন →
@@ -110,56 +75,6 @@ module.exports = async (req, res) => {
 
   try {
     await connectDB();
-
-    /* ══════════════════════════════════════════════════════════
-       MODULE: COUPON
-    ══════════════════════════════════════════════════════════ */
-    if (module_ === 'coupon') {
-      if (!checkRateLimit(`coupon_${ip}`, 15, 60000)) {
-        return res.status(429).json({ ok: false, error: 'অনেক request!' });
-      }
-
-      const code     = sanitize(
-        (req.method === 'POST' ? req.body?.code : req.query?.code) || '', 50
-      ).toUpperCase();
-      const subtotal = parseFloat(
-        (req.method === 'POST' ? req.body?.subtotal : req.query?.subtotal) || 0
-      );
-
-      if (!code) return res.status(400).json({ ok: false, error: 'Coupon code দিন!' });
-
-      const coupon = await Coupon.findOne({ code, isActive: true });
-      if (!coupon) {
-        return res.status(404).json({ ok: false, error: `"${code}" একটি valid coupon code নয়!` });
-      }
-      if (coupon.expiresAt && coupon.expiresAt < new Date()) {
-        return res.status(400).json({ ok: false, error: 'এই coupon-এর মেয়াদ শেষ হয়ে গেছে!' });
-      }
-      if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses) {
-        return res.status(400).json({ ok: false, error: 'এই coupon ইতিমধ্যে সর্বোচ্চ ব্যবহার হয়ে গেছে!' });
-      }
-      if (subtotal > 0 && coupon.minOrder > 0 && subtotal < coupon.minOrder) {
-        return res.status(400).json({
-          ok: false,
-          error: `এই coupon-এর জন্য কমপক্ষে ৳${coupon.minOrder.toLocaleString()} এর অর্ডার করতে হবে!`,
-        });
-      }
-
-      const discountAmt = subtotal > 0
-        ? (coupon.type === 'percent'
-            ? Math.round(subtotal * coupon.discount / 100)
-            : Math.min(coupon.discount, subtotal))
-        : coupon.discount;
-
-      return res.json({
-        ok: true, code: coupon.code, type: coupon.type,
-        discount: coupon.discount, discountAmt, minOrder: coupon.minOrder,
-        description: coupon.description,
-        message: coupon.type === 'percent'
-          ? `🎉 ${coupon.discount}% ছাড় পেয়েছেন! (৳${discountAmt.toLocaleString()})`
-          : `🎉 ৳${coupon.discount} ছাড় পেয়েছেন!`,
-      });
-    }
 
     /* ══════════════════════════════════════════════════════════
        MODULE: NEWSLETTER
@@ -187,216 +102,14 @@ module.exports = async (req, res) => {
       }
 
       await Newsletter.create({ email, name, source: 'website' });
-      const couponCode = 'WELCOME10';
 
-      // ✅ FIX: Ensure WELCOME10 coupon exists in DB — create if missing
-      // Previously email was sent with a coupon code that might not exist in DB
-      try {
-        await Coupon.findOneAndUpdate(
-          { code: couponCode },
-          {
-            $setOnInsert: {
-              code: couponCode, type: 'percent', discount: 10,
-              minOrder: 0, maxUses: 0, isActive: true,
-              description: 'নতুন subscriber welcome discount — 10% off',
-            },
-          },
-          { upsert: true }
-        );
-      } catch(e) { /* ignore if already exists */ }
-
-      sendEmail(email, '🎁 আপনার Welcome Gift — Shoplixo', newsletterWelcomeEmail(email, name, couponCode))
+      sendEmail(email, '🎁 আপনার Welcome Gift — Shoplixo', newsletterWelcomeEmail(email, name))
         .catch(() => {});
 
       return res.status(201).json({
         ok: true,
-        message: '🎉 Subscribe সফল! Email দেখুন — Welcome coupon পাঠানো হয়েছে!',
-        coupon: couponCode,
+        message: '🎉 Subscribe সফল হয়েছে!',
       });
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       MODULE: LOYALTY
-    ══════════════════════════════════════════════════════════ */
-    if (module_ === 'loyalty') {
-      const decoded = verifyToken(req);
-      if (!decoded && action !== 'leaderboard') {
-        return res.status(401).json({ ok: false, error: 'Login করুন' });
-      }
-
-      /* GET: My Balance */
-      if (req.method === 'GET' && !action) {
-        const user = await User.findById(decoded.id)
-          .select('name phone loyaltyPoints referralCode totalReferrals totalOrders totalSpent');
-        if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
-        const pointsValue = Math.floor(user.loyaltyPoints * TAKA_PER_POINT);
-        return res.json({
-          ok: true, balance: user.loyaltyPoints, valueInTaka: pointsValue,
-          referralCode: user.referralCode, totalReferrals: user.totalReferrals,
-          stats: { totalOrders: user.totalOrders, totalSpent: user.totalSpent },
-          nextReward: user.loyaltyPoints >= MIN_REDEEM_POINTS
-            ? `আপনি ৳${pointsValue} পর্যন্ত discount নিতে পারেন!`
-            : `আরও ${MIN_REDEEM_POINTS - user.loyaltyPoints} points হলে redeem করতে পারবেন`,
-        });
-      }
-
-      /* GET: Transaction History */
-      if (req.method === 'GET' && action === 'history') {
-        const { page = 1 } = req.query;
-        const skip  = (parseInt(page) - 1) * 20;
-        const total = await LoyaltyTxn.countDocuments({ userId: decoded.id });
-        const txns  = await LoyaltyTxn.find({ userId: decoded.id })
-          .sort({ createdAt: -1 }).skip(skip).limit(20).lean();
-        return res.json({ ok: true, transactions: txns, total, page: parseInt(page) });
-      }
-
-      /* GET: Leaderboard */
-      if (req.method === 'GET' && action === 'leaderboard') {
-        const top = await User.find({ isActive: true })
-          .sort({ loyaltyPoints: -1 }).limit(10)
-          .select('name loyaltyPoints totalOrders totalReferrals').lean();
-        return res.json({
-          ok: true,
-          leaderboard: top.map((u, i) => ({
-            rank: i + 1,
-            name: u.name.split(' ')[0] + (u.name.split(' ')[1] ? ' ' + u.name.split(' ')[1][0] + '.' : ''),
-            points: u.loyaltyPoints, orders: u.totalOrders, referrals: u.totalReferrals,
-          })),
-        });
-      }
-
-      /* POST: Redeem Points (validate only) */
-      if (req.method === 'POST' && action === 'redeem') {
-        const { points, orderTotal } = req.body || {};
-        const redeemPoints = parseInt(points) || 0;
-        const total        = parseFloat(orderTotal) || 0;
-        if (redeemPoints < MIN_REDEEM_POINTS) {
-          return res.status(400).json({ ok: false, error: `কমপক্ষে ${MIN_REDEEM_POINTS} points redeem করতে হবে` });
-        }
-        const user = await User.findById(decoded.id);
-        if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
-        if (user.loyaltyPoints < redeemPoints) {
-          return res.status(400).json({ ok: false, error: 'পর্যাপ্ত points নেই' });
-        }
-        const discountTaka  = Math.floor(redeemPoints * TAKA_PER_POINT);
-        const maxDiscount   = Math.floor(total * MAX_REDEEM_PCT / 100);
-        const finalDiscount = Math.min(discountTaka, maxDiscount);
-        const actualPoints  = Math.ceil(finalDiscount / TAKA_PER_POINT);
-        return res.json({
-          ok: true, redeemPoints: actualPoints, discountTaka: finalDiscount,
-          remainingBalance: user.loyaltyPoints - actualPoints,
-          message: `✅ ${actualPoints} points redeem করলে ৳${finalDiscount} ছাড় পাবেন`,
-        });
-      }
-
-      /* POST: Deduct Points (called from orders) */
-      if (req.method === 'POST' && action === 'deduct') {
-        const { points, orderId } = req.body || {};
-        const deductPoints = parseInt(points) || 0;
-        if (deductPoints < 1) return res.status(400).json({ ok: false, error: 'Points amount দিন' });
-        const user = await User.findById(decoded.id);
-        if (!user || user.loyaltyPoints < deductPoints) {
-          return res.status(400).json({ ok: false, error: 'পর্যাপ্ত points নেই' });
-        }
-        user.loyaltyPoints -= deductPoints;
-        await user.save();
-        await LoyaltyTxn.create({
-          userId: user._id, phone: user.phone, type: 'redeem', points: -deductPoints,
-          balance: user.loyaltyPoints, ref: orderId, note: `Order ${orderId} এ ${deductPoints} points redeem`,
-        });
-        return res.json({ ok: true, balance: user.loyaltyPoints, deducted: deductPoints });
-      }
-
-      /* POST: Earn Points — admin/system only, NOT callable by regular users */
-      if (req.method === 'POST' && action === 'earn') {
-        // ✅ FIX: Only admin or server-side order system can award points
-        // Regular users must NOT be able to call this directly with fake orderTotal
-        if (!isAdmin(req)) {
-          return res.status(403).json({ ok: false, error: 'এই endpoint শুধু system ব্যবহার করতে পারে' });
-        }
-        const { orderTotal, orderId, userPhone } = req.body || {};
-        if (!userPhone && !decoded?.id) {
-          return res.status(400).json({ ok: false, error: 'userPhone দিন' });
-        }
-        const earnedPoints = Math.floor((parseFloat(orderTotal) || 0) * POINTS_PER_TAKA);
-        if (earnedPoints < 1) return res.json({ ok: true, earned: 0 });
-        const query = userPhone ? { phone: userPhone } : { _id: decoded.id };
-        const user = await User.findOneAndUpdate(
-          query, { $inc: { loyaltyPoints: earnedPoints } }, { new: true }
-        );
-        if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
-        await LoyaltyTxn.create({
-          userId: user._id, phone: user.phone, type: 'earn', points: earnedPoints,
-          balance: user.loyaltyPoints, ref: orderId, note: `Order ${orderId} থেকে ${earnedPoints} points অর্জন`,
-        });
-        return res.json({ ok: true, earned: earnedPoints, balance: user.loyaltyPoints });
-      }
-
-      /* POST: Generate Referral Code */
-      if (req.method === 'POST' && action === 'refer') {
-        const user = await User.findById(decoded.id);
-        if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
-        if (!user.referralCode) {
-          let code = generateReferralCode(user.name, user.phone);
-          const existing = await User.findOne({ referralCode: code, _id: { $ne: user._id } });
-          if (existing) code += Math.floor(Math.random() * 90 + 10);
-          user.referralCode = code;
-          await user.save();
-        }
-        const siteUrl = process.env.SITE_URL || 'https://shoplixo.shop';
-        return res.json({
-          ok: true, referralCode: user.referralCode,
-          referralLink: `${siteUrl}?ref=${user.referralCode}`,
-          totalReferrals: user.totalReferrals,
-          message: `বন্ধুকে এই code শেয়ার করুন। সে কিনলে আপনি ${REFERRAL_POINTS} points পাবেন!`,
-          rewards: {
-            you: `${REFERRAL_POINTS} points = ৳${Math.floor(REFERRAL_POINTS * TAKA_PER_POINT)}`,
-            friend: `${REFERRAL_BONUS} points bonus`,
-          },
-        });
-      }
-
-      /* POST: Apply Referral Code */
-      if (req.method === 'POST' && action === 'apply-referral') {
-        const { referralCode } = req.body || {};
-        if (!referralCode) return res.status(400).json({ ok: false, error: 'Referral code দিন' });
-        const referrer = await User.findOne({ referralCode: referralCode.toUpperCase().trim() });
-        if (!referrer) return res.status(404).json({ ok: false, error: 'Invalid referral code' });
-        if (String(referrer._id) === String(decoded.id)) {
-          return res.status(400).json({ ok: false, error: 'নিজের referral code ব্যবহার করা যাবে না' });
-        }
-        const newUser = await User.findById(decoded.id);
-        if (newUser.referredBy) return res.status(409).json({ ok: false, error: 'আপনি আগেই referral code use করেছেন' });
-
-        referrer.loyaltyPoints += REFERRAL_POINTS;
-        referrer.totalReferrals++;
-        await referrer.save();
-        await LoyaltyTxn.create({
-          userId: referrer._id, phone: referrer.phone, type: 'referral', points: REFERRAL_POINTS,
-          balance: referrer.loyaltyPoints, ref: newUser.phone, note: `${newUser.name} কে refer করেছেন`,
-        });
-
-        newUser.loyaltyPoints += REFERRAL_BONUS;
-        newUser.referredBy = referralCode.toUpperCase();
-        await newUser.save();
-        await LoyaltyTxn.create({
-          userId: newUser._id, phone: newUser.phone, type: 'referral', points: REFERRAL_BONUS,
-          balance: newUser.loyaltyPoints, ref: referralCode, note: 'Referral bonus',
-        });
-        await Referral.create({
-          referrerUserId: referrer._id, referrerPhone: referrer.phone,
-          referralCode: referralCode.toUpperCase(),
-          referredPhone: newUser.phone, referredUserId: newUser._id,
-          status: 'completed', pointsAwarded: REFERRAL_POINTS,
-        });
-
-        return res.json({
-          ok: true, bonusPoints: REFERRAL_BONUS, balance: newUser.loyaltyPoints,
-          message: `🎉 Referral code apply হয়েছে! আপনি ${REFERRAL_BONUS} bonus points পেয়েছেন।`,
-        });
-      }
-
-      return res.status(400).json({ ok: false, error: 'Invalid loyalty action' });
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -819,7 +532,7 @@ module.exports = async (req, res) => {
     /* ── Unknown module ────────────────────────────────────────── */
     return res.status(400).json({
       ok: false,
-      error: 'Invalid module. Use: coupon, newsletter, loyalty, bundle, flash, shurjopay',
+      error: 'Invalid module. Use: newsletter, bundle, flash, shurjopay',
     });
 
   } catch (err) {

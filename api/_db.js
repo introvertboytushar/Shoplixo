@@ -184,8 +184,6 @@ const orderSchema = new mongoose.Schema({
     subtotal:       Number,
     shipping:       { type: Number, default: 60 },
     discount:       { type: Number, default: 0 },
-    coupon:         { type: String, default: '' },
-    loyaltyDiscount:{ type: Number, default: 0 },
     total:          Number,
     profit:         { type: Number, default: 0 },
   },
@@ -221,11 +219,6 @@ const orderSchema = new mongoose.Schema({
     trackingUrl:       String,
   },
 
-  loyaltyPointsEarned:   { type: Number, default: 0 },
-  loyaltyPointsRedeemed: { type: Number, default: 0 },
-  referralCode:          { type: String, default: '' },
-  affiliateCode:         { type: String, default: '' },
-  affiliateCommission:   { type: Number, default: 0 },
   dropshipStatus:        { type: String, enum: ['none','ordered','processing','shipped'], default: 'none' },
   dropshipOrderId:       { type: String, default: '' },
   ip:                    String,
@@ -271,20 +264,6 @@ const userSchema = new mongoose.Schema({
   compareList:      { type: [String], default: [] },
   totalOrders:      { type: Number, default: 0 },
   totalSpent:       { type: Number, default: 0 },
-  loyaltyPoints:    { type: Number, default: 0 },
-  loyaltyTier:      { type: String, enum: ['bronze','silver','gold','platinum'], default: 'bronze' },
-  loyaltyPointsHistory: [{
-    amount:     { type: Number, required: true },  // positive বা negative
-    reason:     { type: String, default: '' },
-    adjustedBy: { type: String, default: 'admin' },
-    timestamp:  { type: Date, default: Date.now },
-  }],
-  referralCode:     { type: String, unique: true, sparse: true },
-  referredBy:       { type: String, default: '' },
-  totalReferrals:   { type: Number, default: 0 },
-  affiliateCode:    { type: String, sparse: true },
-  affiliateBalance: { type: Number, default: 0 },
-  totalAffiliateEarned: { type: Number, default: 0 },
   lastLogin:        Date,
   loginCount:       { type: Number, default: 0 },
 
@@ -402,6 +381,17 @@ const productSchema = new mongoose.Schema({
   specifications:[{ key: String, value: String }],
   returnPolicy: { type: String, default: '৭ দিনের মধ্যে return করা যাবে' },
   shippingTime: { type: String, default: 'ঢাকায় ১-২ দিন, সারাদেশে ৩-৫ দিন' },
+
+  // ✅ Per-product delivery charge overrides (TASK 1)
+  // enabled: false → global shipping settings (api/settings.js) প্রযোজ্য হবে
+  // enabled: true  → null tier = global fallback, non-null tier = এই মান ব্যবহার হবে
+  deliveryCharges: {
+    enabled:       { type: Boolean, default: false },
+    dhakaCity:     { type: Number,  default: null },  // ঢাকা শহর
+    dhakaSubArea:  { type: Number,  default: null },  // Savar/Keraniganj/Dhamrai/Nawabganj/Dohar
+    dhakaDivision: { type: Number,  default: null },  // Gazipur, Narayanganj ইত্যাদি
+    outsideDhaka:  { type: Number,  default: null },  // ঢাকা বিভাগের বাইরে — সারা বাংলাদেশ
+  },
 }, { timestamps: true, versionKey: false, collection: 'products' });
 
 productSchema.index({ name: 'text', tags: 'text', desc: 'text', brand: 'text' });
@@ -500,29 +490,6 @@ const notificationSchema = new mongoose.Schema({
   metadata: mongoose.Schema.Types.Mixed,
   readBy:   [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true, versionKey: false, collection: 'notifications' });
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  AFFILIATE SCHEMA
-// ═══════════════════════════════════════════════════════════════════════════════
-const affiliateSchema = new mongoose.Schema({
-  userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  phone:          String,
-  affiliateCode:  { type: String, required: true, unique: true },
-  commissionRate: { type: Number, default: 5 },
-  totalClicks:    { type: Number, default: 0 },
-  totalOrders:    { type: Number, default: 0 },
-  totalEarned:    { type: Number, default: 0 },
-  pendingAmount:  { type: Number, default: 0 },
-  paidAmount:     { type: Number, default: 0 },
-  isActive:       { type: Boolean, default: true },
-  payouts: [{
-    amount:  Number,
-    method:  String,
-    ref:     String,
-    paidAt:  Date,
-    paidBy:  String,
-  }],
-}, { timestamps: true, versionKey: false, collection: 'affiliates' });
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  SITE SETTINGS SCHEMA  (key-value store for all admin-controlled settings)
@@ -642,34 +609,6 @@ const bundleSchema = new mongoose.Schema({
 }, { timestamps: true, versionKey: false, collection: 'bundles' });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  LOYALTY TRANSACTION SCHEMA
-// ═══════════════════════════════════════════════════════════════════════════════
-const loyaltySchema = new mongoose.Schema({
-  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  phone:     String,
-  type:      { type: String, enum: ['earn','redeem','bonus','referral','expire','admin','affiliate','return'], required: true },
-  points:    { type: Number, required: true },
-  balance:   { type: Number, required: true },
-  ref:       String,
-  note:      String,
-  expiresAt: Date,
-}, { timestamps: true, versionKey: false, collection: 'loyalty_txns' });
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  REFERRAL SCHEMA
-// ═══════════════════════════════════════════════════════════════════════════════
-const referralSchema = new mongoose.Schema({
-  referrerUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  referrerPhone:  String,
-  referralCode:   { type: String, required: true, index: true },
-  referredPhone:  String,
-  referredUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  status:         { type: String, enum: ['pending','completed','paid'], default: 'pending' },
-  pointsAwarded:  { type: Number, default: 0 },
-  orderId:        String,
-}, { timestamps: true, versionKey: false, collection: 'referrals' });
-
-// ═══════════════════════════════════════════════════════════════════════════════
 //  ABANDONED CART SCHEMA
 // ═══════════════════════════════════════════════════════════════════════════════
 const abandonedCartSchema = new mongoose.Schema({
@@ -703,77 +642,6 @@ const newsletterSchema = new mongoose.Schema({
   source:     { type: String, default: 'website' }, // website, checkout, etc.
   couponSent: { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false, collection: 'newsletters' });
-
-// ═══════════════════════════════════════════════════════════════════════════════
-//  COUPON SCHEMA  — with validate() instance method (BUG-3)
-// ═══════════════════════════════════════════════════════════════════════════════
-const couponSchema = new mongoose.Schema({
-  code:               { type: String, required: true, unique: true, uppercase: true },
-  type:               { type: String, enum: ['percent','flat','free_shipping','bogo'], default: 'percent' },
-  discount:           { type: Number, required: true },
-  maxDiscount:        { type: Number, default: 0 },
-  minOrder:           { type: Number, default: 0 },
-  maxUses:            { type: Number, default: 0 },
-  maxPerUser:         { type: Number, default: 0 },
-  usedCount:          { type: Number, default: 0 },
-  usedBy:             { type: [String], default: [] },
-  isActive:           { type: Boolean, default: true },
-  expiresAt:          Date,
-  description:        String,
-  applicableCats:     [String],
-  applicableProducts: [String],
-  isFirstOrderOnly:   { type: Boolean, default: false },
-  isReferralCoupon:   { type: Boolean, default: false },
-}, { timestamps: true, versionKey: false, collection: 'coupons' });
-
-/**
- * ✅ NEW v4: Coupon.validateCoupon(code, subtotal, userPhone?, isFirstOrder?)
- *
- * Centralised validation used by api/commerce?action=validate-coupon  (BUG-3)
- * Returns { ok, discount, discountType, coupon } or { ok: false, error }
- */
-couponSchema.statics.validateCoupon = async function(code, subtotal = 0, userPhone = '', isFirstOrder = false) {
-  if (!code) return { ok: false, error: 'কোড দিন' };
-
-  const c = await this.findOne({ code: code.toUpperCase().trim(), isActive: true });
-  if (!c) return { ok: false, error: 'কুপন পাওয়া যায়নি বা inactive' };
-
-  // Expiry check
-  if (c.expiresAt && new Date() > c.expiresAt)
-    return { ok: false, error: 'কুপনের মেয়াদ শেষ' };
-
-  // Min order check
-  if (subtotal < c.minOrder)
-    return { ok: false, error: `ন্যূনতম ৳${c.minOrder} অর্ডারে ব্যবহারযোগ্য` };
-
-  // Max global uses
-  if (c.maxUses > 0 && c.usedCount >= c.maxUses)
-    return { ok: false, error: 'কুপনের সীমা শেষ' };
-
-  // Per-user limit
-  if (c.maxPerUser > 0 && userPhone) {
-    const timesUsed = c.usedBy.filter(p => p === userPhone).length;
-    if (timesUsed >= c.maxPerUser)
-      return { ok: false, error: 'আপনি এই কুপন আগে ব্যবহার করেছেন' };
-  }
-
-  // First-order-only check
-  if (c.isFirstOrderOnly && !isFirstOrder)
-    return { ok: false, error: 'এই কুপন শুধু প্রথম অর্ডারে ব্যবহারযোগ্য' };
-
-  // Calculate discount
-  let discount = 0;
-  if (c.type === 'percent') {
-    discount = Math.floor(subtotal * c.discount / 100);
-    if (c.maxDiscount > 0) discount = Math.min(discount, c.maxDiscount);
-  } else if (c.type === 'flat') {
-    discount = Math.min(c.discount, subtotal);
-  } else if (c.type === 'free_shipping') {
-    discount = 0; // handled at checkout level
-  }
-
-  return { ok: true, discount, discountType: c.type, coupon: c };
-};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  SITE STATS SCHEMA  (Daily counters)
@@ -871,17 +739,13 @@ const Category       = reg('Category',       categorySchema);
 const Comment        = reg('Comment',        commentSchema);
 const FlashSale      = reg('FlashSale',      flashSaleSchema);
 const Bundle         = reg('Bundle',         bundleSchema);
-const LoyaltyTxn     = reg('LoyaltyTxn',    loyaltySchema);
-const Referral       = reg('Referral',       referralSchema);
 const AbandonedCart  = reg('AbandonedCart',  abandonedCartSchema);
 const Newsletter     = reg('Newsletter',     newsletterSchema);
-const Coupon         = reg('Coupon',         couponSchema);
 const SiteStats      = reg('SiteStats',      siteStatsSchema);
 const Supplier       = reg('Supplier',       supplierSchema);
 const InventoryLog   = reg('InventoryLog',   inventoryLogSchema);
 const ReturnRequest  = reg('ReturnRequest',  returnRequestSchema);
 const Notification   = reg('Notification',   notificationSchema);
-const Affiliate      = reg('Affiliate',      affiliateSchema);
 const SiteSettings   = reg('SiteSettings',   siteSettingsSchema);
 const AdminConfig    = reg('AdminConfig',    adminConfigSchema);   // ✅ NEW v4
 const AuditLog       = reg('AuditLog',       auditLogSchema);      // ✅ NEW v4
@@ -946,9 +810,6 @@ async function seedDefaultSettings() {
     { key: 'upayNumber',     value: '01516511889',        group: 'payment',  isPublic: true,  type: 'string', label: 'Upay Number' },
     { key: 'whatsappNumber', value: '8801516511889',      group: 'contact',  isPublic: true,  type: 'string', label: 'WhatsApp Number' },
     { key: 'siteUrl',        value: 'https://shoplixo.shop', group: 'general', isPublic: false, type: 'string', label: 'Site URL' },
-    { key: 'loyaltyEnabled', value: true,                 group: 'loyalty',  isPublic: false, type: 'boolean',label: 'Loyalty Program' },
-    { key: 'referralPoints', value: 100,                  group: 'loyalty',  isPublic: false, type: 'number', label: 'Referral Bonus Points' },
-    { key: 'pointsPerTaka',  value: 1,                   group: 'loyalty',  isPublic: false, type: 'number', label: 'Points per ৳1 spent' },
     { key: 'cloudinaryCloud',value: '',                   group: 'media',    isPublic: false, type: 'string', label: 'Cloudinary Cloud Name' },
     { key: 'cloudinaryPreset',value: 'shoplixo_unsigned', group: 'media',   isPublic: false, type: 'string', label: 'Cloudinary Upload Preset' },
   ];
@@ -989,8 +850,8 @@ module.exports = {
 
   // Models
   Order, User, Product, Category, Comment, FlashSale, Bundle,
-  LoyaltyTxn, Referral, AbandonedCart, Newsletter, Coupon, SiteStats,
-  Supplier, InventoryLog, ReturnRequest, Notification, Affiliate,
+  AbandonedCart, Newsletter, SiteStats,
+  Supplier, InventoryLog, ReturnRequest, Notification,
   SiteSettings, AdminConfig, AuditLog, PushToken, SearchLog,
   SupportTicket, PromoPopup,
 

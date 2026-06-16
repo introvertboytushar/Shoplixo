@@ -10,6 +10,11 @@
  *  POST /api/auth?action=password          → Password পরিবর্তন
  *  POST /api/auth?action=delete-account    → Account মুছুন
  *
+ *  ── SAVED ADDRESSES ──────────────────────────────────────────
+ *  GET  /api/auth?action=addresses         → সংরক্ষিত ঠিকানা তালিকা (JWT)
+ *  POST /api/auth?action=address-save      → ঠিকানা যোগ / আপডেট (JWT)
+ *  POST /api/auth?action=address-delete    → ঠিকানা মুছুন (JWT)
+ *
  *  ── PASSWORD RECOVERY ────────────────────────────────────────
  *  POST /api/auth?action=forgot-password   → OTP পাঠান (Phone/Email)
  *  POST /api/auth?action=reset-password    → OTP দিয়ে password রিসেট
@@ -135,7 +140,6 @@ module.exports = async (req, res) => {
     const phone    = sanitize(b.phone || '', 20).replace(/\s+/g, '');
     const email    = sanitize(b.email || '', 150).toLowerCase().trim();
     const password = String(b.password || '');
-    const refCode  = sanitize(b.referralCode || '', 20).trim();
 
     if (!name || name.length < 2)
       return res.status(400).json({ ok: false, code: 'INVALID_NAME',  error: 'সঠিক নাম দিন! (কমপক্ষে ২ অক্ষর)' });
@@ -208,14 +212,6 @@ module.exports = async (req, res) => {
           },
         }],
       });
-
-      /* Reward referrer (fire-and-forget) */
-      if (refCode) {
-        User.findOneAndUpdate(
-          { referralCode: refCode },
-          { $inc: { loyaltyPoints: 50 }, $push: { referralsMade: user._id } }
-        ).catch(() => {});
-      }
 
       const payload      = { id: user._id, phone: user.phone };
       const token        = signAccessToken(payload);
@@ -340,12 +336,11 @@ module.exports = async (req, res) => {
       return res.json({
         ok: true, token, refreshToken,
         user: {
-          id:            user._id,
-          name:          user.name,
-          phone:         user.phone,
-          email:         user.email || null,
-          totalOrders:   user.totalOrders   || 0,
-          loyaltyPoints: user.loyaltyPoints || 0,
+          id:          user._id,
+          name:        user.name,
+          phone:       user.phone,
+          email:       user.email || null,
+          totalOrders: user.totalOrders || 0,
         },
       });
 
@@ -420,6 +415,142 @@ module.exports = async (req, res) => {
       if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
 
       return res.json({ ok: true, user, message: 'Profile সফলভাবে আপডেট হয়েছে!' });
+
+    } catch (err) {
+      return tokenError(err, res);
+    }
+  }
+
+  /* ── SAVED ADDRESSES — GET ───────────────────────────────── */
+  if (action === 'addresses' && req.method === 'GET') {
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Login করুন!' });
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (decoded.type === 'refresh')
+        return res.status(401).json({ ok: false, code: 'WRONG_TOKEN_TYPE', error: 'Access token ব্যবহার করুন!' });
+
+      await connectDB();
+      const user = await User.findById(decoded.id).select('addresses').lean();
+      if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
+
+      return res.json({ ok: true, addresses: user.addresses || [] });
+
+    } catch (err) {
+      return tokenError(err, res);
+    }
+  }
+
+  /* ── SAVED ADDRESSES — SAVE / UPSERT ────────────────────── */
+  if (action === 'address-save' && req.method === 'POST') {
+    if (!checkRateLimit(`addrsave_${ip}`, 20, 60_000))
+      return res.status(429).json({ ok: false, code: 'RATE_LIMIT', error: 'অনেক দ্রুত request! একটু অপেক্ষা করুন।' });
+
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Login করুন!' });
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (decoded.type === 'refresh')
+        return res.status(401).json({ ok: false, code: 'WRONG_TOKEN_TYPE', error: 'Access token ব্যবহার করুন!' });
+
+      await connectDB();
+      const b = req.body || {};
+
+      const label     = sanitize(b.label     || '', 100).trim();
+      const name      = sanitize(b.name      || '', 100).trim();
+      const phone     = sanitize(b.phone     || '',  20).trim();
+      const address   = sanitize(b.address   || '', 300).trim();
+      const district  = sanitize(b.district  || '',  50).trim();
+      const upazila   = sanitize(b.upazila   || '', 100).trim();
+      const area      = sanitize(b.area      || '', 100).trim();
+      const isDefault = Boolean(b.isDefault);
+
+      if (!name)
+        return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'নাম আবশ্যক!' });
+      if (!address)
+        return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'ঠিকানা আবশ্যক!' });
+      if (!district)
+        return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'জেলা আবশ্যক!' });
+
+      const user = await User.findById(decoded.id).select('addresses');
+      if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
+
+      const addresses = user.addresses || [];
+
+      /* Normalize for duplicate detection (case + whitespace) */
+      const norm = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
+      const existingIdx = addresses.findIndex(a =>
+        norm(a.address  || '') === norm(address) &&
+        norm(a.district || '') === norm(district)
+      );
+
+      /* Remove existing entry (update-in-place + move to front) */
+      if (existingIdx !== -1) addresses.splice(existingIdx, 1);
+
+      /* Most recent entry goes to the front */
+      addresses.unshift({ label, name, phone, address, district, upazila, area, isDefault });
+
+      /* Cap at 5 — drop oldest entries from the tail */
+      if (addresses.length > 5) addresses.splice(5);
+
+      /* Enforce single default */
+      if (isDefault) {
+        addresses.forEach((a, i) => { a.isDefault = (i === 0); });
+      }
+
+      user.addresses = addresses;
+      await user.save();
+
+      return res.json({ ok: true, addresses: user.addresses, message: '✅ ঠিকানা সংরক্ষণ হয়েছে' });
+
+    } catch (err) {
+      return tokenError(err, res);
+    }
+  }
+
+  /* ── SAVED ADDRESSES — DELETE ────────────────────────────── */
+  if (action === 'address-delete' && req.method === 'POST') {
+    const token = extractToken(req);
+    if (!token) return res.status(401).json({ ok: false, code: 'NO_TOKEN', error: 'Login করুন!' });
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (decoded.type === 'refresh')
+        return res.status(401).json({ ok: false, code: 'WRONG_TOKEN_TYPE', error: 'Access token ব্যবহার করুন!' });
+
+      await connectDB();
+      const b = req.body || {};
+
+      const user = await User.findById(decoded.id).select('addresses');
+      if (!user) return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'User পাওয়া যায়নি' });
+
+      const addresses = user.addresses || [];
+
+      if (typeof b.index === 'number') {
+        /* Primary: identify by array index */
+        if (b.index < 0 || b.index >= addresses.length)
+          return res.status(400).json({ ok: false, code: 'INVALID_INDEX', error: 'ঠিকানা পাওয়া যায়নি!' });
+        addresses.splice(b.index, 1);
+      } else if (b.address && b.district) {
+        /* Fallback: identify by address + district match */
+        const norm = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
+        const idx  = addresses.findIndex(a =>
+          norm(a.address  || '') === norm(String(b.address)) &&
+          norm(a.district || '') === norm(String(b.district))
+        );
+        if (idx === -1)
+          return res.status(404).json({ ok: false, code: 'NOT_FOUND', error: 'ঠিকানা পাওয়া যায়নি!' });
+        addresses.splice(idx, 1);
+      } else {
+        return res.status(400).json({ ok: false, code: 'MISSING_FIELDS', error: 'index বা address+district দিন!' });
+      }
+
+      user.addresses = addresses;
+      await user.save();
+
+      return res.json({ ok: true, addresses: user.addresses, message: '✅ ঠিকানা মুছে দেওয়া হয়েছে' });
 
     } catch (err) {
       return tokenError(err, res);
@@ -1001,6 +1132,7 @@ module.exports = async (req, res) => {
     error: 'Invalid action.',
     available: [
       'register', 'login', 'profile', 'update', 'password',
+      'addresses', 'address-save', 'address-delete',
       'forgot-password', 'reset-password',
       'refresh', 'logout', 'delete-account',
       'google-login', 'facebook-login',

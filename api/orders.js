@@ -1,13 +1,13 @@
 /**
  * ══════════════════════════════════════════════════════════════
- *  SHOPLIXO — /api/orders  (Upgraded v3)
+ *  SHOPLIXO — /api/orders  (Upgraded v4)
  *
  *  ── PUBLIC ───────────────────────────────────────────────────
  *  GET  /api/orders?id=xxx                    → Order track (enhanced) [UPGRADE-I5]
  *  GET  /api/orders?action=my                 → My orders (JWT)
  *  GET  /api/orders?action=invoice&id=xxx     → Order invoice data [NEW]
  *  GET  /api/orders?action=stats              → Customer order stats [NEW]
- *  GET  /api/orders?action=validate-coupon    → Coupon validation [BUG-3 fix]
+ *  POST /api/orders?action=shipping-estimate  → Delivery charge estimate [NEW]
  *
  *  ── MUTATIONS ────────────────────────────────────────────────
  *  POST /api/orders                           → Place order (w/ price verification)
@@ -19,17 +19,17 @@
  *  POST /api/orders?action=payment-init       → ShurjoPay payment initiate [NEW]
  *  POST /api/orders?action=payment-verify     → ShurjoPay payment verify [NEW]
  * ══════════════════════════════════════════════════════════════
- *  Features: Stock decrement, SMS notification, Loyalty points,
- *             Abandoned cart conversion, Server-side price verify,
- *             Real-time coupon validation, Order cancellation window,
- *             Return/refund workflow, Post-delivery feedback,
+ *  Features: Stock decrement, SMS notification, Per-product 4-tier
+ *             delivery charges, Address auto-save, Abandoned cart
+ *             conversion, Server-side price verify, Order cancellation
+ *             window, Return/refund workflow, Post-delivery feedback,
  *             ShurjoPay online payment gateway
  * ══════════════════════════════════════════════════════════════
  */
 
 'use strict';
 
-const { connectDB, Order, Coupon, Product, User, AbandonedCart, getSettings } = require('./_db');
+const { connectDB, Order, Product, User, AbandonedCart, getSettings } = require('./_db');
 const {
   handleCors, generateOrderId, checkRateLimit, verifyToken,
   isValidBDPhone, sanitize, sendEmail, sendSMS,
@@ -55,6 +55,9 @@ const DHAKA_DIVISION_OTHER_DISTRICTS = new Set([
   'নারায়ণগঞ্জ','গাজীপুর','মানিকগঞ্জ','মুন্সিগঞ্জ','নরসিংদী','শরীয়তপুর',
   'মাদারীপুর','গোপালগঞ্জ','ফরিদপুর','রাজবাড়ী','টাঙ্গাইল','কিশোরগঞ্জ',
 ]);
+
+// ঢাকা জেলার sub-area উপজেলা — আলাদা tier (dhakaSubArea) এর জন্য
+const DHAKA_SUBAREA_UPAZILAS = ['সাভার','ধামরাই','কেরানীগঞ্জ','নবাবগঞ্জ','দোহার'];
 
 /* ── Shipping tiers (from env or defaults) ───────────────────────────────── */
 const FREE_SHIPPING_MIN  = parseInt(process.env.FREE_SHIPPING_MIN  || '999');
@@ -85,24 +88,52 @@ const COURIER_TRACKING = {
    HELPERS
 ───────────────────────────────────────────────────────────────────────── */
 
-/** Compute shipping cost — settings-driven 3-tier (Dhaka City / Dhaka Sub-area / Outside Dhaka),
- *  fallback to env vars if settings not configured yet. Also returns the tier name for logging. */
-async function calcShipping(subtotal, district = '') {
+/** Determine delivery tier based on district and upazila */
+function getDeliveryTier(district, upazila = '') {
+  if (district === 'ঢাকা') {
+    return DHAKA_SUBAREA_UPAZILAS.includes(upazila) ? 'dhakaSubArea' : 'dhakaCity';
+  }
+  if (DHAKA_DIVISION_OTHER_DISTRICTS.has(district)) return 'dhakaDivision';
+  return 'outsideDhaka';
+}
+
+/** Compute shipping cost — settings-driven 4-tier (Dhaka City / Dhaka SubArea / Dhaka Division / Outside Dhaka),
+ *  supports per-product deliveryCharges override (highest rate wins),
+ *  fallback to env vars if settings not configured yet. Returns { shipping, tier }. */
+async function calcShipping(cleanItems, district = '', upazila = '', subtotal) {
   let shippingSettings = {};
   try {
     shippingSettings = await getSettings('shipping');
   } catch (_) { /* DB issue → fall back to env defaults below */ }
 
-  const dhakaCity = parseInt(shippingSettings.shipping_dhaka_city ?? DHAKA_SHIPPING, 10);
-  const dhakaSub  = parseInt(shippingSettings.shipping_dhaka_sub  ?? OUTSIDE_SHIPPING, 10);
-  const outside   = parseInt(shippingSettings.shipping_outside   ?? OUTSIDE_SHIPPING ?? SHIPPING_COST, 10);
-  const freeMin   = parseInt(shippingSettings.shipping_free_above ?? FREE_SHIPPING_MIN, 10);
+  const tier = getDeliveryTier(district, upazila);
 
-  if (subtotal >= freeMin) return 0;
+  const freeMin = parseInt(shippingSettings.shipping_free_above ?? FREE_SHIPPING_MIN, 10);
+  if (subtotal >= freeMin) return { shipping: 0, tier };
 
-  if (district === 'ঢাকা') return dhakaCity;
-  if (DHAKA_DIVISION_OTHER_DISTRICTS.has(district)) return dhakaSub;
-  return outside;
+  const GLOBAL_TIER_RATES = {
+    dhakaCity:     parseInt(shippingSettings.shipping_dhaka         ?? DHAKA_SHIPPING,   10),
+    dhakaSubArea:  parseInt(shippingSettings.shipping_dhaka_subarea ?? shippingSettings.shipping_dhaka ?? DHAKA_SHIPPING, 10),
+    dhakaDivision: parseInt(shippingSettings.shipping_dhaka_sub     ?? OUTSIDE_SHIPPING, 10),
+    outsideDhaka:  parseInt(shippingSettings.shipping_outside       ?? OUTSIDE_SHIPPING, 10),
+  };
+
+  let charge = GLOBAL_TIER_RATES[tier];
+
+  /* Per-product override — সবচেয়ে বেশি rate-টা নেওয়া হয় (একটাই delivery, সবচেয়ে costly item-এর rate প্রযোজ্য হবে) */
+  try {
+    const productIds = [...new Set(cleanItems.map(i => i.productId))];
+    const products = await Product.find({ productId: { $in: productIds } })
+      .select('productId deliveryCharges').lean();
+    for (const p of products) {
+      const dc = p.deliveryCharges;
+      if (dc?.enabled && dc[tier] != null && !Number.isNaN(dc[tier])) {
+        charge = Math.max(charge, dc[tier]);
+      }
+    }
+  } catch (_) { /* fallback to global rate on error */ }
+
+  return { shipping: charge, tier };
 }
 
 /** Build courier tracking info from order.tracking field */
@@ -198,82 +229,6 @@ module.exports = async (req, res) => {
   if (handleCors(req, res)) return;
 
   const action = req.query?.action || '';
-
-  /* ══════════════════════════════════════════════════════════
-     GET: Validate Coupon  [BUG-3 — frontend coupon fix]
-     GET /api/orders?action=validate-coupon
-     Also available as POST for full cart-based validation
-  ══════════════════════════════════════════════════════════ */
-  if (action === 'validate-coupon') {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || '';
-    if (!checkRateLimit(`coupon_${ip}`, 20, 60000)) {
-      return res.status(429).json({ ok: false, error: 'অনেক চেষ্টা করা হচ্ছে। একটু অপেক্ষা করুন।' });
-    }
-
-    try {
-      await connectDB();
-
-      /* Support both GET (query params) and POST (body) */
-      const code     = sanitize(
-        (req.method === 'POST' ? req.body?.code : req.query?.code) || '',
-        50
-      ).toUpperCase();
-      const subtotal = parseFloat(
-        (req.method === 'POST' ? req.body?.subtotal : req.query?.subtotal) || '0'
-      );
-      const phone    = sanitize(
-        (req.method === 'POST' ? req.body?.phone : req.query?.phone) || '',
-        20
-      );
-
-      if (!code) return res.status(400).json({ ok: false, error: 'Coupon code দিন' });
-      if (subtotal <= 0) return res.status(400).json({ ok: false, error: 'Subtotal দিন' });
-
-      const coupon = await Coupon.findOne({ code, isActive: true }).lean();
-
-      if (!coupon) return res.json({ ok: false, error: 'Invalid coupon code' });
-
-      const now      = new Date();
-      const expired  = coupon.expiresAt && coupon.expiresAt < now;
-      const maxedOut = coupon.maxUses    && coupon.usedCount >= coupon.maxUses;
-      const belowMin = subtotal < (coupon.minOrder || 0);
-
-      if (expired)  return res.json({ ok: false, error: 'Coupon টির মেয়াদ শেষ হয়ে গেছে' });
-      if (maxedOut) return res.json({ ok: false, error: 'Coupon টি শেষ হয়ে গেছে' });
-      if (belowMin) {
-        return res.json({
-          ok:    false,
-          error: `এই coupon এর জন্য কমপক্ষে ৳${coupon.minOrder} এর অর্ডার করুন`,
-        });
-      }
-
-      /* Per-user usage check */
-      if (phone && coupon.maxUsesPerUser) {
-        const userUses = (coupon.usedBy || []).filter(p => p === phone).length;
-        if (userUses >= coupon.maxUsesPerUser) {
-          return res.json({ ok: false, error: 'আপনি এই coupon আর ব্যবহার করতে পারবেন না' });
-        }
-      }
-
-      const discount = coupon.type === 'percent'
-        ? Math.round(Math.min(subtotal * coupon.discount / 100, coupon.maxDiscount || Infinity))
-        : Math.min(coupon.discount, subtotal);
-
-      return res.json({
-        ok: true,
-        discount,
-        type:        coupon.type,
-        value:       coupon.discount,
-        code:        coupon.code,
-        description: coupon.description || null,
-        message:     `🎉 "${code}" — ৳${discount} ছাড় পেলেন!`,
-      });
-
-    } catch (err) {
-      console.error('[validate-coupon] error:', err);
-      return res.status(500).json({ ok: false, error: 'Server error' });
-    }
-  }
 
   /* ══════════════════════════════════════════════════════════
      GET: Track Order  [UPGRADE-I5 — enhanced with courier info]
@@ -372,7 +327,7 @@ module.exports = async (req, res) => {
 
     try {
       await connectDB();
-      const user = await User.findById(decoded.id).select('phone loyaltyPoints').lean();
+      const user = await User.findById(decoded.id).select('phone').lean();
       if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
 
       const [agg, statusBreakdown] = await Promise.all([
@@ -385,7 +340,6 @@ module.exports = async (req, res) => {
               totalSpent:  { $sum: '$pricing.total' },
               avgOrder:    { $avg: '$pricing.total' },
               totalItems:  { $sum: { $sum: '$items.qty' } },
-              pointsEarned: { $sum: '$loyaltyPointsEarned' },
             },
           },
         ]),
@@ -395,7 +349,7 @@ module.exports = async (req, res) => {
         ]),
       ]);
 
-      const stats = agg[0] || { totalOrders: 0, totalSpent: 0, avgOrder: 0, totalItems: 0, pointsEarned: 0 };
+      const stats = agg[0] || { totalOrders: 0, totalSpent: 0, avgOrder: 0, totalItems: 0 };
       const breakdown = Object.fromEntries(statusBreakdown.map(s => [s._id, s.count]));
 
       return res.json({
@@ -405,8 +359,6 @@ module.exports = async (req, res) => {
           totalSpent:      Math.round(stats.totalSpent),
           avgOrderValue:   Math.round(stats.avgOrder),
           totalItems:      stats.totalItems,
-          loyaltyPoints:   user.loyaltyPoints || 0,
-          totalPointsEarned: stats.pointsEarned,
           statusBreakdown: breakdown,
         },
       });
@@ -443,9 +395,7 @@ module.exports = async (req, res) => {
     const note           = sanitize(b.note        || '', 500);
     const payment        = String(b.payment       || '').toLowerCase().trim();
     const trxId          = sanitize(b.trxId       || '', 100);
-    const couponCode     = sanitize(b.couponCode  || '', 50).toUpperCase();
     const sessionId      = sanitize(b.sessionId   || '', 100);
-    const loyaltyPoints  = Math.max(0, parseInt(b.loyaltyPoints || '0'));
     const items          = Array.isArray(b.items) ? b.items : [];
     const utmSource      = sanitize(b.utmSource   || '', 50);
     const utmCampaign    = sanitize(b.utmCampaign || '', 50);
@@ -510,49 +460,12 @@ module.exports = async (req, res) => {
 
       /* ── Pricing calculation ─────────────────────── */
       const subtotal = cleanItems.reduce((s, i) => s + i.price * i.qty, 0);
-      const shipping = await calcShipping(subtotal, district);
+      const { shipping, tier: deliveryTier } = await calcShipping(cleanItems, district, upazila, subtotal);
 
-      /* ── Coupon validation ───────────────────────── */
-      let discountAmt   = 0;
-      let appliedCoupon = '';
-      if (couponCode) {
-        try {
-          const coupon = await Coupon.findOne({ code: couponCode, isActive: true }).lean();
-          if (coupon) {
-            const now      = new Date();
-            const notExp   = !coupon.expiresAt || coupon.expiresAt > now;
-            const hasUses  = !coupon.maxUses   || coupon.usedCount < coupon.maxUses;
-            const meetMin  = subtotal >= (coupon.minOrder || 0);
-            if (notExp && hasUses && meetMin) {
-              discountAmt = coupon.type === 'percent'
-                ? Math.round(Math.min(subtotal * coupon.discount / 100, coupon.maxDiscount || Infinity))
-                : Math.min(coupon.discount, subtotal);
-              appliedCoupon = couponCode;
-            }
-          }
-        } catch { /* non-fatal */ }
-      }
-
-      /* ── Loyalty points redemption ───────────────── */
-      let loyaltyDiscount = 0;
-      let loyaltyUsed     = 0;
-      const decoded = verifyToken(req);
-      if (loyaltyPoints > 0 && decoded?.id) {
-        try {
-          const user = await User.findById(decoded.id).select('loyaltyPoints').lean();
-          if (user && user.loyaltyPoints >= loyaltyPoints) {
-            const maxDiscount = Math.floor(subtotal * 0.20);          // max 20% of subtotal
-            loyaltyDiscount   = Math.min(Math.floor(loyaltyPoints * 0.5), maxDiscount);
-            loyaltyUsed       = Math.ceil(loyaltyDiscount / 0.5);
-            await User.findByIdAndUpdate(decoded.id, { $inc: { loyaltyPoints: -loyaltyUsed } });
-          }
-        } catch { /* non-fatal */ }
-      }
-
-      const total         = Math.max(0, subtotal + shipping - discountAmt - loyaltyDiscount);
-      const pointsToEarn  = Math.floor(total / 10);  // ৳10 = 1 point
+      const total = Math.max(0, subtotal + shipping);
 
       /* ── Generate unique order ID ────────────────── */
+      const decoded = verifyToken(req);
       let orderId = generateOrderId();
       for (let i = 0; i < 5; i++) {
         if (!(await Order.findOne({ orderId }).select('_id').lean())) break;
@@ -605,9 +518,8 @@ module.exports = async (req, res) => {
         },
         items:      cleanItems,
         payment:    { method: payment, transactionId: trxId, status: 'pending' },
-        pricing:    { subtotal, shipping, discount: discountAmt, coupon: appliedCoupon, loyaltyDiscount, total },
-        loyaltyPointsEarned: pointsToEarn,
-        loyaltyPointsUsed:   loyaltyUsed,
+        pricing:    { subtotal, shipping, discount: 0, total },
+        deliveryTier,
         status:     'pending',
         statusHistory: [{ status: 'pending', note: 'Order placed', updatedBy: 'system', updatedAt: new Date() }],
         source:     sanitize(req.headers.referer || 'website', 100),
@@ -633,24 +545,70 @@ module.exports = async (req, res) => {
         }));
       if (stockOps.length) Product.bulkWrite(stockOps).catch(() => {});
 
-      /* ── Add loyalty points to user (non-blocking) ── */
-      if (pointsToEarn > 0 && decoded?.id) {
-        User.findByIdAndUpdate(decoded.id, { $inc: { loyaltyPoints: pointsToEarn } }).catch(() => {});
-      }
-
-      /* ── Mark coupon used (non-blocking) ─────────── */
-      if (appliedCoupon) {
-        Coupon.findOneAndUpdate(
-          { code: appliedCoupon },
-          { $inc: { usedCount: 1 }, $addToSet: { usedBy: phone } }
-        ).catch(() => {});
-      }
-
       /* ── Mark abandoned cart converted (non-blocking) */
       if (sessionId) {
         AbandonedCart.findOneAndUpdate(
           { sessionId },
           { isConverted: true, convertedAt: new Date(), orderId }
+        ).catch(() => {});
+      }
+
+      /* ── Address auto-save for logged-in users (non-blocking) ── */
+      if (decoded?.id) {
+        const newAddress = {
+          label:     'সাম্প্রতিক',
+          name,
+          phone,
+          address,
+          district,
+          upazila,
+          area:      '',
+          isDefault: false,
+        };
+        User.findByIdAndUpdate(
+          decoded.id,
+          [
+            {
+              $set: {
+                addresses: {
+                  $slice: [
+                    {
+                      $filter: {
+                        input: {
+                          $concatArrays: [
+                            [newAddress],
+                            {
+                              $ifNull: [
+                                {
+                                  $filter: {
+                                    input: '$addresses',
+                                    as:    'a',
+                                    cond: {
+                                      $not: {
+                                        $and: [
+                                          { $eq: ['$$a.district', district] },
+                                          { $eq: ['$$a.address',  address]  },
+                                        ],
+                                      },
+                                    },
+                                  },
+                                },
+                                [],
+                              ],
+                            },
+                          ],
+                        },
+                        as:   'x',
+                        cond: { $ne: ['$$x', null] },
+                      },
+                    },
+                    5,
+                  ],
+                },
+              },
+            },
+          ],
+          { new: true }
         ).catch(() => {});
       }
 
@@ -668,15 +626,13 @@ module.exports = async (req, res) => {
 
       /* ── Response ─────────────────────────────────── */
       return res.status(201).json({
-        ok:                  true,
+        ok:       true,
         orderId,
         total,
         subtotal,
         shipping,
-        discount:            discountAmt,
-        loyaltyDiscount,
-        loyaltyPointsEarned: pointsToEarn,
-        message:             `🎉 অর্ডার সফল! Order ID: ${orderId}`,
+        discount: 0,
+        message:  `🎉 অর্ডার সফল! Order ID: ${orderId}`,
       });
 
     } catch (err) {
@@ -748,13 +704,6 @@ module.exports = async (req, res) => {
         },
       }));
       if (stockOps.length) Product.bulkWrite(stockOps).catch(() => {});
-
-      /* Refund loyalty points if used */
-      if (order.loyaltyPointsUsed > 0 && decoded?.id) {
-        User.findByIdAndUpdate(decoded.id, {
-          $inc: { loyaltyPoints: order.loyaltyPointsUsed },
-        }).catch(() => {});
-      }
 
       return res.json({ ok: true, message: '✅ Order cancel হয়েছে।', orderId: order.orderId });
 
@@ -1144,10 +1093,53 @@ module.exports = async (req, res) => {
     }
   }
 
+  /* ══════════════════════════════════════════════════════════
+     POST: Delivery Charge Estimate  [NEW]
+     POST /api/orders?action=shipping-estimate
+     Body: { items: [{ productId, price, qty }], district, upazila? }
+     Response: { ok, shipping, tier, subtotal, freeShippingMin }
+  ══════════════════════════════════════════════════════════ */
+  if (req.method === 'POST' && action === 'shipping-estimate') {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || '';
+    if (!checkRateLimit(`shipest_${ip}`, 30, 60000)) {
+      return res.status(429).json({ ok: false, error: 'অনেক request! একটু অপেক্ষা করুন।' });
+    }
+
+    const b        = req.body || {};
+    const estItems = Array.isArray(b.items) ? b.items : [];
+    const estDist  = sanitize(b.district  || '', 50);
+    const estUpa   = sanitize(b.upazila   || '', 100);
+
+    if (!estDist) {
+      return res.status(400).json({ ok: false, error: 'district দিন' });
+    }
+
+    const cleanEstItems = estItems.slice(0, 30).map(i => ({
+      productId: String(i.productId || i.id || ''),
+      price:     Math.max(0, parseFloat(i.price) || 0),
+      qty:       Math.min(99, Math.max(1, parseInt(i.qty) || 1)),
+    })).filter(i => i.productId && i.price > 0);
+
+    const subtotal = cleanEstItems.reduce((s, i) => s + i.price * i.qty, 0);
+
+    try {
+      let shippingSettings = {};
+      try { shippingSettings = await getSettings('shipping'); } catch (_) {}
+      const freeShippingMin = parseInt(shippingSettings.shipping_free_above ?? FREE_SHIPPING_MIN, 10);
+
+      const { shipping, tier } = await calcShipping(cleanEstItems, estDist, estUpa, subtotal);
+
+      return res.json({ ok: true, shipping, tier, subtotal, freeShippingMin });
+    } catch (err) {
+      console.error('[Shipping estimate]', err);
+      return res.status(500).json({ ok: false, error: 'Server error' });
+    }
+  }
+
   /* ── Unknown method / action ─────────────────────────────── */
   return res.status(405).json({
     ok:    false,
     error: 'Method not allowed',
-    hint:  'Valid actions: validate-coupon, my, invoice, stats, cancel, return, reorder, feedback, cart-save, payment-init, payment-verify',
+    hint:  'Valid actions: my, invoice, stats, shipping-estimate, cancel, return, reorder, feedback, cart-save, payment-init, payment-verify',
   });
 };
