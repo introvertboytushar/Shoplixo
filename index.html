@@ -2372,6 +2372,7 @@ table { table-layout: fixed; width: 100% !important; }
 
 
 /* ── MAIN PAGE BOTTOM FIX: prevent white space below footer ── */
+html{background:#0D0D1A!important}
 @media(max-width:992px){
   html{background:var(--dark)!important}
   body{background:var(--bg)}
@@ -2990,16 +2991,17 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
       <h2 class="section-title">কাস্টমারদের <span>মতামত</span></h2>
       <p class="section-desc">প্রতিটি পণ্য কিনলে রিভিউ দেওয়ার সুযোগ পাবেন</p>
     </div>
-    <div class="testi-grid fade-up">
-      <!-- Real reviews will appear here after customers submit them -->
-      <div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:#fff;border-radius:var(--r-2xl);border:2px dashed var(--border2)">
-        <div style="font-size:48px;margin-bottom:14px">⭐</div>
-        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--dark);margin-bottom:8px">প্রথম রিভিউ দিন!</div>
-        <p style="color:var(--text2);font-size:14px;max-width:360px;margin:0 auto 20px">আপনার অভিজ্ঞতা শেয়ার করুন এবং অন্য কাস্টমারদের সাহায্য করুন। অর্ডার করার পর রিভিউ দিতে পারবেন।</p>
-        <a href="https://wa.me/8801516511889?text=আমি%20Shoplixo%20সম্পর্কে%20রিভিউ%20দিতে%20চাই" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;padding:12px 24px;border-radius:var(--r-full);font-size:14px;font-weight:700;text-decoration:none">
-          <i class="fa-brands fa-whatsapp"></i> WhatsApp এ রিভিউ দিন
-        </a>
+    <div class="testi-grid fade-up" id="homepage-reviews-grid">
+      <!-- JS দিয়ে dynamic load হবে -->
+      <div style="grid-column:1/-1;text-align:center;padding:32px">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size:28px;color:var(--brand);opacity:.5"></i>
+        <p style="color:var(--text3);margin-top:12px;font-size:13px">রিভিউ লোড হচ্ছে...</p>
       </div>
+    </div>
+    <div style="text-align:center;margin-top:28px">
+      <button onclick="openHomepageReviewWriter()" style="display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:#fff;padding:13px 28px;border-radius:var(--r-full);font-size:14px;font-weight:700;border:none;cursor:pointer;transition:var(--t)" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+        <i class="fa-solid fa-pen-to-square"></i> আপনার রিভিউ দিন
+      </button>
     </div>
   </div>
 </section>
@@ -3655,13 +3657,8 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
     <button class="auth-close-x" onclick="closeAuth()"><i class="fa-solid fa-xmark"></i></button>
     <div class="auth-body">
 
-      <!-- GOOGLE ONE TAP (auto-renders if Client ID set) -->
-      <div id="g_id_onload"
-           data-client_id="8298002360-bt4rk3tsmjreekld31pmguipmdpj22hj.apps.googleusercontent.com"
-           data-callback="handleGoogleSignIn"
-           data-auto_select="false"
-           data-cancel_on_tap_outside="true">
-      </div>
+      <!-- GOOGLE SIGN-IN: Manual init only — no auto One Tap popup -->
+      <!-- Config is in initGoogleSignIn() JS function below -->
 
       <!-- LOGIN FORM -->
       <div class="auth-form active" id="form-login">
@@ -4078,9 +4075,9 @@ function pCard(p) {
   const stockClass = p.stock <= 3 ? 'low stock-critical' : p.stock <= 8 ? 'mid' : 'high';
   const inCompare = compareList.map(String).includes(String(p.id));
 
-  return `<div class="product-card fade-in" data-id="${p.id}" onclick="openProductPage('${p.id}')">
+  return `<div class="product-card fade-in" data-id="${p.id||''}" onclick="openProductPage('${p.id}')">
     <div class="pc-img-wrap pc-img-zoom-wrap" id="pci-${p.id}">
-      <img src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500'" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
+      <img src="${p.img}" alt="${p.name||''}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500'" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
       <div class="pc-badges">
         <span class="pc-badge ${bc[p.badge]||'b-sale'}">${bl[p.badge]||p.badge}</span>
         ${d>0?`<span class="pc-badge b-disc">-${d}%</span>`:''}
@@ -4092,9 +4089,9 @@ function pCard(p) {
       </div>
     </div>
     <div class="pc-body">
-      <div class="pc-cat">${p.cat.replace(/-/g,' ')}</div>
-      <h3 class="pc-name">${p.name}</h3>
-      <div class="pc-stars"><div class="stars">${starsHTML(p.rating)}</div>${p.rating > 0 ? `<span class="pc-rev">${p.rating.toFixed(1)}</span>` : ''}</div>
+      <div class="pc-cat">${(p.cat||'').replace(/-/g,' ')}</div>
+      <h3 class="pc-name">${p.name||''}</h3>
+      <div class="pc-stars"><div class="stars">${starsHTML(p.rating)}</div>${p.rating > 0 ? `<span class="pc-rev">${(+p.rating||0).toFixed(1)}</span>` : ''}</div>
       ${saved>0?`<div class="savings-badge"><i class="fa-solid fa-tag"></i> ৳${saved} সাশ্রয়!</div>`:''}
       <div class="stock-bar-wrap">
         <div class="stock-bar ${stockClass}" style="width:${stockPct}%"></div>
@@ -4106,11 +4103,11 @@ function pCard(p) {
       <div class="pc-delivery"><i class="fa-solid fa-truck-fast"></i> ${getDeliveryText()}</div>
       <div class="pc-actions-row">
         <button class="pc-size-btn" onclick="event.stopPropagation();openSizeChart('${p.cat}')"><i class="fa-solid fa-ruler"></i> Size Chart</button>
-        <button class="pc-qr-btn" onclick="event.stopPropagation();openQRModal('${p.id}','${p.name.replace(/'/g,"\\'")}','${p.cat}')"><i class="fa-solid fa-qrcode"></i> Verify</button>
+        <button class="pc-qr-btn" onclick="event.stopPropagation();openQRModal('${p.id}','${(p.name||'').replace(/'/g,"\\'")}','${p.cat}')"><i class="fa-solid fa-qrcode"></i> Verify</button>
       </div>
       <button class="btn-add-cart" onclick="event.stopPropagation();addToCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Cart এ Add করুন</button>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px">
-        <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments('${p.id}','${p.name.replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
+        <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments('${p.id}','${(p.name||'').replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
         <button class="pc-compare-btn ${inCompare?'in-compare':''}" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-scale-balanced"></i> ${inCompare?'✓ Added':'Compare'}</button>
       </div>
       <div class="pc-order-row">
@@ -4604,7 +4601,7 @@ function renderProductDetailPage(p) {
     </div>
     <div id="pdp-tab-reviews" class="pdp-tab-pane">
       <div id="pdp-rating-summary" style="text-align:center;padding:20px 0 14px">
-        <div class="pdp-rating-big">${p.rating > 0 ? p.rating.toFixed(1) : '—'}</div>
+        <div class="pdp-rating-big">${p.rating > 0 ? (+p.rating||0).toFixed(1) : '—'}</div>
         <div class="stars" style="justify-content:center;margin:6px 0">${p.rating > 0 ? starsHTML(p.rating) : '<span style="color:var(--text3);font-size:13px">এখনো রেটিং নেই</span>'}</div>
         <div style="font-size:12px;color:var(--text3)">${p.rating > 0 ? 'গড় রেটিং' : 'প্রথম রিভিউ দিন'}</div>
       </div>
@@ -5210,7 +5207,9 @@ function renderGrid(id, items, lim=8) {
   if(items.length>0 && !el.dataset.loaded){
     el.innerHTML=skelCards(Math.min(lim,4));
     el.dataset.loaded='1';
-    setTimeout(()=>{_renderGridInner(id,items,lim);},80);
+    // Closure capture — items-এর reference ধরে রাখো (race condition fix)
+    const snapshot = items.slice();
+    setTimeout(()=>{_renderGridInner(id,snapshot,lim);},60);
     return;
   }
   _renderGridInner(id,items,lim);
@@ -5218,8 +5217,16 @@ function renderGrid(id, items, lim=8) {
 function _renderGridInner(id,items,lim){
   const el=$(id); if(!el) return;
   const s=items.slice(0,lim);
-  el.innerHTML = s.length ? s.map(pCard).join('') :
-    `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-box-open" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>এই ক্যাটাগরিতে কোনো পণ্য নেই।</p></div>`;
+  try {
+    el.innerHTML = s.length ? s.map(pCard).join('') :
+      `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)"><i class="fa-solid fa-box-open" style="font-size:36px;display:block;margin-bottom:10px;opacity:.3"></i><p>এই ক্যাটাগরিতে কোনো পণ্য নেই।</p></div>`;
+  } catch(e) {
+    console.error('Product card render error:', e);
+    // Partial render — render যেগুলো পারে
+    const safe = s.filter(p => p && p.name && p.price);
+    el.innerHTML = safe.length ? safe.map(p => { try { return pCard(p); } catch(_){ return ''; } }).join('') :
+      `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)">পণ্য লোড হতে সমস্যা হচ্ছে। Page refresh করুন।</div>`;
+  }
   animFadeIn();
 }
 
@@ -5852,7 +5859,7 @@ function openQV(pid){
   $('qv-content').innerHTML=`
     <div style="background:var(--bg2);aspect-ratio:3/4;overflow:hidden"><img src="${p.img}" alt="${p.name} - Shoplixo" style="width:100%;height:100%;object-fit:cover" onerror="this.src='https://picsum.photos/seed/${p.id}/380/500'"></div>
     <div style="padding:26px;overflow-y:auto;max-height:520px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">${p.cat.replace(/-/g,' ')}</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">${(p.cat||'').replace(/-/g,' ')}</div>
       <div style="font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--dark);line-height:1.3;margin-bottom:10px">${p.name}</div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px"><div class="stars">${starsHTML(p.rating)}</div><span style="font-size:12px;color:var(--text3)">(${p.reviews})</span></div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
@@ -5968,6 +5975,8 @@ function openAuth(tab='login'){
   $('auth-modal').classList.add('open');
   switchTab(tab);
   document.body.style.overflow='hidden';
+  // Initialize Google Sign-In button lazily (only when auth modal opens)
+  setTimeout(initGoogleSignIn, 120);
 }
 function closeAuth(){$('auth-modal').classList.remove('open');document.body.style.overflow='';}
 function switchTab(t){ if(t==='register') t='reg';
@@ -6575,6 +6584,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // ── Step 4: Sync from API — DB is the ONLY source of truth for all devices/browsers
   // This runs immediately and replaces all local/static products with DB products
   syncProductsFromAPI(false);
+  setTimeout(loadHomepageReviews, 1000); // homepage testimonials fetch
 
   // ── Step 5: Auto-refresh every 90 seconds (faster sync for new products)
   setInterval(()=>syncProductsFromAPI(true), 90 * 1000);
@@ -6634,7 +6644,40 @@ function mergeLocalDynamicProducts() {
   } catch(e) { console.warn('mergeLocalDynamicProducts failed:', e); }
 }
 
-/* ===== GOOGLE SIGN-IN ===== */
+/* ===== GOOGLE SIGN-IN — MANUAL INIT (no auto One Tap popup) ===== */
+let _gsiReady = false;
+
+function initGoogleSignIn() {
+  // Already initialized or library not loaded yet
+  if (_gsiReady) return;
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+    // Library still loading — retry once after 600ms
+    setTimeout(initGoogleSignIn, 600);
+    return;
+  }
+  try {
+    google.accounts.id.initialize({
+      client_id: '8298002360-bt4rk3tsmjreekld31pmguipmdpj22hj.apps.googleusercontent.com',
+      callback: handleGoogleSignIn,
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+    // Render the standard sign-in button inside the login form
+    const btnEl = document.querySelector('#form-login .g_id_signin');
+    if (btnEl && !btnEl.hasAttribute('data-rendered')) {
+      google.accounts.id.renderButton(btnEl, {
+        type: 'standard', shape: 'pill', theme: 'outline',
+        text: 'sign_in_with', size: 'large',
+        logo_alignment: 'left', width: 360
+      });
+      btnEl.setAttribute('data-rendered', '1');
+    }
+    _gsiReady = true;
+  } catch(e) {
+    console.warn('Google Sign-In init failed:', e);
+  }
+}
+
 function handleGoogleSignIn(response){
   try{
     const b64=response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
@@ -7466,14 +7509,12 @@ function openComments(pid, name) {
   const writeForm = document.getElementById('cm-write-form');
   const loginReq = document.getElementById('cm-login-required');
   const notOrdered = document.getElementById('cm-not-ordered');
+
+  // Logged-in সবাই review দিতে পারবে (verified badge শুধু purchasers-দের)
   if (!currentUser) {
     writeForm.style.display = 'none';
     loginReq.style.display = 'block';
     if (notOrdered) notOrdered.style.display = 'none';
-  } else if (!hasUserOrderedProduct(pid)) {
-    writeForm.style.display = 'none';
-    loginReq.style.display = 'none';
-    if (notOrdered) notOrdered.style.display = 'block';
   } else {
     writeForm.style.display = 'block';
     loginReq.style.display = 'none';
@@ -7497,56 +7538,6 @@ function resetStarHover() { updateStarUI(selectedCommentStar); }
 function updateStarUI(n) {
   document.querySelectorAll('#cm-star-select i').forEach((s,i) => {
     s.className = i < n ? 'fa-solid fa-star active' : 'fa-regular fa-star';
-  });
-}
-
-function submitComment() {
-  if (!currentUser) { showToast('আগে Login করুন!', 'exclamation'); return; }
-  const text = document.getElementById('cm-text').value.trim();
-  const titleEl = document.getElementById('cm-title');
-  const title = titleEl ? titleEl.value.trim() : '';
-  if (!text || text.length < 5) { showToast('কমপক্ষে ৫ অক্ষরের রিভিউ লিখুন!', 'exclamation'); return; }
-  
-  const btn = document.querySelector('.cm-submit');
-  if(btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> পাঠানো হচ্ছে...'; }
-  
-  const comment = {
-    name: currentUser.name || 'User',
-    text,
-    title,
-    rating: selectedCommentStar,
-    date: new Date().toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}),
-    likes: 0,
-    hidden: false,
-    userId: currentUser.id || currentUser.phone,
-    isVerified: !!currentUser.hasOrdered,
-    timestamp: Date.now()
-  };
-  
-  // Try API first, fallback to localStorage
-  const token = localStorage.getItem('slx_token');
-  const apiPromise = token ? fetch('/api/comments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-    body: JSON.stringify({ productId: String(currentCommentPid), rating: selectedCommentStar, title, body: text, customerName: comment.name })
-  }).then(r => r.json()).catch(() => null) : Promise.resolve(null);
-  
-  apiPromise.then(apiRes => {
-    // Always save locally too
-    const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-    if (!allComments[currentCommentPid]) allComments[currentCommentPid] = [];
-    allComments[currentCommentPid].unshift(comment);
-    localStorage.setItem('slx_comments', JSON.stringify(allComments));
-    
-    document.getElementById('cm-text').value = '';
-    if(titleEl) titleEl.value = '';
-    selectedCommentStar = 5;
-    updateStarUI(5);
-    
-    if(btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> রিভিউ পাঠান'; }
-    loadComments(currentCommentPid);
-    updateCommentCount(currentCommentPid);
-    showToast('রিভিউ পাঠানো হয়েছে! ধন্যবাদ 🎉', 'star');
   });
 }
 
@@ -7942,7 +7933,7 @@ if (searchInput) {
             <img class="sld-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}/44/54'">
             <div class="sld-info">
               <div class="sld-name">${p.name}</div>
-              <div class="sld-cat">${p.cat.replace(/-/g,' ')}</div>
+              <div class="sld-cat">${(p.cat||'').replace(/-/g,' ')}</div>
             </div>
             <div class="sld-price">${fmt(p.price)}</div>
           </div>`).join('');
@@ -8130,12 +8121,8 @@ async function submitComment() {
   const text = document.getElementById('cm-text').value.trim();
   if (!text || text.length < 5) { showToast('কমপক্ষে ৫ অক্ষরের রিভিউ লিখুন!', 'exclamation'); return; }
 
-  // ✅ Verified purchase — শুধু order করা product এর জন্যই review allow করো
-  const isVerified = hasUserOrderedProduct(currentCommentPid);
-  if (!isVerified) {
-    showToast('এই পণ্যটি অর্ডার করার পর আপনি রিভিউ দিতে পারবেন!', 'exclamation');
-    return;
-  }
+  const isVerified = hasUserOrderedProduct(currentCommentPid); // verified badge-এর জন্য
+  // কিন্তু gate করো না — যেকোনো logged-in user submit করতে পারবে
   const orders = JSON.parse(localStorage.getItem('slx_orders') || '[]');
 
   const btn = document.querySelector('.cm-submit');
@@ -8332,10 +8319,10 @@ window.pCard = function(p) {
       ${(p.sizes && p.sizes.length) ? `<button class="btn-size-chart" onclick="event.stopPropagation();openSizeChart('${scCat}')"><i class="fa-solid fa-ruler-horizontal"></i> Size Guide</button>` : ''}
     </div>
     <div class="pc-cert"><i class="fa-solid fa-qrcode"></i> Authenticity Certified</div>`;
-  html = html.replace('</div>
-  </div>', extraBtns + '
+  html = html.replace(`</div>
+  </div>`, extraBtns + `
   </div>
-  </div>');
+  </div>`);
   return html;
 };
 
@@ -8353,8 +8340,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initAllZoom, 200);
   };
   
-  // Init size chart on first open
-  setTimeout(() => openSizeChart('shirts'), 100);
   
   // Update compare bar if needed
   updateCompareBar();
@@ -8837,8 +8822,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initAllZoom, 200);
   };
   
-  // Init size chart on first open
-  setTimeout(() => openSizeChart('shirts'), 100);
   
   // Update compare bar if needed
   updateCompareBar();
@@ -8886,7 +8869,7 @@ function renderRecentlyViewedV2() {
 
 <script>
 /* ── NOTIFICATIONS ── */
-let notifications = JSON.parse(localStorage.getItem('slx_notifs') || '[]');
+notifications = JSON.parse(localStorage.getItem('slx_notifs') || '[]');
 
 function saveNotifications(){
   localStorage.setItem('slx_notifs', JSON.stringify(notifications));
@@ -9043,7 +9026,7 @@ function closeNotifPanel(){
 
 
 /* ━━━ ADVANCED FILTER SYSTEM ━━━ */
-let advFilter = {
+advFilter = {
   sort: 'default',
   minPrice: 0,
   maxPrice: 12000,
@@ -9054,7 +9037,7 @@ let advFilter = {
   flashOnly: false,
   featuredOnly: false,
 };
-let currentFilterCat = 'all';
+currentFilterCat = 'all';
 
 function openAdvFilter(){
   // Update counts
@@ -9382,7 +9365,7 @@ function updatePriceRange(inp){
 }
 
 /* ── COMPARE PRODUCTS ── */
-let compareList = JSON.parse(localStorage.getItem('slx_compare')||'[]');
+compareList = JSON.parse(localStorage.getItem('slx_compare')||'[]');
 
 function toggleCompare(pid){
   pid=String(pid);
@@ -9450,7 +9433,7 @@ function buildCompareTable(){
     {label:'Rating', render:p=>`<div>${starsHTML(p.rating)} <strong>${p.rating}</strong></div>`},
     {label:'Reviews', render:p=>`${p.reviews} জন`},
     {label:'Stock', render:p=>p.stock<=5?`<span style="color:var(--brand);font-weight:700">মাত্র ${p.stock}টি!</span>`:`<span style="color:var(--green);font-weight:700">Available</span>`},
-    {label:'Category', render:p=>p.cat.replace(/-/g,' ')},
+    {label:'Category', render:p=>(p.cat||'').replace(/-/g,' ')},
     {label:'Material', render:p=>p.material||'—'},
     {label:'', render:p=>`<button style="background:var(--brand);color:#fff;padding:8px 16px;border-radius:var(--r-full);border:none;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap" onclick="addToCart('${p.id}');closeCompareModal()"><i class="fa-solid fa-cart-plus"></i> Cart এ Add</button>`},
   ];
@@ -10840,6 +10823,80 @@ function toggleTheme(){
 function toggleDarkMode(){ toggleTheme(); }
 // Apply saved theme immediately (before DOMContentLoaded)
 (function(){ initTheme(); })();
+
+/* ════════════ HOMEPAGE REVIEWS ════════════ */
+async function loadHomepageReviews() {
+  const grid = document.getElementById('homepage-reviews-grid');
+  if (!grid) return;
+
+  try {
+    const r = await fetch('/api/content?module=comments&action=recent&limit=6');
+    const ct = r.headers.get('content-type') || '';
+    const data = (r.ok && ct.includes('application/json')) ? await r.json() : { ok: false, comments: [] };
+    const reviews = data.ok && Array.isArray(data.comments) ? data.comments : [];
+
+    if (!reviews.length) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:var(--card-bg);border-radius:var(--r-2xl);border:2px dashed var(--border2)">
+          <div style="font-size:48px;margin-bottom:14px">⭐</div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--dark);margin-bottom:8px">প্রথম রিভিউ দিন!</div>
+          <p style="color:var(--text2);font-size:14px;max-width:360px;margin:0 auto 20px">
+            আপনার অভিজ্ঞতা শেয়ার করুন এবং অন্য কাস্টমারদের সাহায্য করুন।
+          </p>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = reviews.map(rv => {
+      const name  = rv.customerName || 'Customer';
+      const body  = rv.body || '';
+      const stars = Math.round(rv.rating || 5);
+      const date  = rv.createdAt
+        ? new Date(rv.createdAt).toLocaleDateString('bn-BD', {year:'numeric', month:'short', day:'numeric'})
+        : '';
+      const starsHTML = Array.from({length:5}, (_,i) =>
+        `<i class="fa-${i < stars ? 'solid' : 'regular'} fa-star" style="color:var(--gold);font-size:14px"></i>`
+      ).join('');
+      const initials = name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'C';
+      return `
+        <div class="testi-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:15px;flex-shrink:0">${initials}</div>
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--dark)">${name}</div>
+              <div style="font-size:11px;color:var(--text3)">${date}</div>
+            </div>
+            ${rv.isVerifiedPurchase ? `<span style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;background:var(--green-light);color:var(--green);font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px"><i class="fa-solid fa-circle-check"></i> Verified</span>` : ''}
+          </div>
+          <div style="display:flex;gap:2px;margin-bottom:10px">${starsHTML}</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.65;margin:0">${body.slice(0,180)}${body.length>180?'…':''}</p>
+          ${rv.productName ? `<div style="margin-top:10px;font-size:11px;color:var(--text3);background:var(--bg2);padding:4px 10px;border-radius:var(--r-full);display:inline-block"><i class="fa-solid fa-box"></i> ${rv.productName}</div>` : ''}
+        </div>`;
+    }).join('');
+  } catch(e) {
+    console.warn('Homepage reviews failed:', e);
+    const grid = document.getElementById('homepage-reviews-grid');
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text3)">রিভিউ লোড হয়নি। পেজ refresh করুন।</div>`;
+  }
+}
+
+/* Homepage "রিভিউ দিন" button handler */
+function openHomepageReviewWriter() {
+  if (!currentUser) {
+    showToast('রিভিউ দিতে আগে Login করুন!', 'exclamation');
+    openAuth('login');
+    return;
+  }
+  // সবচেয়ে জনপ্রিয় / নতুন product-এর review form খোলো
+  const P = window.PRODUCTS || PRODUCTS || [];
+  const topProduct = P.find(p => p.isActive !== false) || P[0];
+  if (topProduct) {
+    openComments(topProduct.id, topProduct.name);
+  } else {
+    showToast('Review দিতে একটি পণ্যের পেজ থেকে যান।', 'exclamation');
+  }
+}
+
 </script>
 
 </body>
