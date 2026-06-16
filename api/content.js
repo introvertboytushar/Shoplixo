@@ -454,6 +454,36 @@ module.exports = async (req, res) => {
     ══════════════════════════════════════════════════════════ */
     if (module_ === 'comments') {
 
+      /* ── GET: Recent Reviews (Homepage Testimonials) ─── */
+      if (req.method === 'GET' && action === 'recent') {
+        const limit  = Math.min(parseInt(req.query.limit, 10) || 6, 12);
+
+        const [comments, products] = await Promise.all([
+          Comment.find({ isApproved: true, isHidden: false })
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .select('productId customerName rating body isVerifiedPurchase createdAt images reply')
+            .lean(),
+          Promise.resolve(), // placeholder
+        ]);
+
+        // Product name enrich করো (optional — productId থেকে name lookup)
+        let productMap = {};
+        if (comments.length) {
+          const pids = [...new Set(comments.map(c => c.productId))];
+          const prods = await Product.find({ productId: { $in: pids } })
+            .select('productId name').lean();
+          prods.forEach(p => { productMap[p.productId] = p.name; });
+        }
+
+        const enriched = comments.map(c => ({
+          ...c,
+          productName: productMap[c.productId] || '',
+        }));
+
+        return res.json({ ok: true, comments: enriched, total: enriched.length });
+      }
+
       /* ── GET: Review Statistics per product [NEW] ────── */
       if (req.method === 'GET' && action === 'stats') {
         const { productId } = req.query;
@@ -642,8 +672,9 @@ module.exports = async (req, res) => {
           size,
           color,
           isVerifiedPurchase,
-          /* Auto-approve verified purchases; others need admin review */
-          isApproved: isVerifiedPurchase,
+          /* Auto-approve সব reviews — Admin Panel থেকে hide/delete করা যাবে।
+             .env তে AUTO_APPROVE_REVIEWS=false দিলে manual approval mode চালু হবে। */
+          isApproved: process.env.AUTO_APPROVE_REVIEWS !== 'false', // default: true
           isHidden:   false,
           helpfulCount: 0,
           helpfulVotes: [],

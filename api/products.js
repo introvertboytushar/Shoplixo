@@ -95,6 +95,7 @@ function publicProduct(p) {
     totalSold:      p.totalSold      || 0,
     createdAt:      p.createdAt,
     updatedAt:      p.updatedAt,
+    deliveryCharges: p.deliveryCharges || { enabled: false }, // ← NEW
   };
 }
 
