@@ -858,8 +858,9 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 .select-wrap select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.08)}
 .select-wrap select:disabled{background-color:var(--bg2);color:var(--text3);cursor:not-allowed}
 .select-wrap select.valid,.form-g input.valid-addr{border-color:var(--green)!important}
-.input-icon-wrap{position:relative}.input-icon-wrap>i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
-.input-icon-wrap input{padding-left:38px}
+.input-icon-wrap{position:relative}.input-icon-wrap>i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none;z-index:1}
+.form-g .input-icon-wrap input,.input-icon-wrap input{padding-left:42px!important}
+.form-g input::placeholder,.form-g textarea::placeholder{color:var(--text3);opacity:.85;font-weight:400}
 #ck-delivery-est{display:none}#ck-delivery-est.show{display:flex!important}
 /* Payment methods */
 .pay-methods-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -1505,10 +1506,6 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 
 /* ── IMAGE ZOOM ON HOVER ── */
 .pc-img-wrap{cursor:zoom-in}
-.zoom-lens{position:absolute;width:120px;height:120px;border:2px solid var(--brand);border-radius:4px;background:rgba(228,30,38,.08);pointer-events:none;z-index:10;display:none}
-.zoom-result{position:absolute;right:-310px;top:0;width:300px;height:380px;background:#fff;border:1.5px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-xl);overflow:hidden;display:none;z-index:100;pointer-events:none}
-.zoom-result img{position:absolute;transform-origin:0 0}
-@media(max-width:992px){.zoom-result,.zoom-lens{display:none!important}}
 
 /* ── SIZE CHART POPUP ── */
 #size-chart-modal{position:fixed;inset:0;z-index:7500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:var(--t);padding:16px}
@@ -1807,8 +1804,7 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .pc-img-zoom-wrap{position:relative;overflow:hidden}
 .pc-img-zoom-wrap::after{content:'🔍';position:absolute;bottom:8px;right:8px;font-size:14px;opacity:0;transition:.2s;pointer-events:none}
 .pc-img-zoom-wrap:hover::after{opacity:1}
-.pc-img-zoom-lens{position:absolute;inset:0;z-index:5;cursor:zoom-in}
-.zoom-result{display:none;position:fixed;width:340px;height:340px;border:2px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-xl);background-repeat:no-repeat;z-index:9999;pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%)}
+
 
 /* ── SIZE CHART POPUP ── */
 #size-chart-modal{position:fixed;inset:0;z-index:7000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--t)}
@@ -4289,7 +4285,7 @@ function pCard(p) {
 
   return `<div class="product-card fade-in" data-id="${p.id||''}" onclick="openProductPage('${p.id}')">
     <div class="pc-img-wrap pc-img-zoom-wrap" id="pci-${p.id}">
-      <img src="${p.img}" alt="${p.name||''}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500'" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
+      <img src="${p.img}" alt="${p.name||''}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500'" onmouseenter="startZoom(event,${p.id})" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
       <div class="pc-badges">
         <span class="pc-badge ${bc[p.badge]||'b-sale'}">${bl[p.badge]||p.badge}</span>
         ${d>0?`<span class="pc-badge b-disc">-${d}%</span>`:''}
@@ -5904,8 +5900,15 @@ async function fetchDeliveryEstimate() {
 async function updateCheckoutDeliveryCharge() {
   const shipEl = $('ck-ship');
   if (!shipEl) return;
-  shipEl.textContent = '...';
-  shipEl.style.color = '';
+  // Show an instant estimate right away (no blank "..." wait) so the customer
+  // always sees a delivery charge amount immediately, then refine it silently
+  // once the server-side estimate (with offer-aware rules) comes back.
+  const tNow = getOrderTotal();
+  const instant = getDeliveryCharge(tNow);
+  currentShippingEstimate = instant;
+  shipEl.textContent = instant === 0 ? 'বিনামূল্যে 🎉' : fmt(instant);
+  shipEl.style.color = instant === 0 ? 'var(--green)' : '';
+  $('ck-total').textContent = fmt(Math.max(0, tNow + instant));
   const est = await fetchDeliveryEstimate();
   if (!est) {
     const t = getOrderTotal();
@@ -8091,62 +8094,11 @@ function closeSizeChart() {
   document.body.style.overflow = '';
 }
 
-/* ━━━ IMAGE ZOOM ━━━ */
-function initZoom(card) {
-  const wrap = card.querySelector('.pc-img-wrap');
-  const img = wrap ? wrap.querySelector('img') : null;
-  if (!wrap || !img || window.innerWidth <= 992) return;
-
-  let resultDiv = wrap.querySelector('.zoom-result');
-  if (!resultDiv) {
-    resultDiv = document.createElement('div');
-    resultDiv.className = 'zoom-result';
-    resultDiv.innerHTML = `<img src="${img.src}" alt="">`;
-    wrap.appendChild(resultDiv);
-  }
-
-  let lens = wrap.querySelector('.zoom-lens');
-  if (!lens) {
-    lens = document.createElement('div');
-    lens.className = 'zoom-lens';
-    wrap.appendChild(lens);
-  }
-
-  const resultImg = resultDiv.querySelector('img');
-  const ratio = 2.5;
-
-  wrap.addEventListener('mouseenter', () => {
-    if (window.innerWidth <= 992) return;
-    resultImg.src = img.src;
-    resultImg.style.width = wrap.offsetWidth * ratio + 'px';
-    resultImg.style.height = wrap.offsetHeight * ratio + 'px';
-    lens.style.display = 'block';
-    resultDiv.style.display = 'block';
-  });
-
-  wrap.addEventListener('mouseleave', () => {
-    lens.style.display = 'none';
-    resultDiv.style.display = 'none';
-  });
-
-  wrap.addEventListener('mousemove', (e) => {
-    if (window.innerWidth <= 992) return;
-    const rect = wrap.getBoundingClientRect();
-    let x = e.clientX - rect.left - lens.offsetWidth / 2;
-    let y = e.clientY - rect.top - lens.offsetHeight / 2;
-    x = Math.max(0, Math.min(x, wrap.offsetWidth - lens.offsetWidth));
-    y = Math.max(0, Math.min(y, wrap.offsetHeight - lens.offsetHeight));
-    lens.style.left = x + 'px';
-    lens.style.top = y + 'px';
-    resultImg.style.left = -(x * ratio) + 'px';
-    resultImg.style.top = -(y * ratio) + 'px';
-  });
-}
-
-// Initialize zoom on all product cards after render
-function initAllZoom() {
-  document.querySelectorAll('.product-card').forEach(initZoom);
-}
+/* ━━━ IMAGE ZOOM ━━━
+   NOTE: actual zoom-on-hover is handled inline per-card via zoomImage()/stopZoom()
+   (single clean cursor-tracking magnify, see those functions below). This stub is
+   kept only so existing setTimeout(initAllZoom,...) calls elsewhere stay harmless. */
+function initAllZoom() {}
 
 /* ━━━ LIVE SEARCH DROPDOWN ━━━ */
 let searchTimeout;
@@ -9554,6 +9506,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
 ══════════════════════════════════════════════ */
 
 /* ── IMAGE ZOOM ── */
+function startZoom(e, pid){
+  const wrap = document.getElementById('pci-'+pid);
+  if(!wrap) return;
+  const img = wrap.querySelector('img');
+  if(!img) return;
+  img.style.transition = 'transform .25s ease-out';
+  zoomImage(e, pid);
+}
 function zoomImage(e, pid){
   const wrap = document.getElementById('pci-'+pid);
   if(!wrap) return;
@@ -9563,15 +9523,16 @@ function zoomImage(e, pid){
   const x = ((e.clientX - rect.left) / rect.width) * 100;
   const y = ((e.clientY - rect.top) / rect.height) * 100;
   img.style.transformOrigin = `${x}% ${y}%`;
-  img.style.transform = 'scale(2.2)';
+  img.style.transform = 'scale(1.8)';
   img.style.cursor = 'zoom-in';
-  img.style.transition = 'transform .2s ease';
+  img.style.transition = 'transform .05s linear';
 }
 function stopZoom(pid){
   const wrap = document.getElementById('pci-'+pid);
   if(!wrap) return;
   const img = wrap.querySelector('img');
   if(!img) return;
+  img.style.transition = 'transform .3s ease';
   img.style.transform = '';
   img.style.cursor = '';
 }
