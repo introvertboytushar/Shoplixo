@@ -576,12 +576,17 @@ section{padding:52px 0}
 .b-disc{background:var(--dark2);color:#fff}
 .pc-wish{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text2);transition:var(--t);backdrop-filter:blur(4px)}
 .pc-wish:hover,.pc-wish.wished{background:var(--brand);color:#fff}
-.pc-overlay{position:absolute;bottom:-55px;left:0;right:0;display:flex;gap:6px;padding:10px;background:linear-gradient(transparent,rgba(0,0,0,.55));transition:var(--t)}
-.product-card:hover .pc-overlay{bottom:0}
-.pc-quick{flex:1;background:rgba(255,255,255,.95);color:var(--dark);padding:9px 6px;border-radius:var(--r-sm);font-size:12px;font-weight:700;transition:var(--t);text-align:center}
-.pc-quick:hover{background:var(--brand);color:#fff}
-.pc-cart-fast{width:36px;height:36px;background:var(--brand);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:14px;transition:var(--t)}
-.pc-cart-fast:hover{background:var(--brand-dark);transform:scale(1.1)}
+/* === PRO HOVER QUICK-VIEW OVERLAY === */
+.pc-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:transparent;transition:background .32s ease;pointer-events:none;z-index:3}
+.product-card:hover .pc-overlay{background:rgba(10,10,25,.54);pointer-events:auto}
+.pc-quick{background:rgba(255,255,255,.97);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--dark);padding:11px 26px;border-radius:var(--r-full);font-size:13px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:.2px;box-shadow:0 8px 28px rgba(0,0,0,.28);transform:translateY(20px) scale(.85);opacity:0;transition:transform .38s cubic-bezier(.34,1.56,.64,1) .04s,opacity .28s ease .04s,background .2s;pointer-events:none}
+.product-card:hover .pc-quick{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.pc-quick i{color:var(--brand);font-size:15px;transition:color .2s}
+.pc-quick:hover{background:var(--brand);color:#fff;box-shadow:0 8px 24px rgba(228,30,38,.45)}
+.pc-quick:hover i{color:#fff}
+.pc-cart-fast{width:42px;height:42px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:15px;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(228,30,38,.45);transform:translateY(20px) scale(.85);opacity:0;transition:transform .38s cubic-bezier(.34,1.56,.64,1) .12s,opacity .28s ease .12s;pointer-events:none}
+.product-card:hover .pc-cart-fast{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.pc-cart-fast:hover{background:var(--brand-dark)!important;transform:scale(1.13)!important;box-shadow:0 6px 20px rgba(228,30,38,.55)!important}
 .pc-body{padding:14px}
 .pc-cat{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
 .pc-name{font-size:14px;font-weight:600;color:var(--dark);line-height:1.4;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -889,6 +894,186 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 .btn-place:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(228,30,38,.35)}
 .ck-trust{text-align:center;font-size:11px;color:var(--text3);margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px}
 .ck-trust i{color:var(--green)}
+
+/* ═══════════════════════════════════════
+   CHECKOUT PRO — Ultra-Professional Upgrade
+   ═══════════════════════════════════════ */
+
+/* ── Step Progress Bar ── */
+.ck-steps{display:flex;align-items:center;padding:18px 26px 0;margin-bottom:6px;gap:0}
+.ck-step{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;position:relative}
+.ck-step:not(:last-child)::after{content:'';position:absolute;top:14px;left:calc(50% + 16px);right:calc(-50% + 16px);height:2px;background:var(--border2);transition:background .4s}
+.ck-step.s-done:not(:last-child)::after{background:var(--green)}
+.ck-step-dot{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text3);position:relative;z-index:1;transition:all .3s ease;flex-shrink:0}
+.ck-step.s-done .ck-step-dot{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 0 0 3px rgba(0,197,138,.15)}
+.ck-step.s-active .ck-step-dot{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 0 0 4px rgba(228,30,38,.14)}
+.ck-step-label{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.ck-step.s-active .ck-step-label{color:var(--brand)}
+.ck-step.s-done .ck-step-label{color:var(--green)}
+
+/* ── Section Card Wrapper ── */
+.ck-sec{
+  margin-bottom:16px;
+  background:var(--card-bg);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  overflow:hidden;
+  transition:border-color .25s ease, box-shadow .25s ease;
+}
+.ck-sec:focus-within{
+  border-color:rgba(228,30,38,.25);
+  box-shadow:0 0 0 3px rgba(228,30,38,.05),var(--shadow-sm);
+}
+
+/* ── Section Title as Card Header ── */
+.ck-sec-title{
+  font-family:'Syne',sans-serif;
+  font-size:12px;
+  font-weight:800;
+  color:var(--dark);
+  padding:13px 16px;
+  margin-bottom:0;
+  border-bottom:1.5px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:var(--bg2);
+  letter-spacing:.3px;
+  text-transform:uppercase;
+}
+.ck-sec-title i{color:var(--brand);font-size:14px;width:18px;text-align:center}
+.ck-sec-title .ck-step-num{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--brand);color:#fff;
+  font-size:11px;font-weight:800;
+  display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-right:2px;
+}
+
+/* ── Inner form padding ── */
+.ck-sec-body{padding:16px}
+
+/* ── Better Form Inputs ── */
+.form-g label{
+  font-size:10.5px;font-weight:700;color:var(--text2);
+  letter-spacing:.4px;text-transform:uppercase;
+}
+.form-g input,.form-g select,.form-g textarea{
+  padding:11px 14px;border:1.5px solid var(--input-border);
+  border-radius:var(--r-sm);font-size:14px;outline:none;
+  transition:border-color .22s,box-shadow .22s,background .22s;
+  background:var(--input-bg);width:100%;min-height:46px;
+}
+.form-g input:focus,.form-g select:focus,.form-g textarea:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(228,30,38,.09);
+}
+.form-g input.valid{
+  border-color:var(--green)!important;
+  box-shadow:0 0 0 3px rgba(0,197,138,.1)!important;
+  padding-right:36px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300C58A' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.input-icon-wrap input.valid{padding-right:36px}
+
+/* ── Payment Method Cards: Pro upgrade ── */
+.pay-methods-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.pay-method-btn{
+  border:2px solid var(--border2);border-radius:var(--r);padding:14px 10px;
+  cursor:pointer;transition:border-color .22s,background .22s,transform .22s,box-shadow .22s;
+  text-align:center;position:relative;background:var(--card-bg);
+}
+.pay-method-btn:hover{
+  border-color:var(--brand);background:var(--brand-light);
+  transform:translateY(-2px);box-shadow:0 6px 18px rgba(228,30,38,.12);
+}
+.pay-method-btn.active{
+  border-color:var(--brand);background:var(--brand-light);
+  box-shadow:0 0 0 3px rgba(228,30,38,.1),0 4px 14px rgba(228,30,38,.1);
+}
+.pay-method-btn.active::after{
+  content:'✓';position:absolute;top:-9px;right:-9px;
+  background:var(--green);color:#fff;width:20px;height:20px;
+  border-radius:50%;font-size:11px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,197,138,.4);border:2px solid var(--card-bg);
+}
+
+/* ── Order Summary upgrade ── */
+.ot-total{
+  font-family:'Syne',sans-serif;font-size:17px;font-weight:800;
+  display:flex;justify-content:space-between;
+  background:linear-gradient(135deg,var(--brand-light),rgba(255,107,53,.05));
+  padding:13px 16px;border-radius:var(--r);
+  margin-top:10px;border:1.5px solid rgba(228,30,38,.12);
+}
+.ot-total span:last-child{color:var(--brand)}
+
+/* ── Place Order CTA: glow + shine effect ── */
+.btn-place{
+  width:100%;color:#fff;padding:17px;border-radius:var(--r-full);
+  font-size:16px;font-weight:800;border:none;cursor:pointer;
+  margin-top:18px;letter-spacing:.3px;
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--brand) 0%,var(--brand2) 100%);
+  box-shadow:0 6px 24px rgba(228,30,38,.3),0 2px 8px rgba(228,30,38,.2);
+  transition:transform .22s,box-shadow .22s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn-place::before{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+  animation:btnShine 2.8s ease-in-out infinite;
+}
+@keyframes btnShine{0%,100%{left:-100%}50%{left:140%}}
+.btn-place:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(228,30,38,.4)}
+.btn-place:active{transform:translateY(0);box-shadow:0 3px 12px rgba(228,30,38,.3)}
+
+/* ── Trust badge upgrade ── */
+.ck-trust{
+  text-align:center;font-size:11px;color:var(--text3);
+  margin-top:12px;padding:10px 14px;
+  background:var(--bg2);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid var(--border);
+}
+.ck-trust i{color:var(--green);font-size:13px}
+
+/* ── Autofill banner upgrade ── */
+.ck-autofill-banner{
+  background:linear-gradient(135deg,rgba(0,197,138,.08),rgba(0,102,255,.06));
+  border:1.5px solid var(--green);border-radius:var(--r);
+  padding:12px 16px;margin-bottom:0;
+  display:none;align-items:center;gap:10px;cursor:pointer;
+  transition:border-color .2s,background .2s,transform .2s;
+}
+.ck-autofill-banner:hover{
+  border-color:var(--blue);transform:translateY(-1px);
+  background:linear-gradient(135deg,rgba(0,197,138,.13),rgba(0,102,255,.1));
+}
+.ck-autofill-banner i.fa-wand-magic-sparkles{color:var(--green);font-size:18px;flex-shrink:0}
+.ck-autofill-banner span{font-size:13px;font-weight:700;color:var(--text);flex:1}
+.ck-autofill-banner .aub-arrow{font-size:12px;color:var(--green)}
+
+/* ── Delivery estimate badge ── */
+#ck-delivery-est{
+  margin-top:10px;padding:11px 16px;
+  background:linear-gradient(135deg,var(--green-light),rgba(0,197,138,.04));
+  border-radius:var(--r-sm);border:1.5px solid rgba(0,197,138,.25);
+  font-size:12px;color:#085041;display:none;align-items:center;gap:8px;font-weight:600;
+}
+#ck-delivery-est.show{display:flex!important}
+#ck-delivery-est i{color:var(--green);font-size:15px}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .ck-sec{border-color:var(--border);background:var(--card-bg)}
+[data-theme="dark"] .ck-sec-title{background:var(--dark3);border-bottom-color:var(--border2)}
+[data-theme="dark"] .ck-steps{background:transparent}
+[data-theme="dark"] .ck-step-dot{background:var(--dark3);border-color:var(--border2)}
+[data-theme="dark"] .ck-trust{background:var(--dark3);border-color:var(--border)}
+[data-theme="dark"] .ot-total{background:linear-gradient(135deg,rgba(228,30,38,.1),rgba(255,107,53,.05))}
+
 
 /* ===== ORDER SUCCESS ===== */
 #order-success{position:fixed;inset:0;z-index:6000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:var(--t)}
@@ -2342,8 +2527,8 @@ table { table-layout: fixed; width: 100% !important; }
 
 /* Mobile product card — touch-friendly overlay */
 @media(max-width:768px){
-  .pc-overlay{bottom:0!important;opacity:0;transition:opacity .2s}
-  .product-card.tapped .pc-overlay{opacity:1}
+  .pc-overlay{opacity:0!important;pointer-events:none!important;transition:opacity .22s ease!important}
+  .product-card.tapped .pc-overlay{opacity:1!important;pointer-events:auto!important}
   .pc-img-wrap{touch-action:manipulation}
   /* Bigger touch targets */
   .btn-add-cart{min-height:40px;touch-action:manipulation}
@@ -3403,11 +3588,32 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
       <button class="ck-header-close" onclick="closeCheckout()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="ck-body">
+      <!-- ── 4-Step Progress ── -->
+      <div class="ck-steps">
+        <div class="ck-step s-active" id="ck-prog-1">
+          <div class="ck-step-dot">1</div>
+          <div class="ck-step-label">তথ্য</div>
+        </div>
+        <div class="ck-step" id="ck-prog-2">
+          <div class="ck-step-dot">2</div>
+          <div class="ck-step-label">ঠিকানা</div>
+        </div>
+        <div class="ck-step" id="ck-prog-3">
+          <div class="ck-step-dot">3</div>
+          <div class="ck-step-label">Payment</div>
+        </div>
+        <div class="ck-step" id="ck-prog-4">
+          <div class="ck-step-dot">4</div>
+          <div class="ck-step-label">Confirm</div>
+        </div>
+      </div>
+
       <!-- ── CUSTOMER INFO ── -->
       <div class="ck-sec">
-        <div class="ck-sec-title"><i class="fa-solid fa-user"></i> আপনার তথ্য
-          <span id="ck-autofill-link" style="margin-left:auto;font-size:11px;color:var(--green);font-weight:600;cursor:pointer;display:none" onclick="autofillFromProfile()"><i class="fa-solid fa-magic-wand-sparkles"></i> Auto-fill</span>
+        <div class="ck-sec-title"><i class="fa-solid fa-user"></i> <span class="ck-step-num">১</span> আপনার তথ্য
+          <span id="ck-autofill-link" style="margin-left:auto;font-size:11px;color:var(--green);font-weight:700;cursor:pointer;display:none;letter-spacing:0;text-transform:none" onclick="autofillFromProfile()"><i class="fa-solid fa-magic-wand-sparkles"></i> Auto-fill</span>
         </div>
+        <div class="ck-sec-body">
         <div class="form-r">
           <div id="ck-autofill-hint" class="ck-autofill-banner">
         <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -3426,15 +3632,17 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         </div>
         <div class="form-r one">
           <div class="form-g">
-            <label>Email <span style="font-size:10px;color:var(--text3);font-weight:400">(optional — নিশ্চিতকরণ email পাঠানো হবে)</span></label>
+            <label>Email <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">(optional — নিশ্চিতকরণ email পাঠানো হবে)</span></label>
             <div class="input-icon-wrap"><i class="fa-solid fa-envelope"></i><input type="email" id="ck-email" placeholder="email@example.com" autocomplete="email"></div>
           </div>
+        </div>
         </div>
       </div>
 
       <!-- ── DELIVERY ADDRESS ── -->
       <div class="ck-sec">
-        <div class="ck-sec-title"><i class="fa-solid fa-location-dot"></i> ডেলিভারি ঠিকানা</div>
+        <div class="ck-sec-title"><i class="fa-solid fa-location-dot"></i> <span class="ck-step-num">২</span> ডেলিভারি ঠিকানা</div>
+        <div class="ck-sec-body">
 
         <!-- Division -->
         <div class="form-r">
@@ -3499,7 +3707,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         <!-- Full address textarea (auto-builds + editable) -->
         <div class="form-r one">
           <div class="form-g">
-            <label>সম্পূর্ণ ঠিকানা * <span style="font-size:10px;color:var(--text3);">(উপরে fill করলে auto-set হবে অথবা সরাসরি লিখুন)</span></label>
+            <label>সম্পূর্ণ ঠিকানা * <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">(উপরে fill করলে auto-set হবে অথবা সরাসরি লিখুন)</span></label>
             <textarea id="ck-address" rows="2" placeholder="বাড়ি নং, রোড, গ্রাম, উপজেলা, জেলা..." autocomplete="street-address"></textarea>
           </div>
         </div>
@@ -3507,7 +3715,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
         <!-- Note -->
         <div class="form-r one">
           <div class="form-g">
-            <label>বিশেষ নির্দেশনা <span style="font-size:10px;color:var(--text3);">(optional)</span></label>
+            <label>বিশেষ নির্দেশনা <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
             <div class="input-icon-wrap"><i class="fa-solid fa-note-sticky"></i><input id="ck-note" placeholder="কোনো বিশেষ নির্দেশনা থাকলে লিখুন..."></div>
           </div>
         </div>
@@ -3517,10 +3725,12 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
           <i class="fa-solid fa-truck-fast" style="color:var(--green)"></i>
           <span id="ck-delivery-text">এই এলাকায় ডেলিভারি সময়: ২-৩ কর্মদিবস</span>
         </div>
+        </div>
       </div>
       <!-- Payment -->
       <div class="ck-sec">
-        <div class="ck-sec-title"><i class="fa-solid fa-credit-card"></i> Payment Method</div>
+        <div class="ck-sec-title"><i class="fa-solid fa-credit-card"></i> <span class="ck-step-num">৩</span> Payment Method</div>
+        <div class="ck-sec-body">
         <div class="pay-methods-grid">
           <div class="pay-method-btn active" onclick="selPay('cod',this)" style="grid-column:span 2;position:relative">
             <span style="position:absolute;top:-8px;right:12px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">সবচেয়ে জনপ্রিয়</span>
@@ -3599,12 +3809,13 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
           <div class="pib-note"><i class="fa-regular fa-copy" style="color:var(--brand)"></i> নম্বরে tap করুন কপি করতে | পেমেন্টের পর Transaction ID নিচে দিন।</div>
           <div class="form-g" style="margin-top:10px"><label>Transaction ID *</label><input id="ck-trx" placeholder="e.g. 8N7A2XQR09"></div>
         </div>
+        </div>
       </div>
-
 
       <!-- Summary -->
       <div class="ck-sec">
-        <div class="ck-sec-title"><i class="fa-solid fa-bag-shopping"></i> Order Summary</div>
+        <div class="ck-sec-title"><i class="fa-solid fa-bag-shopping"></i> <span class="ck-step-num">৪</span> Order Summary</div>
+        <div class="ck-sec-body">
         <div class="order-items-list" id="ck-items"></div>
         <div class="ot-rows">
           <div class="ot-row"><span>Subtotal</span><span id="ck-sub">৳0</span></div>
@@ -3612,6 +3823,7 @@ footer{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))!important}
           <div class="ot-total"><span>Total</span><span id="ck-total">৳0</span></div>
         </div>
         <div id="ck-free-ship-hint" style="display:none;margin-top:8px;font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:8px 12px;border-radius:var(--r-sm);text-align:center"></div>
+        </div>
       </div>
       <button class="btn-place" onclick="placeOrder()"><i class="fa-solid fa-check-circle"></i> Order Confirm করুন</button>
       <div class="ck-trust"><i class="fa-solid fa-shield-halved"></i> আপনার তথ্য সম্পূর্ণ নিরাপদ ও এনক্রিপ্টেড</div>
@@ -5436,6 +5648,40 @@ function openCheckout(skipCartCheck){
   if(payBox && selPayment !== 'cod') payBox.classList.add('show');
 }
 function closeCheckout(){buyNowItem=null;$('checkout-modal').classList.remove('open');document.body.style.overflow='';}
+
+/* ── CHECKOUT STEP PROGRESS UPDATER ── */
+function ckUpdateSteps(){
+  const body = document.querySelector('#checkout-modal .ck-body');
+  if(!body) return;
+  const secs = body.querySelectorAll('.ck-sec');
+  if(secs.length < 4) return;
+  const bodyRect = body.getBoundingClientRect();
+  const bodyMid = bodyRect.top + bodyRect.height * 0.42;
+  let active = 0;
+  secs.forEach((s,i)=>{
+    const r = s.getBoundingClientRect();
+    if(r.top <= bodyMid) active = i;
+  });
+  const steps = ['ck-prog-1','ck-prog-2','ck-prog-3','ck-prog-4'];
+  steps.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('s-active','s-done');
+    if(i < active) el.classList.add('s-done');
+    else if(i === active) el.classList.add('s-active');
+  });
+}
+(function(){
+  let ckReady = false;
+  const obs = new MutationObserver(()=>{
+    if(!ckReady && document.getElementById('checkout-modal')){
+      ckReady = true;
+      const body = document.querySelector('#checkout-modal .ck-body');
+      if(body) body.addEventListener('scroll', ckUpdateSteps, {passive:true});
+    }
+  });
+  obs.observe(document.body, {childList:true,subtree:true});
+})();
 
 function ckRefresh(){
   const items=getOrderItems();
