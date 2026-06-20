@@ -948,12 +948,64 @@ function paginateResponse(total, page, limit) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  ✅ NEW v4: CLIENT IP EXTRACTOR
-//  Vercel puts real IP in x-forwarded-for
+//  ✅ UPGRADE v4→v5: CLIENT IP EXTRACTOR
+//  Hardened for Cloudflare, Nginx, Vercel, and multi-hop reverse proxy setups.
+//  FIX: পূর্বের দুর্বল implementation শুধু x-forwarded-for চেক করত —
+//       Cloudflare-এর পেছনে real IP পাওয়া যেত না, admin panel-এ IP missing ছিল।
 // ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * getClientIp(req) — Production-grade, hardened IP extractor.
+ *
+ * Header priority (সবচেয়ে নির্ভরযোগ্য → কম নির্ভরযোগ্য):
+ *   1. cf-connecting-ip   — Cloudflare ব্যবহার করলে এটিই আসল client IP।
+ *                           Cloudflare সবসময় এই header set করে, end-user spoof করতে পারে না।
+ *   2. true-client-ip     — Cloudflare Enterprise ও Akamai CDN এটি set করে।
+ *   3. x-real-ip          — Nginx reverse proxy সাধারণত এই single-IP header set করে।
+ *   4. x-forwarded-for    — Standard proxy-chain header (RFC 7239)।
+ *                           Comma-separated list এর প্রথম IP-ই original client;
+ *                           বাকিগুলো intermediate proxy hop।
+ *   5. req.socket.remoteAddress — Direct TCP connection address; কোনো proxy নেই।
+ *   6. ''                 — Safe fallback — কখনো null/undefined return করে না।
+ *
+ * IPv6-mapped IPv4 (e.g. "::ffff:192.168.1.1") থেকে plain IPv4-এ normalize করা হয়।
+ * req.headers undefined হলেও gracefully '' return করে — কোনো throw নেই।  (FIX-IP)
+ */
 function getClientIp(req) {
-  const xff = req.headers['x-forwarded-for'] || '';
-  return xff.split(',')[0].trim() || req.socket?.remoteAddress || '';
+  // ✅ UPGRADE v5 (FIX-IP): Input safety — req বা headers অনুপস্থিত হলে gracefully return
+  const h = req?.headers || {};
+
+  // Helper: trim whitespace + IPv6-mapped IPv4 prefix ("::ffff:") বাদ দেওয়া
+  const clean = (raw) => {
+    if (!raw || typeof raw !== 'string') return '';
+    return raw.trim().replace(/^::ffff:/i, '');
+  };
+
+  // 1. Cloudflare ব্যবহার করলে cf-connecting-ip-ই আসল client IP
+  const cf = clean(h['cf-connecting-ip']);
+  if (cf) return cf;
+
+  // 2. Cloudflare Enterprise / Akamai — true-client-ip
+  const tci = clean(h['true-client-ip']);
+  if (tci) return tci;
+
+  // 3. Nginx সাধারণত x-real-ip set করে (single IP, comma list নেই)
+  const xri = clean(h['x-real-ip']);
+  if (xri) return xri;
+
+  // 4. x-forwarded-for — প্রথম entry-ই original client IP (বাকিগুলো proxy হপ)
+  const xff = h['x-forwarded-for'] || '';
+  if (xff) {
+    const first = clean(xff.split(',')[0]);
+    if (first) return first;
+  }
+
+  // 5. Direct TCP socket address — proxy না থাকলে এটিই actual IP
+  const socket = clean(req?.socket?.remoteAddress || '');
+  if (socket) return socket;
+
+  // 6. Fallback — কখনো null/undefined দেওয়া হবে না
+  return '';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

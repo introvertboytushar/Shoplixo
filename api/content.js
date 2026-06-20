@@ -15,6 +15,7 @@
  *  GET  /api/content?module=comments&productId=xxx         → Product reviews
  *  GET  /api/content?module=comments&action=pending        → Pending (admin)
  *  GET  /api/content?module=comments&action=stats&productId=xxx → Review stats [NEW]
+ *  GET  /api/content?module=comments&action=my-reviews          → নিজের reviews দেখুন (JWT) [NEW]
  *  POST /api/content?module=comments                       → Add review
  *  POST /api/content?module=comments&action=helpful        → Helpful vote
  *  POST /api/content?module=comments&action=reply          → Admin reply
@@ -521,6 +522,45 @@ module.exports = async (req, res) => {
             ratingDist,
             verifiedPercent: totalCount ? Math.round((verifiedCount / totalCount) * 100) : 0,
           },
+        });
+      }
+
+      // ✅ NEW: নিজের সব review দেখার secure endpoint — userId সবসময় JWT token থেকে আসে,
+      //        query param থেকে না (security)। profile.html-এর "আমার Reviews" page এই endpoint
+      //        ব্যবহার করে। GET /api/content?module=comments&action=my-reviews
+      /* ── GET: My Reviews — logged-in user's own reviews (all statuses) ── */
+      if (req.method === 'GET' && action === 'my-reviews') {
+        // Auth required — no token, no data
+        const decoded = verifyToken(req);
+        if (!decoded) return res.status(401).json({ ok: false, error: 'Login করুন' });
+
+        // CRITICAL SECURITY: userId সবসময় verified JWT token (decoded.id) থেকে নেওয়া হয়।
+        // req.query.userId / req.body.userId কখনো trust করা হয় না —
+        // তাই অন্য user-এর id পাস করে তার review দেখা সম্ভব না।
+        const userId = decoded.id;
+
+        const page = Math.max(1, parseInt(req.query.page  || '1'));
+        const lim  = Math.min(50, Math.max(1, parseInt(req.query.limit || '20')));
+        const skip = (page - 1) * lim;
+
+        // User নিজের pending + approved + hidden সব review দেখতে পারবে —
+        // isApproved / isHidden filter করা হয় না (own reviews সব দেখানো হয়)।
+        const [comments, total] = await Promise.all([
+          Comment.find({ userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(lim)
+            .lean(),
+          Comment.countDocuments({ userId }),
+        ]);
+
+        return res.json({
+          ok:       true,
+          comments,
+          total,
+          page,
+          limit:    lim,
+          pages:    Math.ceil(total / lim),
         });
       }
 

@@ -1008,11 +1008,49 @@ module.exports = async (req, res) => {
       // ✅ VERIFIED: '-__v' is an exclusion-only select — it only drops the
       // Mongoose __v field. size, color, and videoUrl are NOT excluded and
       // are already returned on every comment object below.
-      const [comments, total] = await Promise.all([
+
+      // ✅ UPGRADE: true DB-wide stats — respects rating filter, ignores status filter.
+      // Built separately from `query` so isApproved/isHidden conditions don't leak in.
+      const statsQuery = {};
+      if (rating) {
+        const rArr = String(rating).split(',').map(n => parseInt(n.trim())).filter(Boolean);
+        if (rArr.length > 1) statsQuery.rating = { $in: rArr };
+        else if (rArr.length === 1) statsQuery.rating = rArr[0];
+      }
+
+      // All 8 queries run in parallel — existing comments+total plus 6 new stats queries.
+      const [
+        comments, total,
+        totalAll, totalPending, totalApproved, totalHidden, totalVerified,
+        avgRatingAgg,
+      ] = await Promise.all([
+        // ── Existing: paginated page for the current filter ────────────────
         Comment.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
         Comment.countDocuments(query),
+        // ── New: DB-wide totals (rating filter only, no status filter) ─────
+        Comment.countDocuments(statsQuery),
+        Comment.countDocuments({ ...statsQuery, isApproved: false, isHidden: false }),
+        Comment.countDocuments({ ...statsQuery, isApproved: true }),
+        Comment.countDocuments({ ...statsQuery, isHidden: true }),
+        Comment.countDocuments({ ...statsQuery, isVerifiedPurchase: true }),
+        Comment.aggregate([
+          { $match: { ...statsQuery } },
+          { $group: { _id: null, avg: { $avg: '$rating' } } },
+        ]),
       ]);
-      return res.json({ ok: true, comments, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+
+      // avgRating: round to 1 decimal; default 0 when no documents exist
+      const avgRatingAll = avgRatingAgg[0]?.avg != null
+        ? Math.round(avgRatingAgg[0].avg * 10) / 10
+        : 0;
+
+      return res.json({
+        ok: true,
+        comments,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+        // ✅ NEW: accurate whole-collection stats for admin dashboard stat cards
+        stats: { totalAll, totalPending, totalApproved, totalHidden, totalVerified, avgRatingAll },
+      });
     } catch (err) {
       return res.status(500).json({ ok: false, error: 'Reviews লোড হয়নি' });
     }

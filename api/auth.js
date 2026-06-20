@@ -47,6 +47,7 @@ const {
   handleCors, isValidBDPhone, isValidEmail,
   sanitize, checkRateLimit, sendEmail, sendSMS,
   welcomeEmail, passwordResetEmail, otpSmsTemplate,
+  getClientIp,                                       // ✅ FIX-IP: shared hardened helper — replaces local duplicate (was missing Cloudflare support)
 } = require('./_helpers');
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -77,15 +78,9 @@ function extractToken(req) {
   return auth.startsWith('Bearer ') ? auth.slice(7) : auth.trim();
 }
 
-/** Return the caller's IP, respecting common proxy headers */
-function getClientIp(req) {
-  return (
-    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-    req.headers['x-real-ip']                              ||
-    req.socket?.remoteAddress                             ||
-    ''
-  );
-}
+// getClientIp — ✅ FIX-IP: removed local duplicate; now imported from ./_helpers
+// The shared implementation supports Cloudflare (cf-connecting-ip), true-client-ip,
+// x-real-ip, x-forwarded-for (first hop), socket.remoteAddress, and never throws.
 
 /** Cryptographically secure 6-digit numeric OTP */
 function generateOTP() {
@@ -281,7 +276,9 @@ module.exports = async (req, res) => {
         loginMethod:    b.method || 'email',  // 'google' | 'facebook' | 'email'
         deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
         forceLoggedOut: false,
-        ipAddress:      ip,
+        // ✅ FIX-IP: only overwrite stored ipAddress when we actually have a real IP —
+        // never silently blank-out a previously-known IP due to a transient extraction failure
+        ...(ip ? { ipAddress: ip } : {}),
         ...((lat && lng) ? {
           location: { lat, lng, accuracy: accuracy || null, updatedAt: new Date() }
         } : {}),
@@ -865,7 +862,8 @@ module.exports = async (req, res) => {
         lastSeen:       new Date(),
         forceLoggedOut: false,
         deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
-        ipAddress:      ip,
+        // ✅ FIX-IP: only overwrite stored ipAddress when we actually have a real IP
+        ...(ip ? { ipAddress: ip } : {}),
         ...((lat && lng) ? {
           location: { lat, lng, accuracy: accuracy || null, updatedAt: new Date() }
         } : {}),
@@ -985,7 +983,8 @@ module.exports = async (req, res) => {
         lastSeen:       new Date(),
         forceLoggedOut: false,
         deviceInfo:     req.headers['user-agent']?.substring(0, 200) || '',
-        ipAddress:      ip,
+        // ✅ FIX-IP: only overwrite stored ipAddress when we actually have a real IP
+        ...(ip ? { ipAddress: ip } : {}),
         ...((lat && lng) ? {
           location: { lat, lng, accuracy: accuracy || null, updatedAt: new Date() }
         } : {}),
