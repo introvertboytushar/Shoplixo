@@ -858,9 +858,8 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 .select-wrap select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(228,30,38,.08)}
 .select-wrap select:disabled{background-color:var(--bg2);color:var(--text3);cursor:not-allowed}
 .select-wrap select.valid,.form-g input.valid-addr{border-color:var(--green)!important}
-.input-icon-wrap{position:relative}.input-icon-wrap>i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none;z-index:1}
-.form-g .input-icon-wrap input,.input-icon-wrap input{padding-left:42px!important}
-.form-g input::placeholder,.form-g textarea::placeholder{color:var(--text3);opacity:.85;font-weight:400}
+.input-icon-wrap{position:relative}.input-icon-wrap>i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
+.input-icon-wrap input{padding-left:38px}
 #ck-delivery-est{display:none}#ck-delivery-est.show{display:flex!important}
 /* Payment methods */
 .pay-methods-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -1506,6 +1505,10 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 
 /* ── IMAGE ZOOM ON HOVER ── */
 .pc-img-wrap{cursor:zoom-in}
+.zoom-lens{position:absolute;width:120px;height:120px;border:2px solid var(--brand);border-radius:4px;background:rgba(228,30,38,.08);pointer-events:none;z-index:10;display:none}
+.zoom-result{position:absolute;right:-310px;top:0;width:300px;height:380px;background:#fff;border:1.5px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-xl);overflow:hidden;display:none;z-index:100;pointer-events:none}
+.zoom-result img{position:absolute;transform-origin:0 0}
+@media(max-width:992px){.zoom-result,.zoom-lens{display:none!important}}
 
 /* ── SIZE CHART POPUP ── */
 #size-chart-modal{position:fixed;inset:0;z-index:7500;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:var(--t);padding:16px}
@@ -1804,7 +1807,8 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 .pc-img-zoom-wrap{position:relative;overflow:hidden}
 .pc-img-zoom-wrap::after{content:'🔍';position:absolute;bottom:8px;right:8px;font-size:14px;opacity:0;transition:.2s;pointer-events:none}
 .pc-img-zoom-wrap:hover::after{opacity:1}
-
+.pc-img-zoom-lens{position:absolute;inset:0;z-index:5;cursor:zoom-in}
+.zoom-result{display:none;position:fixed;width:340px;height:340px;border:2px solid var(--border2);border-radius:var(--r-lg);box-shadow:var(--shadow-xl);background-repeat:no-repeat;z-index:9999;pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%)}
 
 /* ── SIZE CHART POPUP ── */
 #size-chart-modal{position:fixed;inset:0;z-index:7000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--t)}
@@ -4285,7 +4289,7 @@ function pCard(p) {
 
   return `<div class="product-card fade-in" data-id="${p.id||''}" onclick="openProductPage('${p.id}')">
     <div class="pc-img-wrap pc-img-zoom-wrap" id="pci-${p.id}">
-      <img src="${p.img}" alt="${p.name||''}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500'" onmouseenter="startZoom(event,${p.id})" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
+      <img src="${p.img}" alt="${p.name||''}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500'" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
       <div class="pc-badges">
         <span class="pc-badge ${bc[p.badge]||'b-sale'}">${bl[p.badge]||p.badge}</span>
         ${d>0?`<span class="pc-badge b-disc">-${d}%</span>`:''}
@@ -5900,15 +5904,8 @@ async function fetchDeliveryEstimate() {
 async function updateCheckoutDeliveryCharge() {
   const shipEl = $('ck-ship');
   if (!shipEl) return;
-  // Show an instant estimate right away (no blank "..." wait) so the customer
-  // always sees a delivery charge amount immediately, then refine it silently
-  // once the server-side estimate (with offer-aware rules) comes back.
-  const tNow = getOrderTotal();
-  const instant = getDeliveryCharge(tNow);
-  currentShippingEstimate = instant;
-  shipEl.textContent = instant === 0 ? 'বিনামূল্যে 🎉' : fmt(instant);
-  shipEl.style.color = instant === 0 ? 'var(--green)' : '';
-  $('ck-total').textContent = fmt(Math.max(0, tNow + instant));
+  shipEl.textContent = '...';
+  shipEl.style.color = '';
   const est = await fetchDeliveryEstimate();
   if (!est) {
     const t = getOrderTotal();
@@ -7699,7 +7696,19 @@ function validateCkPhone(input){
       <!-- Write comment form -->
       <div class="cm-form" id="cm-write-area">
         <div id="cm-login-required" style="display:none">
-          <div class="cm-login-hint">রিভিউ লিখতে <a href="#" onclick="closeCommentModal();openAuth('login');return false">Login করুন</a> অথবা <a href="#" onclick="closeCommentModal();openAuth('register');return false">Register করুন</a></div>
+          <div class="cm-login-hint" style="text-align:center;padding:10px 0">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px">রিভিউ লিখতে —</div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+              <button onclick="closeCommentModal();openAuth('login')" style="padding:8px 20px;background:var(--brand);color:#fff;border:none;border-radius:var(--r-full);font-size:13px;font-weight:700;cursor:pointer"><i class="fa-solid fa-right-to-bracket"></i> Login করুন</button>
+              <span style="line-height:36px;color:var(--text3);font-size:13px">অথবা</span>
+              <button onclick="showGuestReviewForm()" style="padding:8px 20px;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);border-radius:var(--r-full);font-size:13px;font-weight:600;cursor:pointer"><i class="fa-solid fa-envelope"></i> Email দিয়ে review দিন</button>
+            </div>
+            <div id="cm-guest-form" style="display:none;margin-top:14px;text-align:left">
+              <input id="cm-guest-email" type="email" placeholder="আপনার email address" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;box-sizing:border-box;margin-bottom:8px">
+              <input id="cm-guest-name" type="text" placeholder="আপনার নাম" style="width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;box-sizing:border-box">
+              <div style="font-size:11px;color:var(--text3);margin-top:6px">* Email verify করার পর review publish হবে</div>
+            </div>
+          </div>
         </div>
         <div id="cm-not-ordered" style="display:none">
           <div class="cm-login-hint" style="background:var(--gold-light);border:1px solid rgba(255,184,0,.3);color:#B45309">
@@ -7790,6 +7799,15 @@ function updateStarUI(n) {
   });
 }
 
+// ── Guest review (no login) support ──
+function showGuestReviewForm() {
+  const form = document.getElementById('cm-guest-form');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  // Show the review form below (star rating, textarea etc)
+  const writeSection = document.getElementById('cm-write-form');
+  if (writeSection) writeSection.style.display = 'block';
+}
+
 async function likeComment(commentId, btn) {
   if (!commentId || btn.disabled) return;
   btn.disabled = true;
@@ -7810,17 +7828,171 @@ async function likeComment(commentId, btn) {
   }
 }
 
-function updateCommentCount(pid) {
-  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-  const count = (allComments[pid] || []).filter(c => !c.hidden).length;
-  document.querySelectorAll(`.pc-comment-count[data-pid="${pid}"]`).forEach(el => {
-    el.textContent = count + ' রিভিউ';
+// ── Report a review (reason picker modal) ──
+async function reportReview(commentId) {
+  const reasons = [
+    { val: 'spam',      label: '🚫 Spam / Advertisement' },
+    { val: 'fake',      label: '🤥 Fake Review' },
+    { val: 'offensive', label: '😡 Offensive Content' },
+    { val: 'other',     label: '❓ অন্য কারণ' },
+  ];
+
+  const html = `
+    <div id="flag-modal-overlay" style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px">
+      <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+        <div style="font-weight:700;font-size:16px;margin-bottom:4px">⚠️ Review রিপোর্ট করুন</div>
+        <div style="font-size:13px;color:#666;margin-bottom:16px">কারণ নির্বাচন করুন:</div>
+        ${reasons.map(r => `
+          <button onclick="submitFlag('${commentId}','${r.val}')" style="width:100%;text-align:left;padding:11px 16px;border:1.5px solid #eee;border-radius:10px;background:#fff;cursor:pointer;font-size:14px;margin-bottom:8px;transition:.2s" onmouseover="this.style.borderColor='#e53e3e';this.style.background='#fff5f5'" onmouseout="this.style.borderColor='#eee';this.style.background='#fff'">
+            ${r.label}
+          </button>
+        `).join('')}
+        <button onclick="document.getElementById('flag-modal-overlay').remove()" style="width:100%;padding:10px;border:none;background:#f5f5f5;border-radius:10px;cursor:pointer;font-size:13px;color:#666;margin-top:4px">বাতিল করুন</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function submitFlag(commentId, reason) {
+  document.getElementById('flag-modal-overlay')?.remove();
+  try {
+    const r = await apiPost('content?module=comments&action=flag', { commentId, reason });
+    showToast(r.ok ? 'রিপোর্ট করা হয়েছে। ধন্যবাদ 🙏' : (r.error || 'সমস্যা হয়েছে'), r.ok ? 'check' : 'exclamation');
+  } catch (e) {
+    showToast('সংযোগ সমস্যা', 'exclamation');
+  }
+}
+
+// ── Copy a direct link to a specific review ──
+function copyReviewLink(commentId) {
+  const url = `${location.origin}${location.pathname}#review-${commentId}`;
+  navigator.clipboard?.writeText(url)
+    .then(() => showToast('Review link copied! 🔗', 'check'))
+    .catch(() => {
+      // Fallback for older browsers
+      const el = document.createElement('input');
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast('Review link copied! 🔗', 'check');
+    });
+}
+
+async function deleteMyReview(commentId, pid, isAdmin) {
+  const msg = isAdmin ? 'এই review permanently delete করবেন?' : 'আপনার review মুছে ফেলবেন?';
+  if (!confirm(msg)) return;
+  try {
+    let r;
+    if (isAdmin) {
+      r = await fetch(`/api/content?module=comments&id=${commentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('slx_token') || '') }
+      }).then(x => x.json());
+    } else {
+      r = await fetch(`/api/content?module=comments&id=${commentId}&self=1`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('slx_token') || '') }
+      }).then(x => x.json());
+    }
+    if (r?.ok) {
+      showToast(r.message || 'Review মুছে ফেলা হয়েছে ✅', 'check');
+      await loadComments(pid);
+      await updateCommentCount(pid);
+    } else {
+      showToast(r?.error || 'মুছতে সমস্যা হয়েছে', 'exclamation');
+    }
+  } catch (e) {
+    showToast('সংযোগ সমস্যা হয়েছে', 'exclamation');
+  }
+}
+
+async function updateCommentCount(pid) {
+  try {
+    const r = await apiGet('content', { module: 'comments', productId: pid, limit: 1 });
+    const count = r?.total || (r?.comments?.length ?? 0);
+    document.querySelectorAll(`.pc-comment-count[data-pid="${pid}"]`).forEach(el => {
+      el.innerHTML = `<i class="fa-regular fa-comment"></i> ${count} রিভিউ`;
+    });
+    // Also update product rating display on cards
+    if (r?.comments?.length) {
+      const avg = r.comments.reduce((s, c) => s + (c.rating || 5), 0) / r.comments.length;
+      document.querySelectorAll(`.pc-rating[data-pid="${pid}"]`).forEach(el => {
+        el.textContent = avg.toFixed(1);
+      });
+    }
+  } catch (e) {
+    // silently fail
+  }
+}
+
+// ── Edit own review (within 24hrs) ──
+async function openEditReview(commentId, pid) {
+  const comment = window._cmAllComments?.find(c => String(c._id) === commentId);
+  if (!comment) return;
+
+  // Inline edit form replacing the comment
+  const el = document.getElementById(`review-${commentId}`);
+  if (!el) return;
+
+  const originalHTML = el.innerHTML;
+  window._editOriginalHTML = window._editOriginalHTML || {};
+  window._editOriginalHTML[commentId] = originalHTML;
+  el.innerHTML = `
+    <div style="padding:12px;background:var(--bg2);border-radius:var(--r-sm)">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px">✏️ Review Edit করুন (২৪ ঘণ্টার মধ্যে)</div>
+      <div class="star-rating-edit" style="display:flex;gap:4px;margin-bottom:10px">
+        ${[1,2,3,4,5].map(n => `<i class="fa-${n <= (comment.rating||5) ? 'solid' : 'regular'} fa-star" style="font-size:20px;color:var(--gold);cursor:pointer" onclick="setEditStar(${n},'${commentId}')" data-star="${n}"></i>`).join('')}
+      </div>
+      <textarea id="edit-body-${commentId}" style="width:100%;min-height:80px;padding:10px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;resize:vertical;box-sizing:border-box">${comment.body||comment.text||''}</textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="submitEditReview('${commentId}','${pid}')" style="flex:1;background:var(--brand);color:#fff;border:none;padding:10px;border-radius:var(--r-full);font-size:13px;font-weight:700;cursor:pointer"><i class="fa-solid fa-check"></i> Save</button>
+        <button onclick="cancelEditReview('${commentId}')" style="flex:1;background:var(--bg3);color:var(--text2);border:none;padding:10px;border-radius:var(--r-full);font-size:13px;cursor:pointer">Cancel</button>
+      </div>
+    </div>`;
+  window._editStarVal = window._editStarVal || {};
+  window._editStarVal[commentId] = comment.rating || 5;
+}
+
+function cancelEditReview(commentId) {
+  const el = document.getElementById(`review-${commentId}`);
+  if (el && window._editOriginalHTML?.[commentId] !== undefined) {
+    el.innerHTML = window._editOriginalHTML[commentId];
+  }
+}
+
+function setEditStar(n, commentId) {
+  window._editStarVal = window._editStarVal || {};
+  window._editStarVal[commentId] = n;
+  document.querySelectorAll(`.star-rating-edit i[data-star]`).forEach(star => {
+    const sn = parseInt(star.dataset.star);
+    star.className = `fa-${sn <= n ? 'solid' : 'regular'} fa-star`;
   });
 }
 
-function getCommentCount(pid) {
-  const allComments = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-  return (allComments[pid] || []).filter(c => !c.hidden).length;
+async function submitEditReview(commentId, pid) {
+  const body   = document.getElementById(`edit-body-${commentId}`)?.value?.trim();
+  const rating = window._editStarVal?.[commentId] || 5;
+  if (!body || body.length < 10) { showToast('কমপক্ষে ১০ অক্ষর লিখুন', 'exclamation'); return; }
+  try {
+    const r = await fetch(`/api/content?module=comments&action=edit&id=${commentId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (localStorage.getItem('slx_token') || ''),
+      },
+      body: JSON.stringify({ body, rating }),
+    }).then(x => x.json());
+    if (r.ok) {
+      showToast('✅ Review update হয়েছে!', 'check');
+      await loadComments(pid);
+    } else {
+      showToast(r.error || 'Update করতে সমস্যা হয়েছে', 'exclamation');
+    }
+  } catch (e) {
+    showToast('সংযোগ সমস্যা', 'exclamation');
+  }
 }
 </script>
 
@@ -8094,11 +8266,62 @@ function closeSizeChart() {
   document.body.style.overflow = '';
 }
 
-/* ━━━ IMAGE ZOOM ━━━
-   NOTE: actual zoom-on-hover is handled inline per-card via zoomImage()/stopZoom()
-   (single clean cursor-tracking magnify, see those functions below). This stub is
-   kept only so existing setTimeout(initAllZoom,...) calls elsewhere stay harmless. */
-function initAllZoom() {}
+/* ━━━ IMAGE ZOOM ━━━ */
+function initZoom(card) {
+  const wrap = card.querySelector('.pc-img-wrap');
+  const img = wrap ? wrap.querySelector('img') : null;
+  if (!wrap || !img || window.innerWidth <= 992) return;
+
+  let resultDiv = wrap.querySelector('.zoom-result');
+  if (!resultDiv) {
+    resultDiv = document.createElement('div');
+    resultDiv.className = 'zoom-result';
+    resultDiv.innerHTML = `<img src="${img.src}" alt="">`;
+    wrap.appendChild(resultDiv);
+  }
+
+  let lens = wrap.querySelector('.zoom-lens');
+  if (!lens) {
+    lens = document.createElement('div');
+    lens.className = 'zoom-lens';
+    wrap.appendChild(lens);
+  }
+
+  const resultImg = resultDiv.querySelector('img');
+  const ratio = 2.5;
+
+  wrap.addEventListener('mouseenter', () => {
+    if (window.innerWidth <= 992) return;
+    resultImg.src = img.src;
+    resultImg.style.width = wrap.offsetWidth * ratio + 'px';
+    resultImg.style.height = wrap.offsetHeight * ratio + 'px';
+    lens.style.display = 'block';
+    resultDiv.style.display = 'block';
+  });
+
+  wrap.addEventListener('mouseleave', () => {
+    lens.style.display = 'none';
+    resultDiv.style.display = 'none';
+  });
+
+  wrap.addEventListener('mousemove', (e) => {
+    if (window.innerWidth <= 992) return;
+    const rect = wrap.getBoundingClientRect();
+    let x = e.clientX - rect.left - lens.offsetWidth / 2;
+    let y = e.clientY - rect.top - lens.offsetHeight / 2;
+    x = Math.max(0, Math.min(x, wrap.offsetWidth - lens.offsetWidth));
+    y = Math.max(0, Math.min(y, wrap.offsetHeight - lens.offsetHeight));
+    lens.style.left = x + 'px';
+    lens.style.top = y + 'px';
+    resultImg.style.left = -(x * ratio) + 'px';
+    resultImg.style.top = -(y * ratio) + 'px';
+  });
+}
+
+// Initialize zoom on all product cards after render
+function initAllZoom() {
+  document.querySelectorAll('.product-card').forEach(initZoom);
+}
 
 /* ━━━ LIVE SEARCH DROPDOWN ━━━ */
 let searchTimeout;
@@ -8218,14 +8441,15 @@ function filterSearchResults(results, sort) {
 }
 
 /* ━━━ COMMENTS — MongoDB API ━━━ */
-async function loadCommentsFromAPI(pid) {
+async function loadCommentsFromAPI(pid, page = 1, limit = 10) {
   try {
-    const r = await apiGet('content', { module: 'comments', productId: pid, limit: 50 });
-    if (r.ok && r.comments) return r.comments;
+    const r = await apiGet('content', { module: 'comments', productId: pid, limit, page });
+    if (r.ok && r.comments) return { comments: r.comments, total: r.total ?? r.comments.length, hasMore: !!r.hasMore, pages: r.pages || 1 };
   } catch (e) { console.warn('Comments API offline, using localStorage'); }
-  // Fallback to localStorage
+  // Fallback to localStorage (no real pagination — return everything on page 1)
   const all = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-  return (all[pid] || []).filter(c => !c.hidden);
+  const arr = (all[pid] || []).filter(c => !c.hidden);
+  return { comments: arr, total: arr.length, hasMore: false, pages: 1 };
 }
 
 async function submitCommentToAPI(pid, data) {
@@ -8249,20 +8473,148 @@ async function submitCommentToAPI(pid, data) {
   return { ok: true, comment };
 }
 
+// ── Build the HTML for one review item (shared by loadComments / renderCommentList / loadMoreComments) ──
+function buildCommentHTML(c, pid) {
+  const name = c.customerName || c.name || 'Anonymous';
+  const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}) : (c.date || '');
+  const body = c.body || c.text || '';
+  const rating = c.rating || 5;
+  const verified = c.isVerifiedPurchase;
+  const imgsHTML = (c.images||[]).length ? `<div class="ci-images">${c.images.slice(0,4).map(img => `<img class="ci-img-thumb" src="${img}" alt="রিভিউ ছবি" loading="lazy" onclick="window.open('${img}','_blank')">`).join('')}</div>` : '';
+  const isOwnReview = currentUser && String(c.userId || '') === String(currentUser?._id || currentUser?.id || '');
+  const canDelete = currentUser?.isAdmin || isOwnReview;
+  const deleteBtn = canDelete
+    ? `<button class="ci-action-btn" style="color:var(--brand);margin-left:auto" onclick="deleteMyReview('${String(c._id)}', '${pid}', ${!!currentUser?.isAdmin})"><i class="fa-solid fa-trash"></i> ${currentUser?.isAdmin ? 'Delete' : 'মুছুন'}</button>`
+    : '';
+  const now = Date.now();
+  const createdAtMs = new Date(c.createdAt).getTime();
+  const canEdit = isOwnReview && !currentUser?.isAdmin && !isNaN(createdAtMs) && (now - createdAtMs < 86400000); // ২৪ ঘণ্টা
+  const editBtn = canEdit
+    ? `<button class="ci-action-btn" style="color:var(--text2)" onclick="openEditReview('${String(c._id)}','${pid}')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>`
+    : '';
+  const reportBtn = !isOwnReview
+    ? `<button class="ci-action-btn" style="color:var(--text3);font-size:11px" title="Report করুন" onclick="reportReview('${String(c._id)}')"><i class="fa-solid fa-flag"></i></button>`
+    : '';
+  const copyBtn = `<button class="ci-action-btn" style="color:var(--text3);font-size:11px" title="Link copy করুন" onclick="copyReviewLink('${String(c._id)}')"><i class="fa-solid fa-share-nodes"></i></button>`;
+
+  return `<div class="comment-item" id="review-${String(c._id)}">
+    <div class="ci-head">
+      <div class="ci-avatar">${name[0].toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:4px">
+          <div class="ci-name">${name}</div>
+          ${verified ? `<span class="ci-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</span>` : ''}
+        </div>
+        <div class="ci-date">${date}</div>
+      </div>
+      <div class="ci-stars">${'<i class="fa-solid fa-star"></i>'.repeat(Math.round(rating))}</div>
+    </div>
+    <div class="ci-text">${body}</div>
+    ${imgsHTML}
+    <div class="ci-actions">
+      <button class="ci-action-btn" onclick="likeComment('${String(c._id)}', this)"><i class="fa-regular fa-thumbs-up"></i> <span>${c.helpfulCount||c.likes||0}</span> Helpful</button>
+      ${editBtn}
+      ${deleteBtn}
+      ${reportBtn}
+      ${copyBtn}
+    </div>
+    ${c.reply?.text ? `<div style="background:var(--bg2);border-left:3px solid var(--brand);margin-top:10px;padding:8px 12px;border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:12px"><strong style="color:var(--brand)">Shoplixo:</strong> ${c.reply.text}</div>` : ''}
+  </div>`;
+}
+
+// ── Sort / filter toolbar HTML ──
+function buildSortBarHTML(pid) {
+  return `
+  <div id="cm-sort-bar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+    <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px">SORT:</span>
+    ${[
+      ['newest',  '🆕 Newest'],
+      ['highest', '⭐ Highest'],
+      ['lowest',  '⬇️ Lowest'],
+      ['helpful', '👍 Most Helpful'],
+    ].map(([val, label]) => `
+      <button onclick="cmSort('${pid}','${val}')" data-sort="${val}" style="padding:5px 12px;border-radius:var(--r-full);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${window._cmSortActive===val?'var(--brand)':'var(--border2)'};background:${window._cmSortActive===val?'var(--brand)':'var(--bg2)'};color:${window._cmSortActive===val?'#fff':'var(--text2)'};transition:.15s">
+        ${label}
+      </button>
+    `).join('')}
+    <span style="font-size:11px;font-weight:700;color:var(--text3);margin-left:8px">FILTER:</span>
+    ${[5,4,3,2,1].map(n => `
+      <button onclick="cmFilter('${pid}',${n})" data-filter="${n}" style="padding:5px 10px;border-radius:var(--r-full);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${window._cmFilterActive===n?'var(--gold)':'var(--border2)'};background:${window._cmFilterActive===n?'var(--gold)':'var(--bg2)'};color:${window._cmFilterActive===n?'#fff':'var(--text2)'}">
+        ${n}⭐
+      </button>
+    `).join('')}
+    <button onclick="cmFilter('${pid}',0)" data-filter="0" style="padding:5px 10px;border-radius:var(--r-full);font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid ${window._cmFilterActive===0?'var(--gold)':'var(--border2)'};background:${window._cmFilterActive===0?'var(--gold)':'var(--bg2)'};color:${window._cmFilterActive===0?'#fff':'var(--text2)'}">All</button>
+  </div>`;
+}
+
+// ── "Load more" button HTML ──
+function buildLoadMoreHTML() {
+  const remaining = (window._cmTotal || 0) - (window._cmAllComments?.length || 0);
+  if (!window._cmHasMore || remaining <= 0) return '';
+  return `<button id="cm-load-more-btn" onclick="loadMoreComments()" style="width:100%;margin-top:14px;padding:12px;border:1.5px solid var(--border2);border-radius:var(--r-full);background:var(--bg2);font-size:14px;font-weight:600;cursor:pointer;color:var(--text2);transition:var(--t)" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
+    <i class="fa-solid fa-chevron-down"></i> আরও রিভিউ দেখুন (${remaining} টি বাকি)
+  </button>`;
+}
+
+window._cmSortActive   = window._cmSortActive   || 'newest';
+window._cmFilterActive = window._cmFilterActive || 0;
+window._cmAllComments  = window._cmAllComments  || [];
+
+function cmSort(pid, sortBy) {
+  window._cmSortActive = sortBy;
+  renderCommentList(pid, window._cmAllComments);
+}
+function cmFilter(pid, stars) {
+  window._cmFilterActive = stars;
+  renderCommentList(pid, window._cmAllComments);
+}
+
+// ── Re-render comment items + toolbar + load-more (without reloading the breakdown header) ──
+function renderCommentList(pid, comments) {
+  let list = [...comments];
+  // Filter
+  if (window._cmFilterActive > 0) {
+    list = list.filter(c => Math.round(c.rating) === window._cmFilterActive);
+  }
+  // Sort
+  if (window._cmSortActive === 'highest') list.sort((a,b) => b.rating - a.rating);
+  else if (window._cmSortActive === 'lowest')  list.sort((a,b) => a.rating - b.rating);
+  else if (window._cmSortActive === 'helpful') list.sort((a,b) => (b.helpfulCount||b.likes||0) - (a.helpfulCount||a.likes||0));
+  else list.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)); // newest
+
+  const sortBarEl = document.getElementById('cm-sort-bar');
+  if (sortBarEl) sortBarEl.outerHTML = buildSortBarHTML(pid);
+
+  const itemsEl = document.getElementById('cm-items');
+  if (itemsEl) itemsEl.innerHTML = list.map(c => buildCommentHTML(c, pid)).join('');
+
+  const loadMoreWrap = document.getElementById('cm-load-more-wrap');
+  if (loadMoreWrap) loadMoreWrap.innerHTML = buildLoadMoreHTML();
+}
+
 async function loadComments(pid) {
   const list = document.getElementById('cm-list');
   if (!list) return;
   list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...</div>';
 
-  const comments = await loadCommentsFromAPI(pid);
+  window._cmPage = 1;
+  window._cmPid = pid;
+  window._cmSortActive = 'newest';
+  window._cmFilterActive = 0;
+
+  const data = await loadCommentsFromAPI(pid, 1, 10);
+  const comments = data.comments;
+  window._cmAllComments = comments;
+  window._cmTotal = data.total;
+  window._cmHasMore = data.hasMore;
 
   if (!comments.length) {
     list.innerHTML = '<div class="cm-empty"><i class="fa-regular fa-comment"></i><p>এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!</p></div>';
     return;
   }
 
-  // Rating breakdown
-  const avg = comments.reduce((s, c) => s + (c.rating || c.rating || 5), 0) / comments.length;
+  // Rating breakdown (based on currently loaded comments)
+  const avg = comments.reduce((s, c) => s + (c.rating || 5), 0) / comments.length;
   const breakdown = [5, 4, 3, 2, 1].map(n => ({
     n, count: comments.filter(c => Math.round(c.rating) === n).length
   }));
@@ -8273,7 +8625,7 @@ async function loadComments(pid) {
         <div style="font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:var(--gold)">${avg.toFixed(1)}</div>
         <div>
           <div class="stars">${starsHTML(avg)}</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:3px">${comments.length} টি রিভিউ</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px">${data.total} টি রিভিউ</div>
         </div>
       </div>
       ${breakdown.map(b => `<div class="rb-row">
@@ -8284,54 +8636,55 @@ async function loadComments(pid) {
     </div>`;
 
   list.innerHTML = breakdownHTML +
-    `<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:10px;letter-spacing:.5px">সকল রিভিউ (${comments.length})</div>` +
-    comments.map((c, i) => {
-      const name = c.customerName || c.name || 'Anonymous';
-      const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}) : (c.date || '');
-      const body = c.body || c.text || '';
-      const rating = c.rating || 5;
-      const verified = c.isVerifiedPurchase;
-      const imgsHTML = (c.images||[]).length ? `<div class="ci-images">${c.images.slice(0,4).map(img => `<img class="ci-img-thumb" src="${img}" alt="রিভিউ ছবি" loading="lazy" onclick="window.open('${img}','_blank')">`).join('')}</div>` : '';
-      return `<div class="comment-item" id="cm-item-${pid}-${i}">
-        <div class="ci-head">
-          <div class="ci-avatar">${name[0].toUpperCase()}</div>
-          <div style="flex:1">
-            <div style="display:flex;align-items:center;gap:4px">
-              <div class="ci-name">${name}</div>
-              ${verified ? `<span class="ci-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</span>` : ''}
-            </div>
-            <div class="ci-date">${date}</div>
-          </div>
-          <div class="ci-stars">${'<i class="fa-solid fa-star"></i>'.repeat(Math.round(rating))}</div>
-        </div>
-        <div class="ci-text">${body}</div>
-        ${imgsHTML}
-        <div class="ci-actions">
-          <button class="ci-action-btn" onclick="likeComment('${String(c._id)}', this)"><i class="fa-regular fa-thumbs-up"></i> <span>${c.helpfulCount||c.likes||0}</span> Helpful</button>
-        </div>
-        ${c.reply?.text ? `<div style="background:var(--bg2);border-left:3px solid var(--brand);margin-top:10px;padding:8px 12px;border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:12px"><strong style="color:var(--brand)">Shoplixo:</strong> ${c.reply.text}</div>` : ''}
-      </div>`;
-    }).join('');
+    buildSortBarHTML(pid) +
+    `<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:10px;letter-spacing:.5px">সকল রিভিউ (${data.total})</div>` +
+    `<div id="cm-items">${comments.map(c => buildCommentHTML(c, pid)).join('')}</div>` +
+    `<div id="cm-load-more-wrap">${buildLoadMoreHTML()}</div>`;
+}
+
+async function loadMoreComments() {
+  const btn = document.getElementById('cm-load-more-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...'; }
+  window._cmPage = (window._cmPage || 1) + 1;
+  const data = await loadCommentsFromAPI(window._cmPid, window._cmPage, 10);
+  window._cmAllComments = [...(window._cmAllComments || []), ...data.comments];
+  window._cmTotal = data.total;
+  window._cmHasMore = data.hasMore;
+  renderCommentList(window._cmPid, window._cmAllComments);
 }
 
 async function submitComment() {
-  if (!currentUser) { showToast('আগে Login করুন!', 'exclamation'); return; }
+  const guestEmail = document.getElementById('cm-guest-email')?.value?.trim() || '';
+  const guestName  = document.getElementById('cm-guest-name')?.value?.trim() || '';
+
+  if (!currentUser && !guestEmail) { showToast('আগে Login করুন বা Email দিয়ে review দিন!', 'exclamation'); return; }
+  if (!currentUser && guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+    showToast('সঠিক Email address দিন', 'exclamation'); return;
+  }
   const text = document.getElementById('cm-text').value.trim();
   if (!text || text.length < 5) { showToast('কমপক্ষে ৫ অক্ষরের রিভিউ লিখুন!', 'exclamation'); return; }
 
-  const isVerified = hasUserOrderedProduct(currentCommentPid); // verified badge-এর জন্য
+  const isVerified = currentUser ? hasUserOrderedProduct(currentCommentPid) : false; // verified badge-এর জন্য
   // কিন্তু gate করো না — যেকোনো logged-in user submit করতে পারবে
   const orders = JSON.parse(localStorage.getItem('slx_orders') || '[]');
 
   const btn = document.querySelector('.cm-submit');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> পাঠানো হচ্ছে...'; }
 
+  const videoUrl = document.getElementById('cm-video-url')?.value?.trim() || '';
+  const sizeVal  = document.getElementById('cm-size')?.value?.trim() || '';
+  const colorVal = document.getElementById('cm-color')?.value?.trim() || '';
+
   const result = await submitCommentToAPI(currentCommentPid, {
-    customerName: currentUser.name || 'User',
+    customerName: currentUser?.name || guestName || 'Guest',
     rating: selectedCommentStar,
     body: text,
     isVerifiedPurchase: isVerified,
-    orderId: orders.find(o => o.items && o.items.some(i => String(i.id) === String(currentCommentPid)))?.id || ''
+    orderId: orders.find(o => o.items && o.items.some(i => String(i.id) === String(currentCommentPid)))?.id || '',
+    videoUrl,
+    size: sizeVal,
+    color: colorVal,
+    guestEmail: guestEmail || undefined
   });
 
   if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> রিভিউ পাঠান'; }
@@ -8340,14 +8693,55 @@ async function submitComment() {
     document.getElementById('cm-text').value = '';
     selectedCommentStar = 5;
     updateStarUI(5);
+    const vidEl  = document.getElementById('cm-video-url');
+    const sizeEl = document.getElementById('cm-size');
+    const colEl  = document.getElementById('cm-color');
+    const guestEmailEl = document.getElementById('cm-guest-email');
+    const guestNameEl  = document.getElementById('cm-guest-name');
+    if (vidEl)  vidEl.value  = '';
+    if (sizeEl) sizeEl.value = '';
+    if (colEl)  colEl.value  = '';
+    if (guestEmailEl) guestEmailEl.value = '';
+    if (guestNameEl)  guestNameEl.value  = '';
     await loadComments(currentCommentPid);
-    showToast('✅ Verified Review পাঠানো হয়েছে! ধন্যবাদ 🎉', 'star');
+    await updateCommentCount(currentCommentPid);
+    showToast(guestEmail ? '✅ Review জমা হয়েছে! Email verify করুন।' : '✅ Verified Review পাঠানো হয়েছে! ধন্যবাদ 🎉', 'star');
   } else {
     showToast('রিভিউ পাঠাতে সমস্যা হয়েছে!', 'exclamation');
   }
 }
 
 /* ━━━ PDP REVIEWS — load real reviews into Product Detail Page ━━━ */
+function buildPDPReviewCardHTML(c) {
+  const name = c.customerName || c.name || 'Anonymous';
+  const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}) : (c.date || '');
+  const body = c.body || c.text || '';
+  const rating = c.rating || 5;
+  const verified = c.isVerifiedPurchase;
+  return `<div class="comment-item">
+    <div class="ci-head">
+      <div class="ci-avatar">${name[0].toUpperCase()}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:4px">
+          <div class="ci-name">${name}</div>
+          ${verified ? '<span class="ci-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</span>' : ''}
+        </div>
+        <div class="ci-date">${date}</div>
+      </div>
+      <div class="ci-stars">${'<i class="fa-solid fa-star"></i>'.repeat(Math.round(rating))}</div>
+    </div>
+    <div class="ci-text">${body}</div>
+  </div>`;
+}
+
+function buildPDPLoadMoreHTML() {
+  const remaining = (window._pdpTotal || 0) - (window._pdpAllComments?.length || 0);
+  if (!window._pdpHasMore || remaining <= 0) return '';
+  return `<button id="pdp-load-more-btn" onclick="loadMorePDPReviews()" style="width:100%;margin-top:14px;padding:12px;border:1.5px solid var(--border2);border-radius:var(--r-full);background:var(--bg2);font-size:14px;font-weight:600;cursor:pointer;color:var(--text2);transition:var(--t)">
+    <i class="fa-solid fa-chevron-down"></i> আরও রিভিউ দেখুন (${remaining} টি বাকি)
+  </button>`;
+}
+
 async function loadPDPReviews(pid) {
   const listEl = document.getElementById('pdp-reviews-list');
   const summaryEl = document.getElementById('pdp-rating-summary');
@@ -8355,44 +8749,53 @@ async function loadPDPReviews(pid) {
 
   listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> রিভিউ লোড হচ্ছে...</div>';
 
-  const comments = await loadCommentsFromAPI(pid);
+  window._pdpPage = 1;
+  window._pdpPid = pid;
+  const data = await loadCommentsFromAPI(pid, 1, 10);
+  const comments = data.comments;
+  window._pdpAllComments = comments;
+  window._pdpTotal = data.total;
+  window._pdpHasMore = data.hasMore;
+
+  const reviewTab = document.querySelector('.pdp-tab[onclick*="reviews"]');
 
   if (!comments.length) {
     listEl.innerHTML = '<div style="padding:24px;text-align:center;background:var(--bg2);border-radius:var(--r-lg)"><i class="fa-solid fa-star" style="font-size:32px;color:var(--gold);opacity:.4"></i><div style="font-size:14px;font-weight:600;color:var(--text2);margin-top:10px">এখনো কোনো রিভিউ নেই</div><div style="font-size:12px;color:var(--text3);margin-top:6px">প্রথম রিভিউ দিয়ে অন্যদের সাহায্য করুন!</div></div>';
+    if (reviewTab) reviewTab.innerHTML = '⭐ Reviews (0)';
     return;
   }
 
-  // Update rating summary with real average
+  // Update rating summary with real average (based on currently loaded page)
   const avg = comments.reduce((s, c) => s + (c.rating || 5), 0) / comments.length;
   if (summaryEl) {
     summaryEl.innerHTML = `
       <div class="pdp-rating-big">${avg.toFixed(1)}</div>
       <div class="stars" style="justify-content:center;margin:6px 0">${starsHTML(avg)}</div>
-      <div style="font-size:12px;color:var(--text3)">${comments.length} টি রিভিউ · গড় রেটিং</div>`;
+      <div style="font-size:12px;color:var(--text3)">${data.total} টি রিভিউ · গড় রেটিং</div>`;
+  }
+  // Update "Reviews" tab label with actual total count
+  if (reviewTab) {
+    reviewTab.innerHTML = `⭐ Reviews (${data.total})`;
   }
 
-  // Render review cards
-  listEl.innerHTML = comments.map((c, i) => {
-    const name = c.customerName || c.name || 'Anonymous';
-    const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('bn-BD', {year:'numeric',month:'long',day:'numeric'}) : (c.date || '');
-    const body = c.body || c.text || '';
-    const rating = c.rating || 5;
-    const verified = c.isVerifiedPurchase;
-    return `<div class="comment-item">
-      <div class="ci-head">
-        <div class="ci-avatar">${name[0].toUpperCase()}</div>
-        <div style="flex:1">
-          <div style="display:flex;align-items:center;gap:4px">
-            <div class="ci-name">${name}</div>
-            ${verified ? '<span class="ci-verified"><i class="fa-solid fa-circle-check"></i> Verified Purchase</span>' : ''}
-          </div>
-          <div class="ci-date">${date}</div>
-        </div>
-        <div class="ci-stars">${'<i class="fa-solid fa-star"></i>'.repeat(Math.round(rating))}</div>
-      </div>
-      <div class="ci-text">${body}</div>
-    </div>`;
-  }).join('');
+  // Render review cards (first page) + load more
+  listEl.innerHTML = `<div id="pdp-items">${comments.map(c => buildPDPReviewCardHTML(c)).join('')}</div>` +
+    `<div id="pdp-load-more-wrap">${buildPDPLoadMoreHTML()}</div>`;
+}
+
+async function loadMorePDPReviews() {
+  const btn = document.getElementById('pdp-load-more-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...'; }
+  window._pdpPage = (window._pdpPage || 1) + 1;
+  const data = await loadCommentsFromAPI(window._pdpPid, window._pdpPage, 10);
+  window._pdpAllComments = [...(window._pdpAllComments || []), ...data.comments];
+  window._pdpTotal = data.total;
+  window._pdpHasMore = data.hasMore;
+
+  const itemsEl = document.getElementById('pdp-items');
+  if (itemsEl) itemsEl.innerHTML = window._pdpAllComments.map(c => buildPDPReviewCardHTML(c)).join('');
+  const wrap = document.getElementById('pdp-load-more-wrap');
+  if (wrap) wrap.innerHTML = buildPDPLoadMoreHTML();
 }
 
 /* ━━━ BUNDLE PRODUCT ADD ━━━ */
@@ -8978,34 +9381,6 @@ document.getElementById('quick-sort')?.addEventListener('change', function(){
   ta.insertAdjacentElement('afterend', videoField);
 })();
 
-// Patch submitComment to include video
-const _origSC = window.submitComment;
-window.submitComment = async function(){
-  // Capture extra fields before original submit
-  const videoUrl = document.getElementById('cm-video-url')?.value?.trim()||'';
-  const sizeVal = document.getElementById('cm-size')?.value?.trim()||'';
-  const colorVal = document.getElementById('cm-color')?.value?.trim()||'';
-  const result = await _origSC();
-  // Patch last comment with video
-  if(videoUrl && currentCommentPid){
-    const allComments = JSON.parse(localStorage.getItem('slx_comments')||'{}');
-    const comments = allComments[currentCommentPid]||[];
-    if(comments.length>0){
-      comments[comments.length-1].videoUrl = videoUrl;
-      if(sizeVal) comments[comments.length-1].size = sizeVal;
-      if(colorVal) comments[comments.length-1].color = colorVal;
-      allComments[currentCommentPid]=comments;
-      localStorage.setItem('slx_comments',JSON.stringify(allComments));
-    }
-  }
-  // Clear extra fields
-  if(document.getElementById('cm-video-url')) document.getElementById('cm-video-url').value='';
-  if(document.getElementById('cm-size')) document.getElementById('cm-size').value='';
-  if(document.getElementById('cm-color')) document.getElementById('cm-color').value='';
-  return result;
-};
-
-
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', () => {
   // Override wishlist open to use panel
@@ -9026,6 +9401,13 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Render recently viewed improvements
   renderRecentlyViewedV2();
+
+  // Auto-refresh review counts every 60 seconds
+  setInterval(() => {
+    const visible = [...document.querySelectorAll('.pc-comment-count[data-pid]')];
+    const pids = [...new Set(visible.map(el => el.dataset.pid))].slice(0, 10); // max 10 at once
+    pids.forEach(pid => updateCommentCount(pid));
+  }, 60000);
 });
 
 function renderRecentlyViewedV2() {
@@ -9426,65 +9808,6 @@ document.getElementById('quick-sort')?.addEventListener('change', function(){
   applyAdvFilter();
 });
 
-/* ━━━ VIDEO REVIEW SUPPORT ━━━ */
-(function patchCommentForm(){
-  const writeForm = document.getElementById('cm-write-form');
-  if(!writeForm) return;
-  const ta = writeForm.querySelector('#cm-text');
-  if(!ta) return;
-  // Insert video URL field after textarea
-  const videoField = document.createElement('div');
-  videoField.style.cssText = 'margin-top:10px';
-  videoField.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px">আপনার Size</div>
-        <select id="cm-size" style="width:100%;padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;background:#fff;transition:var(--t)">
-          <option value="">Size select করুন</option>
-          <option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option>
-          <option>28</option><option>30</option><option>32</option><option>34</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px">Color</div>
-        <input id="cm-color" type="text" placeholder="যেমন: Black, Red..." style="width:100%;padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)">
-      </div>
-    </div>
-    <div style="margin-bottom:8px">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px"><i class="fa-brands fa-youtube" style="color:#FF0000"></i> Video Review URL (Optional)</div>
-      <input id="cm-video-url" type="url" placeholder="YouTube বা Facebook video link দিন..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-size:13px;outline:none;font-family:inherit;transition:var(--t)">
-    </div>
-  `;
-  ta.insertAdjacentElement('afterend', videoField);
-})();
-
-// Patch submitComment to include video
-const _origSC = window.submitComment;
-window.submitComment = async function(){
-  // Capture extra fields before original submit
-  const videoUrl = document.getElementById('cm-video-url')?.value?.trim()||'';
-  const sizeVal = document.getElementById('cm-size')?.value?.trim()||'';
-  const colorVal = document.getElementById('cm-color')?.value?.trim()||'';
-  const result = await _origSC();
-  // Patch last comment with video
-  if(videoUrl && currentCommentPid){
-    const allComments = JSON.parse(localStorage.getItem('slx_comments')||'{}');
-    const comments = allComments[currentCommentPid]||[];
-    if(comments.length>0){
-      comments[comments.length-1].videoUrl = videoUrl;
-      if(sizeVal) comments[comments.length-1].size = sizeVal;
-      if(colorVal) comments[comments.length-1].color = colorVal;
-      allComments[currentCommentPid]=comments;
-      localStorage.setItem('slx_comments',JSON.stringify(allComments));
-    }
-  }
-  // Clear extra fields
-  if(document.getElementById('cm-video-url')) document.getElementById('cm-video-url').value='';
-  if(document.getElementById('cm-size')) document.getElementById('cm-size').value='';
-  if(document.getElementById('cm-color')) document.getElementById('cm-color').value='';
-  return result;
-};
-
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', ()=>{
   updateNotifDot();
@@ -9506,14 +9829,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
 ══════════════════════════════════════════════ */
 
 /* ── IMAGE ZOOM ── */
-function startZoom(e, pid){
-  const wrap = document.getElementById('pci-'+pid);
-  if(!wrap) return;
-  const img = wrap.querySelector('img');
-  if(!img) return;
-  img.style.transition = 'transform .25s ease-out';
-  zoomImage(e, pid);
-}
 function zoomImage(e, pid){
   const wrap = document.getElementById('pci-'+pid);
   if(!wrap) return;
@@ -9523,16 +9838,15 @@ function zoomImage(e, pid){
   const x = ((e.clientX - rect.left) / rect.width) * 100;
   const y = ((e.clientY - rect.top) / rect.height) * 100;
   img.style.transformOrigin = `${x}% ${y}%`;
-  img.style.transform = 'scale(1.8)';
+  img.style.transform = 'scale(2.2)';
   img.style.cursor = 'zoom-in';
-  img.style.transition = 'transform .05s linear';
+  img.style.transition = 'transform .2s ease';
 }
 function stopZoom(pid){
   const wrap = document.getElementById('pci-'+pid);
   if(!wrap) return;
   const img = wrap.querySelector('img');
   if(!img) return;
-  img.style.transition = 'transform .3s ease';
   img.style.transform = '';
   img.style.cursor = '';
 }

@@ -269,6 +269,9 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
           <div class="pf-nav-item" onclick="showSection('recent',this)">
             <i class="fa-solid fa-clock-rotate-left"></i> Viewed
           </div>
+          <div class="pf-nav-item" onclick="showSection('reviews',this)">
+            <i class="fa-solid fa-star"></i> Reviews
+          </div>
         </nav>
         <div class="pf-logout">
           <button class="btn-logout" onclick="doLogout()">
@@ -434,6 +437,18 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;font-fami
             </div>
             <div class="sc-body" id="recent-body">
               <div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><p>আপনি এখনো কোনো পণ্য দেখেননি।<br><a href="/" style="color:var(--brand);font-weight:700">Shop করুন →</a></p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MY REVIEWS SECTION -->
+        <div id="sec-reviews" class="pf-section">
+          <div class="section-card">
+            <div class="sc-head">
+              <div class="sc-title"><i class="fa-solid fa-star"></i> আমার Reviews</div>
+            </div>
+            <div class="sc-body" id="pf-reviews-list">
+              <div class="empty-state"><i class="fa-solid fa-star"></i><p>Reviews লোড হচ্ছে...</p></div>
             </div>
           </div>
         </div>
@@ -852,6 +867,7 @@ function showSection(name, el) {
   if (name === 'addresses') loadAddresses();
   if (name === 'wishlist')  loadWishlist();
   if (name === 'recent')    renderRecentlyViewed();
+  if (name === 'reviews')   loadMyReviews();
 }
 
 /* ═══ WISHLIST ════════════════════════════════════════════ */
@@ -1083,6 +1099,90 @@ function clearRecentlyViewed() {
   localStorage.removeItem('slx_rv');
   renderRecentlyViewed();
   toast('Recently viewed clear হয়েছে', 'info');
+}
+
+/* ═══ MY REVIEWS ══════════════════════════════════════════ */
+async function loadMyReviews() {
+  const list = document.getElementById('pf-reviews-list');
+  if (!list) return;
+  list.innerHTML = '<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i></div>';
+
+  if (!currentUser?._id) {
+    list.innerHTML = '<div class="empty-state"><p>Login করুন</p></div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/content?module=comments&userId=${currentUser._id}&limit=50`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    const reviews = data?.comments || [];
+
+    if (!reviews.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <i class="fa-solid fa-star"></i>
+          <p>এখনো কোনো review দেননি। পণ্য কিনুন এবং আপনার অভিজ্ঞতা শেয়ার করুন!<br><a href="/" style="color:var(--brand);font-weight:700">Shop করুন →</a></p>
+        </div>`;
+      return;
+    }
+
+    const starsHTML = n => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
+
+    list.innerHTML = reviews.map(r => {
+      const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+      const hoursOld = r.createdAt ? (Date.now() - new Date(r.createdAt).getTime()) / 3600000 : 9999;
+      const canEdit = hoursOld < 24;
+
+      return `
+        <div style="border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+            <div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:4px">${esc(date)}</div>
+              <div style="font-size:16px;color:var(--gold);letter-spacing:2px">${starsHTML(r.rating)}</div>
+              <div style="font-size:13px;color:var(--text);margin-top:6px">${esc(r.body || '')}</div>
+              ${r.size  ? `<span style="display:inline-block;margin-top:6px;background:var(--bg);padding:2px 8px;border-radius:20px;font-size:11px;color:var(--text2)">Size: ${esc(r.size)}</span>` : ''}
+              ${r.color ? `<span style="display:inline-block;margin-top:6px;background:var(--bg);padding:2px 8px;border-radius:20px;font-size:11px;color:var(--text2);margin-left:4px">Color: ${esc(r.color)}</span>` : ''}
+            </div>
+            <span style="font-size:11px;padding:3px 8px;border-radius:20px;font-weight:700;flex-shrink:0;background:${r.isApproved ? 'var(--green-l)' : '#fff8e6'};color:${r.isApproved ? 'var(--green)' : '#b35900'}">
+              ${r.isApproved ? '✅ Published' : '⏳ Pending'}
+            </span>
+          </div>
+          ${r.reply?.text ? `
+            <div style="margin-top:10px;padding:10px 12px;background:var(--brand-l);border-left:3px solid var(--brand);border-radius:0 8px 8px 0">
+              <div style="font-size:11px;font-weight:700;color:var(--brand);margin-bottom:3px">Shoplixo Reply:</div>
+              <div style="font-size:12px;color:var(--text)">${esc(r.reply.text)}</div>
+            </div>` : ''}
+          <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+            <button onclick="deleteMyReviewFromProfile('${r._id}')" style="padding:6px 14px;border:1.5px solid var(--brand-l);border-radius:var(--r-full);background:#fff;color:var(--brand);font-size:12px;font-weight:600;cursor:pointer"><i class="fa-solid fa-trash"></i> মুছুন</button>
+            ${canEdit ? `<span style="font-size:11px;color:var(--text3)">⏱️ ${Math.max(0, Math.round(24 - hoursOld))} ঘণ্টা পর্যন্ত edit করা যাবে</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch (e) {
+    list.innerHTML = '<div class="empty-state"><p>Reviews লোড হয়নি। আবার চেষ্টা করুন।</p></div>';
+  }
+}
+
+async function deleteMyReviewFromProfile(commentId) {
+  if (!confirm('আপনার review মুছে ফেলবেন?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/content?module=comments&id=${commentId}&self=1`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('Review মুছে ফেলা হয়েছে ✅', 'success');
+      loadMyReviews();
+    } else {
+      toast(data.error || 'মুছতে সমস্যা হয়েছে', 'error');
+    }
+  } catch (e) {
+    toast('সংযোগ সমস্যা হয়েছে', 'error');
+  }
 }
 
 /* ═══ HELPERS ═════════════════════════════════════════════ */
