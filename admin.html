@@ -531,6 +531,8 @@ tr:hover td{background:var(--bg)}
                 <option value="points_hi">Most Points</option>
                 <option value="name_az">Name A-Z</option>
               </select>
+              <!-- ✅ NEW: live auto-refresh indicator -->
+              <span style="font-size:11px;color:var(--text3);display:inline-flex;align-items:center;gap:4px"><i class="fa-solid fa-rotate" style="opacity:.6"></i> Auto-refresh: 30s</span>
               <button class="tc-btn tc-btn-brand" onclick="loadCustomers()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
             </div>
           </div>
@@ -769,19 +771,21 @@ tr:hover td{background:var(--bg)}
           <div class="tc-head">
             <div class="tc-title"><i class="fa-solid fa-star" style="color:var(--gold)"></i> Reviews & Comments Management</div>
             <div class="tc-actions">
-              <select class="tc-select" id="review-status-filter" onchange="loadReviews()">
+              <select class="tc-select" id="review-status-filter" onchange="loadReviews(1)">
                 <option value="">All Reviews</option>
                 <option value="pending">Pending Approval</option>
                 <option value="approved">Approved</option>
                 <option value="hidden">Hidden</option>
               </select>
-              <select class="tc-select" id="review-rating-filter" onchange="loadReviews()">
+              <select class="tc-select" id="review-rating-filter" onchange="loadReviews(1)">
                 <option value="">All Ratings</option>
                 <option value="5">⭐⭐⭐⭐⭐ 5 Star</option>
                 <option value="4">⭐⭐⭐⭐ 4 Star</option>
                 <option value="3">⭐⭐⭐ 3 Star</option>
                 <option value="1,2">⭐⭐ 1-2 Star</option>
               </select>
+              <!-- ✅ NEW: live auto-refresh indicator -->
+              <span style="font-size:11px;color:var(--text3);display:inline-flex;align-items:center;gap:4px"><i class="fa-solid fa-rotate" style="opacity:.6"></i> Auto-refresh: 30s</span>
               <!-- ✅ NEW: Analytics toggle -->
               <button onclick="toggleReviewAnalytics()" id="rv-analytics-toggle-btn" style="background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:7px 14px;border-radius:var(--r-full);font-size:12px;font-weight:600;cursor:pointer"><i class="fa-solid fa-chart-bar"></i> Analytics</button>
               <!-- ✅ NEW: CSV export -->
@@ -791,6 +795,10 @@ tr:hover td{background:var(--bg)}
             </div>
           </div>
           <div id="reviews-body" style="padding:10px"></div>
+          <div class="pagination" id="rv-pagination" style="display:none">
+            <div class="pg-info" id="rv-pg-info"></div>
+            <div class="pg-btns" id="rv-pg-btns"></div>
+          </div>
         </div>
       </div>
 
@@ -1232,6 +1240,12 @@ let revenueChart = null;
 let statusChart = null;
 let allCustomers = [];   // UPGRADE-B2: Login History তে ব্যবহার হবে
 
+// ✅ NEW: Reviews/Customers pagination + live auto-refresh state
+let currentReviewPage = 1;
+let currentCustPage = 1;
+let reviewAutoRefreshTimer = null;
+let customerAutoRefreshTimer = null;
+
 /* ─── HELPERS ─── */
 const $ = id => document.getElementById(id);
 const fmt = n => '৳' + Number(n || 0).toLocaleString('en-IN');
@@ -1361,6 +1375,34 @@ function showSection(id) {
   // Close mobile sidebar
   document.getElementById('sidebar')?.classList.remove('mob-open');
   loadCurrentSection(id);
+  manageAutoRefresh(id); // ✅ NEW: start/stop live auto-refresh polling for the tab now in view
+}
+
+// ✅ NEW: Live auto-refresh — polls Reviews / Customers every 30s while that
+// tab is open, so new reviews/registrations show up without a manual reload.
+// Always clears the previous interval(s) first so switching tabs back and
+// forth never stacks up duplicate timers.
+function manageAutoRefresh(id) {
+  clearInterval(reviewAutoRefreshTimer);   reviewAutoRefreshTimer = null;
+  clearInterval(customerAutoRefreshTimer); customerAutoRefreshTimer = null;
+
+  if (id === 'reviews') {
+    reviewAutoRefreshTimer = setInterval(() => {
+      // Don't yank an in-progress admin reply out from under them — skip this
+      // tick silently if a reply box is currently open; it'll pick up next tick.
+      const replyBoxOpen = [...document.querySelectorAll('[id^="reply-box-"]')]
+        .some(box => box.style.display === 'block');
+      if (replyBoxOpen) return;
+      loadReviews(currentReviewPage);
+    }, 30000);
+  } else if (id === 'customers') {
+    // Customers tab has no inline editable state to disturb — the Login
+    // History popup renders from already-fetched data, so a quiet background
+    // refresh of the grid never disrupts it.
+    customerAutoRefreshTimer = setInterval(() => {
+      loadCustomers(currentCustPage);
+    }, 30000);
+  }
 }
 
 function loadCurrentSection(id) {
@@ -1829,6 +1871,7 @@ function debounceCustomerSearch() {
 }
 
 async function loadCustomers(page = 1) {
+  currentCustPage = page; // ✅ NEW: so auto-refresh polling keeps the admin's current page
   if ($('cust-grid')) $('cust-grid').innerHTML = `<div style="text-align:center;padding:40px;grid-column:1/-1"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
   const search = $('cust-search')?.value?.trim() || '';
   const sort   = $('cust-sort')?.value || 'newest';
@@ -2582,13 +2625,15 @@ const replyTemplates = [
   { label: 'দেরি ক্ষমা', text: 'ডেলিভারি দেরি হওয়ার জন্য আন্তরিকভাবে ক্ষমা প্রার্থনা করছি। ভবিষ্যতে আরও দ্রুত সেবা দেওয়ার চেষ্টা করব।' },
 ];
 
-async function loadReviews() {
+async function loadReviews(page = 1) {
+  currentReviewPage = page; // ✅ NEW: track current page so auto-refresh polling & pagination clicks stay in sync
   const status = $('review-status-filter')?.value || '';
   const rating = $('review-rating-filter')?.value || '';
   $('reviews-body').innerHTML = `<div style="text-align:center;padding:40px"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
   try {
     const filterVal = status === 'pending' ? 'pending' : status === 'approved' ? 'approved' : 'all';
-    let url = `action=reviews&filter=${filterVal}${rating ? '&rating=' + rating : ''}`;
+    // ✅ NEW: page + limit for real pagination (mirrors the Customers tab's loadCustomers(page))
+    let url = `action=reviews&filter=${filterVal}${rating ? '&rating=' + rating : ''}&page=${page}&limit=20`;
     const data = await adminFetch(url);
     if (!data.ok) throw new Error(data.error);
     // FIX: backend returns 'comments' not 'reviews'
@@ -2597,10 +2642,34 @@ async function loadReviews() {
     const pending = reviews.filter(r => !r.isApproved && !r.isHidden).length;
     const verified = reviews.filter(r => r.isVerifiedPurchase).length;
     const avg = total ? (reviews.reduce((s, r) => s + (r.rating || 5), 0) / total).toFixed(1) : '—';
-    if ($('rv-total')) $('rv-total').textContent = total;
-    if ($('rv-pending')) $('rv-pending').textContent = pending;
-    if ($('rv-avg')) $('rv-avg').textContent = avg + ' ⭐';
-    if ($('rv-verified')) $('rv-verified').textContent = verified;
+    // ✅ NEW: stat cards now use true database-wide totals from data.stats
+    // (backend GET ?action=reviews upgrade) instead of the current page's
+    // ~20-50 items. `??` keeps a safe fallback to the old current-page
+    // calculation if `stats` is ever missing, so this never breaks if that
+    // backend change lands slightly out of order.
+    if ($('rv-total')) $('rv-total').textContent = data.stats?.totalAll ?? reviews.length;
+    if ($('rv-pending')) $('rv-pending').textContent = data.stats?.totalPending ?? pending;
+    if ($('rv-avg')) $('rv-avg').textContent = (data.stats?.avgRatingAll ?? avg) + ' ⭐';
+    if ($('rv-verified')) $('rv-verified').textContent = data.stats?.totalVerified ?? verified;
+    const pendingCount = data.stats?.totalPending ?? pending; // reused below for the sidebar badge
+
+    // ✅ NEW: Pagination UI — mirrors the Customers tab's cust-pagination/cust-pg-info/cust-pg-btns pattern
+    const pg = data.pagination || {};
+    const pgEl = $('rv-pagination');
+    const pgInfo = $('rv-pg-info');
+    const pgBtns = $('rv-pg-btns');
+    if (pgEl) pgEl.style.display = pg.total > 0 ? '' : 'none';
+    if (pgInfo) pgInfo.textContent = `মোট ${pg.total ?? (data.stats?.totalAll ?? reviews.length)} টি review`;
+    if (pgBtns && pg.pages > 1) {
+      let btns = [];
+      if (pg.page > 1) btns.push(`<button class="pg-btn" onclick="loadReviews(${pg.page - 1})"><i class="fa-solid fa-chevron-left"></i></button>`);
+      for (let i = Math.max(1, pg.page - 2); i <= Math.min(pg.pages, pg.page + 2); i++) {
+        btns.push(`<button class="pg-btn ${i === pg.page ? 'active' : ''}" onclick="loadReviews(${i})">${i}</button>`);
+      }
+      if (pg.page < pg.pages) btns.push(`<button class="pg-btn" onclick="loadReviews(${pg.page + 1})"><i class="fa-solid fa-chevron-right"></i></button>`);
+      pgBtns.innerHTML = btns.join('');
+    } else if (pgBtns) pgBtns.innerHTML = '';
+
     if (!reviews.length) {
       $('reviews-body').innerHTML = `<div class="empty-state"><i class="fa-solid fa-star"></i><p>কোনো review নেই</p></div>`;
       if ($('review-badge')) $('review-badge').style.display = 'none';
@@ -2672,8 +2741,8 @@ async function loadReviews() {
       </div>`;
     }).join('');
     if ($('review-badge')) {
-      $('review-badge').style.display = pending > 0 ? 'flex' : 'none';
-      $('review-badge').textContent = pending > 0 ? pending : '!';
+      $('review-badge').style.display = pendingCount > 0 ? 'flex' : 'none';
+      $('review-badge').textContent = pendingCount > 0 ? pendingCount : '!';
     }
   } catch (e) {
     $('reviews-body').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Review API unavailable<br><small>${e.message}</small></p></div>`;
@@ -3872,6 +3941,7 @@ function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;
 window.adminLogin = adminLogin;
 window.adminLogout = adminLogout;
 window.showSection = showSection;
+window.manageAutoRefresh = manageAutoRefresh;
 window.loadCurrentSection = loadCurrentSection;
 window.loadDashboard = loadDashboard;
 // window.loadOrders is set in UPGRADE-A5 block (with date-filter & bulk-select support)

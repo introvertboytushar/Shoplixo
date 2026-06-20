@@ -280,6 +280,11 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:hidden!impo
 body{font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);overflow-x:hidden!important;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;max-width:100vw;width:100%;min-width:0;position:relative}
 /* Nuclear overflow prevention — no element escapes the viewport */
 *{min-width:0;box-sizing:border-box}
+/* ✅ FIX (Part B): Bangla script can render visually wider than Latin at the same font-size, and long
+   unbroken product names/descriptions could otherwise force the container (and page) to overflow
+   horizontally at 320-375px. overflow-wrap only breaks when a word truly doesn't fit — it never changes
+   normal line-wrapping behavior, so this is safe everywhere. */
+h1,h2,h3,h4,h5,h6,p,span,a,button,label,div{overflow-wrap:break-word}
 img,video,iframe,embed,object{max-width:100%;height:auto}
 a{color:inherit;text-decoration:none}img{max-width:100%;display:block;height:auto}
 button{cursor:pointer;border:none;background:none;font-family:inherit}ul{list-style:none}
@@ -1433,11 +1438,31 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 @media(max-width:768px){
   .product-card{-webkit-tap-highlight-color:transparent}
   .btn-add-cart,.btn-fc,.btn-primary{min-height:46px;touch-action:manipulation}
-  .qty-b{min-width:36px;min-height:36px}
+  /* ✅ FIX (Part B): 36px was below the 44x44 minimum touch target on mobile */
+  .qty-b{min-width:44px;min-height:44px}
   .cat-card{-webkit-tap-highlight-color:transparent;active:transform:scale(.97)}
   .pc-img-wrap{aspect-ratio:1/1}
   .ck-body{max-height:80vh}
   .auth-body{padding:20px}
+  /* ✅ FIX (Part B): 16px font-size on mobile prevents iOS Safari from auto-zooming the page on input
+     focus. !important is required here because many form fields in this file (review/comment form,
+     mobile search bar, etc.) use inline style="font-size:13px/14px" which would otherwise win. */
+  .form-g input,.form-g select,.form-g textarea,.wp-inp,#cm-text,input,select,textarea{font-size:16px!important}
+  input[type="text"],input[type="email"],input[type="tel"],input[type="url"],input[type="search"],input[type="password"],select{min-height:44px!important}
+  /* ✅ FIX (Part B): enlarge tap area on icon-only controls to ≥44x44 without changing their visual size */
+  .h-btn{min-width:44px;min-height:44px;justify-content:center}
+  .cart-close-btn{width:44px;height:44px}
+  .auth-close-x{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;top:8px;right:8px}
+  .color-opt{min-width:36px;min-height:36px}
+  .color-opts{gap:10px}
+  .size-opt{min-height:36px;display:inline-flex;align-items:center;justify-content:center}
+  .ann-close{width:32px;height:32px}
+  /* ✅ FIX (Part B): several modal close buttons (size chart / compare / QR) are 32-34px inline-styled
+     circles with no class — bump their tap area to 44x44 on mobile via attribute selectors, !important
+     needed to win over the inline width/height. */
+  .mob-close,.afd-close{width:44px;height:44px}
+  .ck-header-close,.eib-close{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  button[onclick*="closeSizeChart"],button[onclick*="closeCompareModal"],button[onclick*="closeQRModal"]{width:44px!important;height:44px!important}
 }
 @media(max-width:480px){
   .product-grid{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -1903,11 +1928,11 @@ input[type=range].range-input::-webkit-slider-thumb:hover{transform:scale(1.2)}
 #qr-modal{position:fixed;inset:0;z-index:8000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;visibility:hidden;transition:var(--t)}
 #qr-modal.open{opacity:1;visibility:visible}
 .qr-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
-.qr-card{background:#fff;border-radius:var(--r-2xl);max-width:440px;width:100%;position:relative;z-index:1;box-shadow:var(--shadow-xl);overflow:hidden}
+.qr-card{background:#fff;border-radius:var(--r-2xl);max-width:440px;width:100%;position:relative;z-index:1;box-shadow:var(--shadow-xl);overflow:hidden;max-height:92vh}
 .qr-head{background:linear-gradient(135deg,var(--green),#00a575);padding:20px 22px;text-align:center}
 .qr-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff}
 .qr-sub{font-size:12px;color:rgba(255,255,255,.8);margin-top:3px}
-.qr-body{padding:24px;text-align:center}
+.qr-body{padding:24px;text-align:center;overflow-y:auto;max-height:calc(92vh - 70px)}
 .qr-code{width:160px;height:160px;background:var(--bg2);border-radius:var(--r-lg);border:3px solid var(--green);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:80px;position:relative}
 .qr-code::after{content:'';position:absolute;inset:6px;background:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,197,138,.06) 4px,rgba(0,197,138,.06) 5px),repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(0,197,138,.06) 4px,rgba(0,197,138,.06) 5px);border-radius:8px}
 .qr-product-name{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:8px}
@@ -2339,6 +2364,13 @@ table { table-layout: fixed; width: 100% !important; }
 @supports (padding: max(0px)) {
   #mob-bottom-nav { padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px) !important; }
   body { padding-bottom: calc(60px + max(env(safe-area-inset-bottom, 0px), 0px)) !important; }
+}
+/* ✅ FIX (Part B): #compare-bar and #mob-bottom-nav were both pinned to bottom:0 with compare-bar's
+   z-index (2600) above the bottom nav's (2500) — when 2+ items were added to compare on mobile, the
+   compare bar fully covered the bottom navigation, making it unreachable. Lift the compare bar above
+   the bottom nav instead of overlapping it. */
+@media(max-width:992px){
+  #compare-bar{bottom:62px!important}
 }
 /* ─── END NUCLEAR MOBILE FIX v6 ─── */
 
@@ -6247,11 +6279,11 @@ async function doLogin(){
       showToast(r.error||'ভুল ID বা Password!','exclamation');
     }
   }catch(e){
-    // Offline fallback
-    const users=JSON.parse(localStorage.getItem('slx_users')||'[]');
-    const u=users.find(x=>(x.phone===id||x.email===id)&&x.password===pw);
-    if(u){currentUser=u;localStorage.setItem('slx_user',JSON.stringify(u));closeAuth();updateUserUI();startHeartbeat();showToast(`স্বাগতম ${u.name}! 🎉`,'user');}
-    else showToast('ভুল ID বা Password!','exclamation');
+    // ✅ FIX: previously fabricated a fake local-only login from localStorage 'slx_users' on any network
+    // failure — the admin panel never saw this customer and the session broke the moment localStorage was
+    // cleared. Now we surface the real connectivity error instead of pretending login succeeded.
+    console.warn('Auth request failed:', e);
+    showToast('সংযোগ সমস্যা হয়েছে। ইন্টারনেট চেক করে আবার চেষ্টা করুন।', 'exclamation');
   } finally {
     if(btn){btn.disabled=false;btn.textContent='Login';}
   }
@@ -6280,10 +6312,9 @@ async function doRegister(){
       localStorage.setItem('slx_user',JSON.stringify(r.user));
       localStorage.setItem('slx_token',r.token);
       if(r.refreshToken) localStorage.setItem('slx_refresh',r.refreshToken);
-      // Also save locally as backup
-      const users=JSON.parse(localStorage.getItem('slx_users')||'[]');
-      users.push({name,phone,email,password:pw,provider:'local',joined:new Date().toISOString()});
-      localStorage.setItem('slx_users',JSON.stringify(users));
+      // ✅ FIX: removed the duplicate "save locally as backup" write to 'slx_users' — the database is the
+      // single source of truth now, and this duplicate client-side store served no real purpose and risked
+      // future confusion/bugs.
       closeAuth();updateUserUI();startHeartbeat();
       showToast(`Account তৈরি! স্বাগতম ${name} 🎉`,'user-plus');
       ['r-name','r-phone','r-email','r-pw','r-pw2'].forEach(id=>{const el=$(id);if(el)el.value='';});
@@ -6292,14 +6323,11 @@ async function doRegister(){
       showToast(r.error||'Register করতে সমস্যা হয়েছে!','exclamation');
     }
   }catch(e){
-    // Offline fallback
-    const users=JSON.parse(localStorage.getItem('slx_users')||'[]');
-    if(users.find(x=>x.phone===phone)){showToast('এই নম্বর দিয়ে ইতিমধ্যে account আছে!','exclamation');if(btn){btn.disabled=false;btn.textContent='Register';}return;}
-    const u={name,phone,email,password:pw,provider:'local',joined:new Date().toISOString()};
-    users.push(u);localStorage.setItem('slx_users',JSON.stringify(users));
-    currentUser=u;localStorage.setItem('slx_user',JSON.stringify(u));
-    closeAuth();updateUserUI();
-    showToast(`Account তৈরি! স্বাগতম ${name} 🎉`,'user-plus');
+    // ✅ FIX: previously fabricated a fake local-only account on any network failure (writing to
+    // localStorage 'slx_users') and logged the customer in as if registration succeeded — but this account
+    // was NEVER created in the actual database. Now we surface the real connectivity error instead.
+    console.warn('Auth request failed:', e);
+    showToast('সংযোগ সমস্যা হয়েছে। ইন্টারনেট চেক করে আবার চেষ্টা করুন।', 'exclamation');
   } finally {
     if(btn){btn.disabled=false;btn.textContent='Register';}
   }
@@ -8441,36 +8469,38 @@ function filterSearchResults(results, sort) {
 }
 
 /* ━━━ COMMENTS — MongoDB API ━━━ */
+// ✅ FIX: removed localStorage fallback that silently mixed fake/local-only reviews into the real list.
+// On any failure we now return a clean error state instead of fabricating data — see loadComments()/loadPDPReviews()
+// for how `error` is distinguished from a genuine "no reviews yet" empty state.
 async function loadCommentsFromAPI(pid, page = 1, limit = 10) {
   try {
     const r = await apiGet('content', { module: 'comments', productId: pid, limit, page });
-    if (r.ok && r.comments) return { comments: r.comments, total: r.total ?? r.comments.length, hasMore: !!r.hasMore, pages: r.pages || 1 };
-  } catch (e) { console.warn('Comments API offline, using localStorage'); }
-  // Fallback to localStorage (no real pagination — return everything on page 1)
-  const all = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-  const arr = (all[pid] || []).filter(c => !c.hidden);
-  return { comments: arr, total: arr.length, hasMore: false, pages: 1 };
+    if (r.ok) return { comments: r.comments || [], total: r.total ?? 0, hasMore: !!r.hasMore, pages: r.pages || 1 };
+    return { comments: [], total: 0, hasMore: false, pages: 1, error: r.error };
+  } catch (e) {
+    console.warn('Comments API unreachable:', e);
+    return { comments: [], total: 0, hasMore: false, pages: 1, error: 'সংযোগ সমস্যা হয়েছে' };
+  }
 }
 
+// ✅ FIX: previously, if the server responded with r.ok === false (duplicate review, rate-limit, spam,
+// validation error, etc.), this function ignored that real verdict and fell through to a localStorage-only
+// fallback that ALWAYS returned { ok:true } — lying to the user ("submitted!") while nothing was saved to
+// the database. Now we trust the server's verdict, success or failure, and never fabricate success.
+// The "save locally" fallback block has been deleted entirely — a review must never be presented as
+// "submitted" unless the backend genuinely persisted it.
 async function submitCommentToAPI(pid, data) {
   try {
     const token = localStorage.getItem('slx_token') || '';
     const r = await apiPost('content?module=comments', { ...data, productId: pid, token });
-    if (r.ok) return { ok: true, comment: r.comment };
-  } catch (e) { console.warn('Comments API offline'); }
-  // Fallback: save locally
-  const all = JSON.parse(localStorage.getItem('slx_comments') || '{}');
-  if (!all[pid]) all[pid] = [];
-  const comment = {
-    customerName: data.customerName || currentUser?.name || 'User',
-    rating: data.rating, body: data.body,
-    isVerifiedPurchase: data.isVerifiedPurchase || false,
-    createdAt: new Date().toISOString(), likes: 0, hidden: false,
-    _id: Date.now().toString()
-  };
-  all[pid].unshift(comment);
-  localStorage.setItem('slx_comments', JSON.stringify(all));
-  return { ok: true, comment };
+    // The server responded — trust ITS verdict, success or failure. Never override it.
+    if (r.ok) return { ok: true, comment: r.comment, message: r.message };
+    return { ok: false, error: r.error || 'রিভিউ পাঠাতে সমস্যা হয়েছে' };
+  } catch (e) {
+    // Only a genuine network/connectivity failure reaches here (no response from server at all).
+    console.warn('Comments API unreachable:', e);
+    return { ok: false, error: 'সংযোগ সমস্যা হয়েছে — ইন্টারনেট চেক করে আবার চেষ্টা করুন।' };
+  }
 }
 
 // ── Build the HTML for one review item (shared by loadComments / renderCommentList / loadMoreComments) ──
@@ -8609,7 +8639,12 @@ async function loadComments(pid) {
   window._cmHasMore = data.hasMore;
 
   if (!comments.length) {
-    list.innerHTML = '<div class="cm-empty"><i class="fa-regular fa-comment"></i><p>এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!</p></div>';
+    // ✅ FIX: genuinely-zero-reviews vs failed-to-load are different situations — show a retry option for the latter.
+    if (data.error) {
+      list.innerHTML = '<div class="cm-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>রিভিউ লোড করা যায়নি। আবার চেষ্টা করুন।</p><button onclick="loadComments(\'' + pid + '\')" style="margin-top:10px;padding:10px 20px;min-height:44px;border:1.5px solid var(--border2);border-radius:var(--r-full);background:var(--bg2);font-size:14px;font-weight:600;cursor:pointer;color:var(--text2)">আবার চেষ্টা করুন</button></div>';
+    } else {
+      list.innerHTML = '<div class="cm-empty"><i class="fa-regular fa-comment"></i><p>এখনো কোনো রিভিউ নেই। প্রথম রিভিউ দিন!</p></div>';
+    }
     return;
   }
 
@@ -8647,6 +8682,8 @@ async function loadMoreComments() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...'; }
   window._cmPage = (window._cmPage || 1) + 1;
   const data = await loadCommentsFromAPI(window._cmPid, window._cmPage, 10);
+  // ✅ FIX: surface a real load-more failure instead of silently doing nothing.
+  if (data.error) { showToast('আরও রিভিউ লোড করা যায়নি। আবার চেষ্টা করুন।', 'exclamation'); if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-chevron-down"></i> আরও রিভিউ দেখুন'; } return; }
   window._cmAllComments = [...(window._cmAllComments || []), ...data.comments];
   window._cmTotal = data.total;
   window._cmHasMore = data.hasMore;
@@ -8707,7 +8744,8 @@ async function submitComment() {
     await updateCommentCount(currentCommentPid);
     showToast(guestEmail ? '✅ Review জমা হয়েছে! Email verify করুন।' : '✅ Verified Review পাঠানো হয়েছে! ধন্যবাদ 🎉', 'star');
   } else {
-    showToast('রিভিউ পাঠাতে সমস্যা হয়েছে!', 'exclamation');
+    // ✅ FIX: show the REAL backend error (duplicate review, rate-limit, spam, validation, etc.) when available.
+    showToast(result.error || 'রিভিউ পাঠাতে সমস্যা হয়েছে!', 'exclamation');
   }
 }
 
@@ -8760,7 +8798,12 @@ async function loadPDPReviews(pid) {
   const reviewTab = document.querySelector('.pdp-tab[onclick*="reviews"]');
 
   if (!comments.length) {
-    listEl.innerHTML = '<div style="padding:24px;text-align:center;background:var(--bg2);border-radius:var(--r-lg)"><i class="fa-solid fa-star" style="font-size:32px;color:var(--gold);opacity:.4"></i><div style="font-size:14px;font-weight:600;color:var(--text2);margin-top:10px">এখনো কোনো রিভিউ নেই</div><div style="font-size:12px;color:var(--text3);margin-top:6px">প্রথম রিভিউ দিয়ে অন্যদের সাহায্য করুন!</div></div>';
+    // ✅ FIX: genuinely-zero-reviews vs failed-to-load are different situations — show a retry option for the latter.
+    if (data.error) {
+      listEl.innerHTML = '<div style="padding:24px;text-align:center;background:var(--bg2);border-radius:var(--r-lg)"><i class="fa-solid fa-triangle-exclamation" style="font-size:32px;color:var(--gold);opacity:.4"></i><div style="font-size:14px;font-weight:600;color:var(--text2);margin-top:10px">রিভিউ লোড করা যায়নি। আবার চেষ্টা করুন।</div><button onclick="loadPDPReviews(\'' + pid + '\')" style="margin-top:12px;padding:10px 20px;min-height:44px;border:1.5px solid var(--border2);border-radius:var(--r-full);background:var(--bg1);font-size:13px;font-weight:600;cursor:pointer;color:var(--text2)">আবার চেষ্টা করুন</button></div>';
+    } else {
+      listEl.innerHTML = '<div style="padding:24px;text-align:center;background:var(--bg2);border-radius:var(--r-lg)"><i class="fa-solid fa-star" style="font-size:32px;color:var(--gold);opacity:.4"></i><div style="font-size:14px;font-weight:600;color:var(--text2);margin-top:10px">এখনো কোনো রিভিউ নেই</div><div style="font-size:12px;color:var(--text3);margin-top:6px">প্রথম রিভিউ দিয়ে অন্যদের সাহায্য করুন!</div></div>';
+    }
     if (reviewTab) reviewTab.innerHTML = '⭐ Reviews (0)';
     return;
   }
@@ -8788,6 +8831,8 @@ async function loadMorePDPReviews() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...'; }
   window._pdpPage = (window._pdpPage || 1) + 1;
   const data = await loadCommentsFromAPI(window._pdpPid, window._pdpPage, 10);
+  // ✅ FIX: surface a real load-more failure instead of silently doing nothing.
+  if (data.error) { showToast('আরও রিভিউ লোড করা যায়নি। আবার চেষ্টা করুন।', 'exclamation'); if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-chevron-down"></i> আরও রিভিউ দেখুন'; } return; }
   window._pdpAllComments = [...(window._pdpAllComments || []), ...data.comments];
   window._pdpTotal = data.total;
   window._pdpHasMore = data.hasMore;

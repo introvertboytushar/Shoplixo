@@ -1113,7 +1113,7 @@ async function loadMyReviews() {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/content?module=comments&userId=${currentUser._id}&limit=50`, {
+    const res = await fetch(`${API_BASE}/api/content?module=comments&action=my-reviews&limit=50`, {
       headers: { Authorization: `Bearer ${authToken}` }
     });
     const data = await res.json();
@@ -1136,7 +1136,7 @@ async function loadMyReviews() {
       const canEdit = hoursOld < 24;
 
       return `
-        <div style="border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+        <div id="pf-rv-card-${r._id}" style="border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
             <div>
               <div style="font-size:12px;color:var(--text3);margin-bottom:4px">${esc(date)}</div>
@@ -1156,6 +1156,7 @@ async function loadMyReviews() {
             </div>` : ''}
           <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
             <button onclick="deleteMyReviewFromProfile('${r._id}')" style="padding:6px 14px;border:1.5px solid var(--brand-l);border-radius:var(--r-full);background:#fff;color:var(--brand);font-size:12px;font-weight:600;cursor:pointer"><i class="fa-solid fa-trash"></i> মুছুন</button>
+            ${canEdit ? `<button onclick="openProfileReviewEdit('${r._id}', ${r.rating}, '${esc(r.body || '').replace(/'/g,"\\'")}')" style="padding:6px 14px;border:1.5px solid var(--border);border-radius:var(--r-full);background:#fff;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer"><i class="fa-solid fa-pen-to-square"></i> Edit</button>` : ''}
             ${canEdit ? `<span style="font-size:11px;color:var(--text3)">⏱️ ${Math.max(0, Math.round(24 - hoursOld))} ঘণ্টা পর্যন্ত edit করা যাবে</span>` : ''}
           </div>
         </div>`;
@@ -1183,6 +1184,73 @@ async function deleteMyReviewFromProfile(commentId) {
   } catch (e) {
     toast('সংযোগ সমস্যা হয়েছে', 'error');
   }
+}
+
+/* ✅ NEW: Inline review editing (within the 24-hour window, mirrors the
+   canEdit check already computed in loadMyReviews) */
+function openProfileReviewEdit(commentId, currentRating, currentBody) {
+  const card = document.getElementById(`pf-rv-card-${commentId}`);
+  if (!card) return;
+  card.dataset.editRating = String(currentRating);
+
+  const starIcon = i => `<i class="fa-solid fa-star pf-edit-star" data-val="${i}" onclick="setProfileEditStar('${commentId}', ${i})" style="cursor:pointer;font-size:20px;margin-right:3px;color:${i <= currentRating ? 'var(--gold)' : 'var(--border)'}"></i>`;
+
+  // Note: currentBody arrives already HTML-escaped (esc() was applied when the
+  // Edit button's onclick was built) — inserting it directly here lets the
+  // browser decode the entities back to plain text inside the textarea
+  // without re-escaping (which would double-escape things like &amp;).
+  card.innerHTML = `
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:600">✏️ Review Edit করুন</div>
+    <div id="pf-rv-stars-${commentId}" style="margin-bottom:10px">${[1,2,3,4,5].map(starIcon).join('')}</div>
+    <textarea id="pf-rv-edit-text-${commentId}" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--text);resize:vertical;outline:none">${currentBody}</textarea>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+      <button onclick="submitProfileReviewEdit('${commentId}')" style="padding:6px 16px;border:none;border-radius:var(--r-full);background:var(--brand);color:#fff;font-size:12px;font-weight:700;cursor:pointer"><i class="fa-solid fa-check"></i> Save</button>
+      <button onclick="cancelProfileReviewEdit()" style="padding:6px 16px;border:1.5px solid var(--border);border-radius:var(--r-full);background:#fff;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer">Cancel</button>
+    </div>`;
+}
+
+function setProfileEditStar(commentId, val) {
+  const card = document.getElementById(`pf-rv-card-${commentId}`);
+  const starsWrap = document.getElementById(`pf-rv-stars-${commentId}`);
+  if (!card || !starsWrap) return;
+  card.dataset.editRating = String(val);
+  starsWrap.querySelectorAll('.pf-edit-star').forEach(starEl => {
+    const v = Number(starEl.dataset.val);
+    starEl.style.color = v <= val ? 'var(--gold)' : 'var(--border)';
+  });
+}
+
+async function submitProfileReviewEdit(commentId) {
+  const card   = document.getElementById(`pf-rv-card-${commentId}`);
+  const textEl = document.getElementById(`pf-rv-edit-text-${commentId}`);
+  const body   = textEl?.value?.trim() || '';
+  const rating = Number(card?.dataset.editRating || 0);
+
+  if (body.length < 10) {
+    toast('Review এ অন্তত ১০ অক্ষর লিখুন', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/content?module=comments&action=edit&id=${commentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+      body: JSON.stringify({ body, rating })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('✅ Review update হয়েছে!', 'success');
+      loadMyReviews();
+    } else {
+      toast(data.error || 'Update করতে সমস্যা হয়েছে', 'error');
+    }
+  } catch (e) {
+    toast('সংযোগ সমস্যা হয়েছে', 'error');
+  }
+}
+
+function cancelProfileReviewEdit() {
+  loadMyReviews();
 }
 
 /* ═══ HELPERS ═════════════════════════════════════════════ */
