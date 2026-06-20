@@ -526,7 +526,7 @@ module.exports = async (req, res) => {
 
       /* ── GET: Product Reviews ─────────────────────────── */
       if (req.method === 'GET' && !action) {
-        const { productId, page = 1, limit = 10, sort = 'newest', rating: filterRating } = req.query;
+        const { productId, sort = 'newest', rating: filterRating } = req.query;
         if (!productId) return res.status(400).json({ ok: false, error: 'productId দিন' });
 
         const query = { productId, isApproved: true, isHidden: false };
@@ -541,8 +541,9 @@ module.exports = async (req, res) => {
           verified: { isVerifiedPurchase: -1, createdAt: -1 },
         };
 
-        const skip       = (Math.max(1, parseInt(page)) - 1) * Math.min(parseInt(limit), 20);
-        const lim        = Math.min(parseInt(limit), 20);
+        const page  = Math.max(1, parseInt(req.query.page || '1'));
+        const lim   = Math.min(50, Math.max(5, parseInt(req.query.limit || '10')));
+        const skip  = (page - 1) * lim;
         const [total, comments, ratingAgg] = await Promise.all([
           Comment.countDocuments(query),
           Comment.find(query)
@@ -568,8 +569,10 @@ module.exports = async (req, res) => {
         return res.json({
           ok: true, comments, total, avgRating,
           ratingDist,
-          page:  parseInt(page),
+          page,
+          limit: lim,
           pages: Math.ceil(total / lim),
+          hasMore: page * lim < total,
         });
       }
 
@@ -602,6 +605,7 @@ module.exports = async (req, res) => {
         const orderId      = sanitize(b.orderId      || '', 20);
         const size         = sanitize(b.size         || '', 30);
         const color        = sanitize(b.color        || '', 30);
+        const videoUrl     = sanitize(b.videoUrl     || '', 500);
         const images       = Array.isArray(b.images)
           ? b.images.slice(0, 5).map(img => sanitize(String(img), 500)).filter(Boolean)
           : [];
@@ -652,6 +656,24 @@ module.exports = async (req, res) => {
           }
         }
 
+        // Guest review support — if not logged in, require email
+        let guestEmail = '';
+        if (!decoded && b.guestEmail) {
+          guestEmail = sanitize(b.guestEmail, 100).toLowerCase().trim();
+          // Basic email validation
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+            return res.status(400).json({ ok: false, error: 'সঠিক email দিন' });
+          }
+          // Prevent duplicate guest review from same email
+          const dupGuest = await Comment.findOne({ productId, guestEmail }).select('_id').lean();
+          if (dupGuest) return res.status(409).json({ ok: false, error: 'এই email দিয়ে আগেই review দেওয়া হয়েছে' });
+        }
+
+        // Require either login or guest email
+        if (!decoded && !guestEmail) {
+          return res.status(401).json({ ok: false, error: 'Login করুন অথবা email দিয়ে review দিন' });
+        }
+
         /* Prevent duplicate reviews from same phone */
         if (reviewerPhone) {
           const dup = await Comment.findOne({ productId, customerPhone: reviewerPhone }).select('_id').lean();
@@ -665,12 +687,14 @@ module.exports = async (req, res) => {
           userId:       reviewerUserId,
           customerName: sanitize(customerName, 100),
           customerPhone: reviewerPhone,
+          guestEmail,
           rating,
           title:        sanitize(title, 100),
           body:         sanitize(body, 1000),
           images,
           size,
           color,
+          videoUrl,
           isVerifiedPurchase,
           /* Auto-approve সব reviews — Admin Panel থেকে hide/delete করা যাবে।
              .env তে AUTO_APPROVE_REVIEWS=false দিলে manual approval mode চালু হবে। */
@@ -739,8 +763,13 @@ module.exports = async (req, res) => {
           return res.status(409).json({ ok: false, error: 'আপনি আগেই এই review রিপোর্ট করেছেন' });
         }
 
-        comment.flaggedBy  = [...(comment.flaggedBy || []), ip];
-        comment.flagCount  = (comment.flagCount || 0) + 1;
+        const cleanReason = sanitize(reason || 'other', 30);
+        comment.flaggedBy   = [...(comment.flaggedBy || []), ip];
+        comment.flagReasons = [
+          ...(comment.flagReasons || []),
+          { ip, reason: cleanReason, createdAt: new Date() }
+        ];
+        comment.flagCount = comment.flaggedBy.length; // sync with array
         if (comment.flagCount >= 5) {
           /* Auto-hide if 5+ flags */
           comment.isHidden   = true;
@@ -765,6 +794,65 @@ module.exports = async (req, res) => {
         );
         if (!comment) return res.status(404).json({ ok: false, error: 'Comment পাওয়া যায়নি' });
         return res.json({ ok: true, comment, message: 'Reply দেওয়া হয়েছে' });
+      }
+
+      /* ── PATCH: User edit own review (within 24 hrs) ──── */
+      if (req.method === 'PATCH' && action === 'edit') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ ok: false, error: 'id দিন' });
+
+        const decoded = verifyToken(req);
+        if (!decoded) return res.status(403).json({ ok: false, error: 'Login করুন' });
+
+        const comment = await Comment.findOne({ _id: id, userId: decoded.id });
+        if (!comment) return res.status(404).json({ ok: false, error: 'Review পাওয়া যায়নি' });
+
+        // 24-hour edit window only
+        const createdAt  = new Date(comment.createdAt);
+        const hoursOld   = (Date.now() - createdAt.getTime()) / 3600000;
+        if (hoursOld > 24) {
+          return res.status(403).json({ ok: false, error: 'Review শুধুমাত্র ২৪ ঘণ্টার মধ্যে edit করা যাবে' });
+        }
+
+        const b       = req.body || {};
+        const newBody = sanitize(b.body || '', 1000);
+        const newTitle= sanitize(b.title || '', 100);
+        const newRating = parseInt(b.rating);
+
+        if (newBody && newBody.length < 10) {
+          return res.status(400).json({ ok: false, error: 'Review কমপক্ষে ১০ অক্ষর লিখুন' });
+        }
+        if (newRating && (newRating < 1 || newRating > 5)) {
+          return res.status(400).json({ ok: false, error: 'Rating 1-5 এর মধ্যে দিন' });
+        }
+
+        // Spam check on new body
+        if (newBody) {
+          const { isSpam, reason: spamReason } = detectSpam(newBody);
+          if (isSpam) return res.status(400).json({ ok: false, error: spamReason });
+        }
+
+        const updates = {
+          editedAt:  new Date(),
+          editCount: (comment.editCount || 0) + 1,
+        };
+        if (newBody)   updates.body   = newBody;
+        if (newTitle)  updates.title  = newTitle;
+        if (newRating) {
+          updates.rating = newRating;
+          // Recalc product rating if rating changed
+        }
+
+        const updated = await Comment.findByIdAndUpdate(id, updates, { new: true });
+        if (newRating && newRating !== comment.rating) {
+          await recalcProductRating(comment.productId);
+        }
+
+        return res.json({
+          ok: true,
+          comment: { ...updated.toObject(), customerPhone: undefined, flaggedBy: undefined, flagReasons: undefined },
+          message: '✅ Review update হয়েছে',
+        });
       }
 
       /* ── PATCH: Approve (admin) ───────────────────────── */
@@ -825,6 +913,23 @@ module.exports = async (req, res) => {
           modified: result.modifiedCount,
           message:  `✅ ${result.modifiedCount}টি review approve হয়েছে`,
         });
+      }
+
+      /* ── DELETE: User self-delete own review [NEW] ───── */
+      if (req.method === 'DELETE' && !action && req.query.self === '1') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ ok: false, error: 'id দিন' });
+
+        const decoded = verifyToken(req);
+        if (!decoded) return res.status(403).json({ ok: false, error: 'Login করুন' });
+
+        const comment = await Comment.findOne({ _id: id, userId: decoded.id });
+        if (!comment) return res.status(404).json({ ok: false, error: 'Comment পাওয়া যায়নি' });
+
+        await Comment.findByIdAndDelete(id);
+        await recalcProductRating(comment.productId);
+
+        return res.json({ ok: true, message: 'আপনার review মুছে ফেলা হয়েছে' });
       }
 
       /* ── DELETE: Admin ────────────────────────────────── */

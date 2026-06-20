@@ -479,7 +479,7 @@ const returnRequestSchema = new mongoose.Schema({
 const notificationSchema = new mongoose.Schema({
   userId:   { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   phone:    String,
-  type:     { type: String, enum: ['order','promo','loyalty','system','return','stock'] },
+  type:     { type: String, enum: ['order','promo','loyalty','system','return','stock','review'] },
   title:    { type: String, required: true },
   message:  { type: String, required: true },
   icon:     { type: String, default: '🔔' },
@@ -551,22 +551,43 @@ const commentSchema = new mongoose.Schema({
   title:              { type: String, default: '' },
   body:               { type: String, required: true },
   images:             { type: [String], default: [] },
-  videoUrl:           { type: String, default: '' },
+  videoUrl:           { 
+    type: String, 
+    default: '',
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // empty is ok
+        return /^https?:\/\/.+/.test(v); // must start with http:// or https://
+      },
+      message: 'Invalid video URL'
+    }
+  },
   isVerifiedPurchase: { type: Boolean, default: false },
   isApproved:         { type: Boolean, default: false },
   isHidden:           { type: Boolean, default: false },
   isFeatured:         { type: Boolean, default: false },
   helpfulCount:       { type: Number, default: 0 },
   helpfulVotes:       { type: [String], default: [] },
+  flaggedBy:          { type: [String], default: [] },      // IPs that flagged this review
+  flagReasons:        [{ ip: String, reason: String, createdAt: { type: Date, default: Date.now } }], // flag reasons
   size:               String,
   color:              String,
   reply:              { text: String, repliedAt: Date },
   adminNote:          { type: String, default: '' },
+  deletedAt:          { type: Date, default: null }, // soft delete timestamp (null = active)
   // ✅ NEW v4: source — 'website' | 'api' | 'admin-import'
   source:             { type: String, default: 'website' },
+  editedAt:           { type: Date, default: null },  // null = never edited
+  editCount:          { type: Number, default: 0 },   // how many times edited
+  guestEmail:         { type: String, default: '' },  // for guest reviews (email-based)
+  guestToken:         { type: String, default: '' },  // one-time verify token for guest
+  // flagCount added to support flagged-review index (not in original field spec; added since FIX 1 requires it)
+  flagCount:          { type: Number, default: 0 },
 }, { timestamps: true, versionKey: false, collection: 'comments' });
 
 commentSchema.index({ productId: 1, isApproved: 1, createdAt: -1 });
+commentSchema.index({ userId: 1 }); // for user-self-delete lookup
+commentSchema.index({ flagCount: -1 }); // for flagged review queries
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  FLASH SALE SCHEMA

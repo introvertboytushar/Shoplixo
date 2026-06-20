@@ -37,6 +37,7 @@
  *  GET  ?action=reviews            → All reviews
  *  POST ?action=review-approve     → Review approve করুন
  *  POST ?action=review-delete      → Review মুছুন
+ *  POST ?action=review-bulk-delete → Bulk review মুছুন                [NEW]
  *  POST ?action=review-reply       → Admin reply দিন
  *
  *  ── FLASH SALES ──────────────────────────────────────────────
@@ -1004,6 +1005,9 @@ module.exports = async (req, res) => {
         if (rArr.length > 1) query.rating = { $in: rArr };
         else if (rArr.length === 1) query.rating = rArr[0];
       }
+      // ✅ VERIFIED: '-__v' is an exclusion-only select — it only drops the
+      // Mongoose __v field. size, color, and videoUrl are NOT excluded and
+      // are already returned on every comment object below.
       const [comments, total] = await Promise.all([
         Comment.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).select('-__v'),
         Comment.countDocuments(query),
@@ -1058,10 +1062,181 @@ module.exports = async (req, res) => {
   if (action === 'review-reply' && req.method === 'POST') {
     const { id, text } = req.body || {};
     if (!id || !text) return res.status(400).json({ ok: false, error: 'ID এবং reply text দিন' });
-    const comment = await Comment.findByIdAndUpdate(id,
-      { reply: { text: sanitize(text, 500), repliedAt: new Date() } }, { new: true });
+
+    const comment = await Comment.findByIdAndUpdate(
+      id,
+      { reply: { text: sanitize(text, 500), repliedAt: new Date() } },
+      { new: true }
+    );
     if (!comment) return res.status(404).json({ ok: false, error: 'Review পাওয়া যায়নি' });
-    return res.json({ ok: true, message: 'Reply দেওয়া হয়েছে' });
+
+    // Send in-app notification to the reviewer if they have a userId
+    if (comment.userId) {
+      try {
+        await Notification.create({
+          userId:  comment.userId,
+          type:    'review',
+          title:   '💬 আপনার review-এ reply এসেছে!',
+          message: `Shoplixo: "${text.slice(0, 80)}${text.length > 80 ? '...' : ''}"`,
+          icon:    '⭐',
+          link:    `/index.html#product-${comment.productId}`,
+          channel: 'app',
+          isRead:  false,
+        });
+      } catch (notifErr) {
+        console.warn('[review-reply] notification failed:', notifErr.message);
+        // Non-fatal — continue
+      }
+    }
+
+    return res.json({ ok: true, message: 'Reply দেওয়া হয়েছে এবং user-কে notify করা হয়েছে' });
+  }
+
+  /* ✅ NEW: Bulk delete reviews ─────────────────────────────
+     POST ?action=review-bulk-delete
+     Body: { ids: [commentId, ...] } (max 50)
+  ──────────────────────────────────────────────────────── */
+  if (action === 'review-bulk-delete' && req.method === 'POST') {
+    const { ids } = req.body || {};
+    if (!Array.isArray(ids) || !ids.length) {
+      return res.status(400).json({ ok: false, error: 'ids array দিন' });
+    }
+    if (ids.length > 50) {
+      return res.status(400).json({ ok: false, error: 'একবারে সর্বোচ্চ ৫০টি review delete করা যাবে' });
+    }
+
+    // Fetch the comments first so we know their productIds before deleting
+    const comments = await Comment.find({ _id: { $in: ids } }).select('productId').lean();
+
+    const result = await Comment.deleteMany({ _id: { $in: ids } });
+
+    // Recalculate rating for each unique productId affected
+    const productIds = [...new Set(comments.map(c => c.productId))];
+    for (const productId of productIds) {
+      const agg = await Comment.aggregate([
+        { $match: { productId, isApproved: true } },
+        { $group: { _id: null, avg: { $avg: '$rating' }, count: { $sum: 1 } } },
+      ]);
+      await Product.updateOne(
+        { productId },
+        agg.length
+          ? { rating: Math.round(agg[0].avg * 10) / 10, reviews: agg[0].count }
+          : { rating: 5, reviews: 0 }
+      );
+    }
+
+    return res.json({ ok: true, deleted: result.deletedCount, message: `${result.deletedCount}টি review delete হয়েছে` });
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── REVIEW CSV EXPORT ────────────────────────────────────
+     GET ?action=review-export
+     Returns: CSV file download of all reviews
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'review-export' && req.method === 'GET') {
+    try {
+      const filter = req.query?.filter || 'all';
+      const query  = {};
+      if (filter === 'approved') query.isApproved = true;
+      if (filter === 'pending')  { query.isApproved = false; query.isHidden = false; }
+      if (filter === 'hidden')   query.isHidden = true;
+
+      const comments = await Comment.find(query)
+        .sort({ createdAt: -1 })
+        .limit(5000)
+        .select('productId customerName rating title body size color videoUrl isVerifiedPurchase isApproved isHidden helpfulCount flagCount createdAt reply')
+        .lean();
+
+      // CSV header
+      const headers = [
+        'Product ID', 'Customer Name', 'Rating', 'Title', 'Review Body',
+        'Size', 'Color', 'Video URL', 'Verified Purchase', 'Approved',
+        'Hidden', 'Helpful Count', 'Flag Count', 'Admin Reply', 'Date'
+      ];
+
+      // CSV row builder — escape commas and quotes
+      const esc = (v) => `"${String(v || '').replace(/"/g, '""')}"`;
+
+      const rows = comments.map(c => [
+        esc(c.productId),
+        esc(c.customerName),
+        esc(c.rating),
+        esc(c.title),
+        esc(c.body),
+        esc(c.size || ''),
+        esc(c.color || ''),
+        esc(c.videoUrl || ''),
+        esc(c.isVerifiedPurchase ? 'Yes' : 'No'),
+        esc(c.isApproved ? 'Yes' : 'No'),
+        esc(c.isHidden ? 'Yes' : 'No'),
+        esc(c.helpfulCount || 0),
+        esc(c.flagCount || 0),
+        esc(c.reply?.text || ''),
+        esc(c.createdAt ? new Date(c.createdAt).toISOString().slice(0, 10) : ''),
+      ].join(','));
+
+      const csv = [headers.join(','), ...rows].join('\n');
+      const filename = `shoplixo-reviews-${new Date().toISOString().slice(0,10)}.csv`;
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      return res.status(200).send('\uFEFF' + csv); // BOM for Excel Bengali support
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'CSV export ব্যর্থ হয়েছে' });
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     ── REVIEW ANALYTICS ─────────────────────────────────────
+     GET ?action=review-analytics
+     Returns: monthly trends, top reviewed products, rating dist
+  ═══════════════════════════════════════════════════════════ */
+  if (action === 'review-analytics' && req.method === 'GET') {
+    try {
+      const [
+        monthlyTrend,
+        ratingDist,
+        topProducts,
+        recentFlagged,
+      ] = await Promise.all([
+        // Monthly review count for last 6 months
+        Comment.aggregate([
+          { $match: { createdAt: { $gte: new Date(Date.now() - 180 * 86400000) } } },
+          { $group: {
+              _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+              count: { $sum: 1 },
+              avgRating: { $avg: '$rating' },
+          }},
+          { $sort: { '_id.year': 1, '_id.month': 1 } },
+        ]),
+        // Rating distribution (1-5 stars)
+        Comment.aggregate([
+          { $match: { isApproved: true } },
+          { $group: { _id: '$rating', count: { $sum: 1 } } },
+          { $sort: { _id: 1 } },
+        ]),
+        // Top 5 most reviewed products
+        Comment.aggregate([
+          { $match: { isApproved: true } },
+          { $group: { _id: '$productId', count: { $sum: 1 }, avgRating: { $avg: '$rating' } } },
+          { $sort: { count: -1 } },
+          { $limit: 5 },
+        ]),
+        // Recently flagged reviews
+        Comment.find({ flagCount: { $gte: 3 } })
+          .sort({ flagCount: -1 })
+          .limit(5)
+          .select('productId customerName body flagCount createdAt')
+          .lean(),
+      ]);
+
+      return res.json({
+        ok: true,
+        analytics: { monthlyTrend, ratingDist, topProducts, recentFlagged },
+      });
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: 'Analytics লোড হয়নি' });
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -1668,7 +1843,8 @@ module.exports = async (req, res) => {
       'order-delete', 'order-bulk-delete',
       'returns', 'return-update',
       'customers', 'customer-ban', 'customer-force-logout',
-      'reviews', 'review-approve', 'review-delete', 'review-reply',
+      'reviews', 'review-approve', 'review-delete', 'review-bulk-delete', 'review-reply',
+      'review-export', 'review-analytics',
       'flash-sales', 'flash-sale-add', 'flash-sale-del',
       'bundles', 'bundle-add', 'bundle-edit', 'bundle-delete',
       'newsletter', 'newsletter-del', 'newsletter-campaign',
