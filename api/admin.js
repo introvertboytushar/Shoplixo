@@ -893,9 +893,12 @@ module.exports = async (req, res) => {
 
       if (search) {
         query.$or = [
-          { name:  { $regex: escapeRegex(search), $options: 'i' } },
-          { phone: { $regex: escapeRegex(search), $options: 'i' } },
-          { email: { $regex: escapeRegex(search), $options: 'i' } },
+          { name:       { $regex: escapeRegex(search), $options: 'i' } },
+          { email:      { $regex: escapeRegex(search), $options: 'i' } },
+          { googleId:   { $regex: escapeRegex(search), $options: 'i' } }, // ✅ FIX: allow searching social login users by googleId
+          { facebookId: { $regex: escapeRegex(search), $options: 'i' } }, // ✅ FIX: allow searching social login users by facebookId
+          // ✅ FIX: only include phone regex if search looks like a phone number (avoids $regex on null for social users)
+          ...(search.match(/^[0-9+\s]+$/) ? [{ phone: { $regex: escapeRegex(search), $options: 'i' } }] : []),
         ];
       }
 
@@ -916,7 +919,7 @@ module.exports = async (req, res) => {
           /* FIX (SECTION 3): ipAddress, location, loginHistory — admin panel এ Customer এর
              login info দেখানোর জন্য এই তিনটি field অবশ্যই select এ থাকতে হবে।
              আগে এগুলো missing ছিল, তাই viewLoginHistory() modal সবসময় empty দেখাতো। */
-          .select('name email phone avatar isVerified isBanned banReason bannedAt loginMethod isOnline lastSeen lastLogin loginCount deviceInfo ipAddress location loginHistory createdAt totalOrders totalSpent'),
+          .select('name email phone avatar isVerified isBanned banReason bannedAt loginMethod googleId facebookId isOnline lastSeen lastLogin loginCount deviceInfo ipAddress location loginHistory createdAt totalOrders totalSpent'), // ✅ FIX: added googleId facebookId so admin panel can show correct login method badge
         User.countDocuments(query),
       ]);
 
@@ -941,7 +944,10 @@ module.exports = async (req, res) => {
     };
 
     const user = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password');
-    if (!user) return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
+    if (!user) {
+      console.error('[admin/customer-ban] User not found:', userId); // ✅ FIX: added debug logging for silent failures
+      return res.status(404).json({ ok: false, error: 'User পাওয়া যায়নি' });
+    }
     return res.json({ ok: true, message: ban ? `"${user.name}" ban হয়েছে` : `"${user.name}" unban হয়েছে`, user });
   }
 

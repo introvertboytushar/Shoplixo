@@ -223,7 +223,16 @@ module.exports = async (req, res) => {
 
       return res.status(201).json({
         ok: true, token, refreshToken,
-        user: { id: user._id, name: user.name, phone: user.phone, email: user.email || null },
+        user: {                                            // ✅ FIX BUG #4: _id alias + full profile for localStorage hydration
+          id:          user._id,
+          _id:         user._id,                          // ✅ FIX BUG #4: _id alias
+          name:        user.name,
+          phone:       user.phone  || null,
+          email:       user.email  || null,
+          avatar:      user.avatar || '',
+          loginMethod: 'email',                           // ✅ FIX BUG #4
+          isAdmin:     user.role   === 'admin',
+        },
       });
 
     } catch (err) {
@@ -837,11 +846,13 @@ module.exports = async (req, res) => {
       if (!user) {
         /* Auto-register on first Google login */
         user = await User.create({
-          name:     name || email.split('@')[0],
+          name:        name || email.split('@')[0],
           email,
           googleId,
-          isActive: true,
-          avatar:   b.picture || undefined,
+          isActive:    true,
+          avatar:      b.picture || undefined,
+          loginMethod: 'google',  // ✅ FIX BUG #1: mark login method
+          phone:       null,       // ✅ FIX BUG #1: sparse null — social users have no phone
         });
       } else if (!user.googleId) {
         /* Link Google ID to existing email account */
@@ -915,9 +926,18 @@ module.exports = async (req, res) => {
       const token        = signAccessToken(payload);
       const refreshToken = signRefreshToken(payload);
 
-      return res.json({
+      return res.json({                                    // ✅ FIX BUG #3: full profile so admin panel shows correct data
         ok: true, token, refreshToken,
-        user: { id: user._id, name: user.name, email: user.email || null },
+        user: {
+          id:          user._id,
+          _id:         user._id,                          // ✅ FIX BUG #3: _id alias for localStorage hydration
+          name:        user.name,
+          email:       user.email       || null,
+          avatar:      user.avatar      || null,
+          phone:       user.phone       || null,
+          loginMethod: user.loginMethod || 'google',      // ✅ FIX BUG #3
+          isAdmin:     user.role        === 'admin',
+        },
       });
 
     } catch (err) {
@@ -958,11 +978,13 @@ module.exports = async (req, res) => {
       if (!user) {
         /* Auto-register on first Facebook login */
         user = await User.create({
-          name:       name || email.split('@')[0],
+          name:        name || email.split('@')[0],
           email,
           facebookId,
-          isActive:   true,
-          avatar:     b.picture || undefined,
+          isActive:    true,
+          avatar:      b.picture || undefined,
+          loginMethod: 'facebook', // ✅ FIX BUG #2: mark login method
+          phone:       null,        // ✅ FIX BUG #2: sparse null — social users have no phone
         });
       } else if (!user.facebookId) {
         /* Link Facebook ID to existing email account */
@@ -1036,9 +1058,18 @@ module.exports = async (req, res) => {
       const token        = signAccessToken(payload);
       const refreshToken = signRefreshToken(payload);
 
-      return res.json({
+      return res.json({                                    // ✅ FIX BUG #3: full profile so admin panel shows correct data
         ok: true, token, refreshToken,
-        user: { id: user._id, name: user.name, email: user.email || null },
+        user: {
+          id:          user._id,
+          _id:         user._id,                          // ✅ FIX BUG #3: _id alias for localStorage hydration
+          name:        user.name,
+          email:       user.email       || null,
+          avatar:      user.avatar      || null,
+          phone:       user.phone       || null,
+          loginMethod: user.loginMethod || 'facebook',    // ✅ FIX BUG #3
+          isAdmin:     user.role        === 'admin',
+        },
       });
 
     } catch (err) {

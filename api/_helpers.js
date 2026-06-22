@@ -96,6 +96,10 @@ function generateTicketId() {
 //  JWT
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ✅ FIX (BUG #1 note): decoded.phone may be `null` for Google/Facebook social
+// login users — that's expected. Callers must use `decoded.id`/`decoded._id`
+// (the Mongo _id) for lookups, never branch on `if (decoded.phone)` to decide
+// whether a user is "valid" — that would silently skip social login users.
 function verifyToken(req) {
   try {
     const auth  = req.headers.authorization || '';
@@ -221,6 +225,7 @@ function formatBDT(amount) {
 async function sendSMS(phone, message) {
   try {
     if (!process.env.SMS_API_KEY) return false;
+    if (!phone) return false; // ✅ FIX: null-safe — social login users may have phone=null; avoid sending to a garbage "880" number
     let num = String(phone).replace(/\D/g, '');
     if (num.startsWith('880')) num = num.slice(3);
     if (num.startsWith('0'))   num = num.slice(1);
@@ -885,6 +890,12 @@ setInterval(() => {
 /**
  * checkRateLimit(key, max, windowMs)
  * ✅ FIXED v4: default 60/min for general use; use max=30 for auth endpoints.
+ *
+ * ✅ FIX (BUG #2 note): Keys are often IP-based. Social login users on mobile
+ * data can change IP mid-session and may occasionally hit limits sooner than
+ * expected. This is an intentional tradeoff to prevent abuse (credential
+ * stuffing / scraping) — admin can clear a stuck rate-limit key via the
+ * admin panel if a legitimate user gets caught by it.
  */
 function checkRateLimit(key, max = 60, windowMs = 60000) {
   const now  = Date.now();

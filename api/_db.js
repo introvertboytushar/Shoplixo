@@ -238,7 +238,16 @@ orderSchema.index({ status: 1, createdAt: -1 });
 // ═══════════════════════════════════════════════════════════════════════════════
 const userSchema = new mongoose.Schema({
   name:      { type: String, required: true, trim: true },
-  phone:     { type: String, required: true, unique: true, trim: true },
+  // ✅ FIX BUG #2: removed required:true; social-login users have no phone.
+  //    sparse:true lets multiple null values coexist with the unique index,
+  //    preventing MongoDB ValidationError / 500 on Google & Facebook signup.
+  phone: {
+    type:    String,
+    unique:  true,
+    sparse:  true,   // ✅ FIX BUG #2: multiple nulls allowed with unique index
+    trim:    true,
+    default: null,
+  },
   email:     { type: String, trim: true, lowercase: true, sparse: true },
   password:  { type: String, required: true, select: false },
   avatar:    { type: String, default: '' },
@@ -271,6 +280,12 @@ const userSchema = new mongoose.Schema({
   isOnline:         { type: Boolean, default: false },
   lastSeen:         { type: Date, default: null },
   loginMethod:      { type: String, enum: ['email', 'google', 'facebook', 'phone'], default: 'email' },
+
+  // ✅ FIX BUG #1: without these fields Mongoose silently drops googleId /
+  //    facebookId on save → social users can never be found on second login.
+  //    sparse:true allows multiple null values alongside the unique index.
+  googleId:         { type: String, default: null, sparse: true, index: true },   // ✅ FIX BUG #1
+  facebookId:       { type: String, default: null, sparse: true, index: true },   // ✅ FIX BUG #1
   sessionToken:     { type: String, default: null, select: false },
   forceLoggedOut:   { type: Boolean, default: false },
   deviceInfo:       { type: String, default: '' },
@@ -308,6 +323,14 @@ const userSchema = new mongoose.Schema({
     email:       { type: Boolean, default: true },
   },
 }, { timestamps: true, versionKey: false, collection: 'users' });
+
+// ✅ FIX BUG #3: explicit sparse indexes.
+//    phone      — sparse+unique so null values don't collide (social-login users)
+//    googleId   — sparse index for fast OAuth lookup via findOne({ googleId })
+//    facebookId — sparse index for fast OAuth lookup via findOne({ facebookId })
+userSchema.index({ phone:      1 }, { sparse: true, unique: true }); // ✅ FIX BUG #3
+userSchema.index({ googleId:   1 }, { sparse: true });               // ✅ FIX BUG #3
+userSchema.index({ facebookId: 1 }, { sparse: true });               // ✅ FIX BUG #3
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  CATEGORY SCHEMA

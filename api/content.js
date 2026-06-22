@@ -54,6 +54,8 @@
 
 'use strict';
 
+const mongoose = require('mongoose'); // ✅ FIX BUG #1 #2: needed for ObjectId.isValid() dual-lookup
+
 const { connectDB, Product, Comment, Order, Category, User, Notification } = require('./_db');
 const {
   handleCors, isAdmin, verifyToken, sanitize,
@@ -569,7 +571,17 @@ module.exports = async (req, res) => {
         const { productId, sort = 'newest', rating: filterRating } = req.query;
         if (!productId) return res.status(400).json({ ok: false, error: 'productId দিন' });
 
-        const query = { productId, isApproved: true, isHidden: false };
+        // ✅ FIX BUG #2: normalize productId — frontend may send MongoDB _id instead of SKU string.
+        // Resolve whichever form was sent to the canonical SKU stored on Comment documents.
+        let resolvedProductId = productId;
+        if (mongoose.Types.ObjectId.isValid(productId)) {
+          const prod = await Product.findOne(
+            { $or: [{ productId }, { _id: productId }] }
+          ).select('productId').lean();
+          if (prod) resolvedProductId = prod.productId || productId; // ✅ FIX BUG #2
+        }
+
+        const query = { productId: resolvedProductId, isApproved: true, isHidden: false }; // ✅ FIX BUG #2
         if (filterRating) query.rating = parseInt(filterRating);
 
         const sortMap = {
@@ -592,7 +604,7 @@ module.exports = async (req, res) => {
             .select('-customerPhone -isHidden -helpfulVotes -flaggedBy')
             .lean(),
           Comment.aggregate([
-            { $match: { productId, isApproved: true, isHidden: false } },
+            { $match: { productId: resolvedProductId, isApproved: true, isHidden: false } }, // ✅ FIX BUG #2
             { $group: { _id: '$rating', count: { $sum: 1 } } },
           ]),
         ]);
@@ -660,9 +672,15 @@ module.exports = async (req, res) => {
         const { isSpam, reason: spamReason } = detectSpam(body);
         if (isSpam) return res.status(400).json({ ok: false, error: spamReason });
 
-        /* Product exists? */
-        const product = await Product.findOne({ productId, isActive: true }).select('_id').lean();
+        /* Product exists? — check both productId (SKU) and MongoDB _id */  // ✅ FIX BUG #1
+        let product = await Product.findOne({ productId, isActive: true }).select('_id productId').lean();
+        if (!product && mongoose.Types.ObjectId.isValid(productId)) {           // ✅ FIX BUG #1
+          product = await Product.findOne({ _id: productId, isActive: true }).select('_id productId').lean();
+        }
         if (!product) return res.status(404).json({ ok: false, error: 'Product পাওয়া যায়নি' });
+
+        // ✅ FIX BUG #1: normalize to canonical SKU so all comments share one consistent key
+        const canonicalProductId = product.productId || String(product._id);
 
         /* Verified purchase + duplicate check */
         let isVerifiedPurchase = false;
@@ -705,7 +723,7 @@ module.exports = async (req, res) => {
             return res.status(400).json({ ok: false, error: 'সঠিক email দিন' });
           }
           // Prevent duplicate guest review from same email
-          const dupGuest = await Comment.findOne({ productId, guestEmail }).select('_id').lean();
+          const dupGuest = await Comment.findOne({ productId: canonicalProductId, guestEmail }).select('_id').lean(); // ✅ FIX BUG #1
           if (dupGuest) return res.status(409).json({ ok: false, error: 'এই email দিয়ে আগেই review দেওয়া হয়েছে' });
         }
 
@@ -716,13 +734,13 @@ module.exports = async (req, res) => {
 
         /* Prevent duplicate reviews from same phone */
         if (reviewerPhone) {
-          const dup = await Comment.findOne({ productId, customerPhone: reviewerPhone }).select('_id').lean();
+          const dup = await Comment.findOne({ productId: canonicalProductId, customerPhone: reviewerPhone }).select('_id').lean(); // ✅ FIX BUG #1
           if (dup) return res.status(409).json({ ok: false, error: 'আপনি এই পণ্যে আগেই review দিয়েছেন' });
         }
 
         /* Create review */
         const comment = await Comment.create({
-          productId,
+          productId: canonicalProductId,  // ✅ FIX BUG #1: canonical SKU, not raw input (_id)
           orderId,
           userId:       reviewerUserId,
           customerName: sanitize(customerName, 100),
@@ -748,7 +766,7 @@ module.exports = async (req, res) => {
 
         /* Update product rating if auto-approved */
         if (comment.isApproved) {
-          await recalcProductRating(productId);
+          await recalcProductRating(canonicalProductId);  // ✅ FIX BUG #1
         }
 
         return res.status(201).json({
