@@ -569,9 +569,9 @@ section{padding:52px 0}
 .pc-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .55s ease}
 .product-card:hover .pc-img-wrap img{transform:scale(1.08)}
 .pc-img-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:.35s;display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none}
-.product-card:hover .pc-img-overlay{background:rgba(0,0,0,.12);pointer-events:auto}
+.pc-img-wrap:hover .pc-img-overlay{background:rgba(0,0,0,.12);pointer-events:auto} /* ✅ FIX: scope hover to image area only */
 .pc-overlay-btn{width:38px;height:38px;border-radius:50%;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--dark);transition:.25s;transform:translateY(10px);opacity:0;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-.product-card:hover .pc-overlay-btn{transform:translateY(0);opacity:1}
+.pc-img-wrap:hover .pc-overlay-btn{transform:translateY(0);opacity:1} /* ✅ FIX: scope hover to image area only */
 .pc-overlay-btn:hover{background:var(--brand);color:#fff;transform:scale(1.1)}
 .pc-badges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:5px}
 .pc-badge{padding:3px 9px;border-radius:var(--r-xs);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;line-height:1.6}
@@ -583,14 +583,14 @@ section{padding:52px 0}
 .pc-wish:hover,.pc-wish.wished{background:var(--brand);color:#fff}
 /* === PRO HOVER QUICK-VIEW OVERLAY === */
 .pc-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:transparent;transition:background .32s ease;pointer-events:none;z-index:3}
-.product-card:hover .pc-overlay{background:rgba(10,10,25,.54);pointer-events:auto}
+.pc-img-wrap:hover .pc-overlay{background:rgba(10,10,25,.54);pointer-events:auto} /* ✅ FIX: scope hover to image area only */
 .pc-quick{background:rgba(255,255,255,.97);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--dark);padding:11px 26px;border-radius:var(--r-full);font-size:13px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:.2px;box-shadow:0 8px 28px rgba(0,0,0,.28);transform:translateY(20px) scale(.85);opacity:0;transition:transform .38s cubic-bezier(.34,1.56,.64,1) .04s,opacity .28s ease .04s,background .2s;pointer-events:none}
-.product-card:hover .pc-quick{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.pc-img-wrap:hover .pc-quick{transform:translateY(0) scale(1);opacity:1;pointer-events:auto} /* ✅ FIX: scope hover to image area only */
 .pc-quick i{color:var(--brand);font-size:15px;transition:color .2s}
 .pc-quick:hover{background:var(--brand);color:#fff;box-shadow:0 8px 24px rgba(228,30,38,.45)}
 .pc-quick:hover i{color:#fff}
 .pc-cart-fast{width:42px;height:42px;background:linear-gradient(135deg,var(--brand),var(--brand2));border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:15px;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(228,30,38,.45);transform:translateY(20px) scale(.85);opacity:0;transition:transform .38s cubic-bezier(.34,1.56,.64,1) .12s,opacity .28s ease .12s;pointer-events:none}
-.product-card:hover .pc-cart-fast{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+.pc-img-wrap:hover .pc-cart-fast{transform:translateY(0) scale(1);opacity:1;pointer-events:auto} /* ✅ FIX: scope hover to image area only */
 .pc-cart-fast:hover{background:var(--brand-dark)!important;transform:scale(1.13)!important;box-shadow:0 6px 20px rgba(228,30,38,.55)!important}
 .pc-body{padding:14px}
 .pc-cat{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
@@ -1485,7 +1485,7 @@ footer::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;back
 /* ===== COMMENT SYSTEM ===== */
 #comment-modal{position:fixed;inset:0;z-index:6000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:var(--t);padding:16px}
 #comment-modal.open{opacity:1;visibility:visible}
-.cm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
+.cm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)} /* ✅ FIX: added -webkit-backdrop-filter so Safari/iOS also blurs+darkens the backdrop instead of showing the grid through it */
 .cm-card{background:var(--modal-bg);border-radius:var(--r-2xl);max-width:600px;width:100%;max-height:88vh;overflow:hidden;position:relative;z-index:1;box-shadow:var(--shadow-xl);display:flex;flex-direction:column}
 .cm-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .cm-head-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
@@ -4321,7 +4321,7 @@ function pCard(p) {
 
   return `<div class="product-card fade-in" data-id="${p.id||''}" onclick="openProductPage('${p.id}')">
     <div class="pc-img-wrap pc-img-zoom-wrap" id="pci-${p.id}">
-      <img src="${p.img}" alt="${p.name||''}" loading="lazy" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500'" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
+      <img src="${p.img}" alt="${p.name||''}" loading="lazy" width="400" height="533" style="background:linear-gradient(135deg,#f0f0f5,#e8e8f0);color:transparent" onerror="this.src='https://picsum.photos/seed/${p.id}x/400/500';this.style.background=''" onload="this.style.background=''" onmousemove="zoomImage(event,${p.id})" onmouseleave="stopZoom(${p.id})">
       <div class="pc-badges">
         <span class="pc-badge ${bc[p.badge]||'b-sale'}">${bl[p.badge]||p.badge}</span>
         ${d>0?`<span class="pc-badge b-disc">-${d}%</span>`:''}
@@ -4351,7 +4351,7 @@ function pCard(p) {
       </div>
       <button class="btn-add-cart" onclick="event.stopPropagation();addToCart('${p.id}')"><i class="fa-solid fa-cart-plus"></i> Cart এ Add করুন</button>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px">
-        <div class="pc-comment-count" data-pid="${p.id}" onclick="event.stopPropagation();openComments('${p.id}','${(p.name||'').replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div>
+        <div class="pc-comment-count" data-pid="${p.productId||p.id}" onclick="event.stopPropagation();openComments('${p.productId||p.id}','${(p.name||'').replace(/'/g,"\\'")}')"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন</div> <!-- ✅ FIX: use productId (SKU) so backend Product.findOne({productId}) matches instead of failing on Mongo _id -->
         <button class="pc-compare-btn ${inCompare?'in-compare':''}" onclick="event.stopPropagation();toggleCompare('${p.id}')"><i class="fa-solid fa-scale-balanced"></i> ${inCompare?'✓ Added':'Compare'}</button>
       </div>
       <div class="pc-order-row">
@@ -4852,7 +4852,7 @@ function renderProductDetailPage(p) {
       <div id="pdp-reviews-list">
         <div style="text-align:center;padding:20px;color:var(--text3)"><i class="fa-solid fa-spinner fa-spin"></i> রিভিউ লোড হচ্ছে...</div>
       </div>
-      <button onclick="currentUser?openComments('${p.id}','${(p.name||'').replace(/'/g,"\\'")}'):openAuth('login')" style="width:100%;margin-top:14px;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:12px;border-radius:var(--r-full);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+      <button onclick="currentUser?openComments('${p.productId||p.id}','${(p.name||'').replace(/'/g,"\\'")}'):openAuth('login')" style="width:100%;margin-top:14px;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:12px;border-radius:var(--r-full);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"> <!-- ✅ FIX: use productId (SKU) instead of Mongo _id for openComments -->
         <i class="fa-regular fa-star"></i> রিভিউ লিখুন
       </button>
     </div>
@@ -5447,13 +5447,10 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ---------- RENDER ---------- */
 function renderGrid(id, items, lim=8) {
   const el=$(id); if(!el) return;
-  // Show skeleton briefly for better UX
+  // ✅ PERF FIX: Skip skeleton entirely if we already have products to show (cache/static) — avoids unnecessary visual delay
   if(items.length>0 && !el.dataset.loaded){
-    el.innerHTML=skelCards(Math.min(lim,4));
     el.dataset.loaded='1';
-    // Closure capture — items-এর reference ধরে রাখো (race condition fix)
-    const snapshot = items.slice();
-    setTimeout(()=>{_renderGridInner(id,snapshot,lim);},60);
+    _renderGridInner(id,items,lim);
     return;
   }
   _renderGridInner(id,items,lim);
@@ -6164,7 +6161,7 @@ function openQV(pid){
         <button onclick="closeQV();openComments(window._qvPid,(PRODUCTS.find(x=>String(x.id)===String(window._qvPid))||{}).name||'পণ্য')" style="width:100%;background:var(--bg2);border:1.5px solid var(--border2);color:var(--text2);padding:10px;border-radius:var(--r-full);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:var(--t)" onmouseover="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'"><i class="fa-regular fa-comment"></i> রিভিউ দেখুন ও লিখুন</button>
       </div>
     </div>`;
-  window._qvQ=1; window._qvPid=pid;
+  window._qvQ=1; window._qvPid=p.productId||pid; // ✅ FIX: store productId (SKU) so the review button's openComments call matches backend lookup
   const modal=document.getElementById('qv-modal');
   modal.style.opacity='1'; modal.style.visibility='visible';
   document.getElementById('qv-box').style.transform='scale(1)';
@@ -6793,11 +6790,16 @@ async function syncProductsFromAPI(silent = false) {
     window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
     PRODUCTS = window.PRODUCTS;
 
-    // Re-render with live data — reset all grids so they properly re-render
-    ['main-grid','new-grid','women-grid','gadget-grid','flash-grid'].forEach(id=>{
-      const el=$(id); if(el) el.removeAttribute('data-loaded');
-    });
-    renderAll();
+    // ✅ PERF FIX: Diff-based update — only re-render if the product list actually changed (prevents content jumping / flash on every 3-min poll when nothing changed)
+    const newProductIds = JSON.stringify(apiProds.map(p=>p.productId).sort());
+    const oldProductIds = JSON.stringify((window._lastSyncedProductIds || []));
+    if (newProductIds !== oldProductIds) {
+      window._lastSyncedProductIds = apiProds.map(p=>p.productId).sort(); // ✅ PERF FIX: remember last synced ids for next diff check
+      ['main-grid','new-grid','women-grid','gadget-grid','flash-grid'].forEach(id=>{
+        const el=$(id); if(el) el.removeAttribute('data-loaded');
+      });
+      renderAll();
+    }
     updateCartUI();
 
     // ✅ Cache for offline fallback
@@ -6849,6 +6851,27 @@ document.addEventListener('DOMContentLoaded',()=>{
   }, 1500);
   const wc=$('wish-count'); if(wishlist.length>0){wc.textContent=wishlist.length;wc.style.display='flex';}
 
+  // ✅ PERF FIX: Pre-load from localStorage cache INSTANTLY (0ms delay) — eliminates blank-product flash on every page load
+  (function preloadFromCache() {
+    try {
+      const cached = JSON.parse(localStorage.getItem('slx_api_products_cache') || '[]');
+      if (cached.length > 0) {
+        const cachedIds = new Set(cached.map(ap => ap.productId).filter(Boolean));
+        window.SHOPLIXA_PRODUCTS = (window.SHOPLIXA_PRODUCTS || []).filter(
+          p => !p._fromAPI && !cachedIds.has(p.productId || String(p.id))
+        );
+        cached.forEach(ap => {
+          ap.id = ap.id || ('api_' + ap.productId);
+          window.SHOPLIXA_PRODUCTS.push(ap);
+        });
+        window.PRODUCTS = window.SHOPLIXA_PRODUCTS.slice();
+        PRODUCTS = window.PRODUCTS;
+        // ✅ PERF FIX: seed _lastSyncedProductIds so the first API sync can diff against cache instead of always re-rendering
+        window._lastSyncedProductIds = cached.map(ap => ap.productId).filter(Boolean).sort();
+      }
+    } catch(e) { /* ignore cache errors */ }
+  })();
+
   // ── Step 2: Offline fallback — merge localStorage only if API fails
   // (will be overwritten by API data immediately)
   mergeLocalDynamicProducts();
@@ -6857,11 +6880,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderAll();
   // ── Step 4: Sync from API — DB is the ONLY source of truth for all devices/browsers
   // This runs immediately and replaces all local/static products with DB products
-  syncProductsFromAPI(false);
+  syncProductsFromAPI(true); // ✅ PERF FIX: silent=true — diff-based update inside syncProductsFromAPI now decides whether a re-render is needed, preventing a guaranteed second full re-layout right after Step 3
   setTimeout(loadHomepageReviews, 1000); // homepage testimonials fetch
 
-  // ── Step 5: Auto-refresh every 90 seconds (faster sync for new products)
-  setInterval(()=>syncProductsFromAPI(true), 90 * 1000);
+  // ── Step 5: Auto-refresh every 3 minutes (diff-based update means no visible change when products haven't changed) — ✅ PERF FIX: was 90s
+  setInterval(()=>syncProductsFromAPI(true), 180 * 1000);
 
   // ── Step 6: Visibility change refresh — when user switches back to tab, refresh
   document.addEventListener('visibilitychange', () => {
@@ -8728,8 +8751,10 @@ async function submitComment() {
 
   if (result.ok) {
     document.getElementById('cm-text').value = '';
-    selectedCommentStar = 5;
-    updateStarUI(5);
+    selectedCommentStar = 0; // ✅ FIX: reset rating to 0 instead of 5 after successful submission
+    updateStarUI(0); // ✅ FIX: reflect the reset rating in the star UI
+    const titleEl = document.getElementById('cm-title'); // ✅ FIX: title field was never being cleared
+    if (titleEl) titleEl.value = '';
     const vidEl  = document.getElementById('cm-video-url');
     const sizeEl = document.getElementById('cm-size');
     const colEl  = document.getElementById('cm-color');
@@ -9879,6 +9904,13 @@ function zoomImage(e, pid){
   if(!wrap) return;
   const img = wrap.querySelector('img');
   if(!img) return;
+  // ✅ FIX: Don't zoom when overlay buttons are visible (image hovered)
+  // This prevents zoom-flicker when cursor transitions from image to button
+  const overlay = wrap.querySelector('.pc-overlay');
+  if(overlay && getComputedStyle(overlay).pointerEvents === 'auto'){
+    img.style.transform = '';  // reset zoom when overlay is showing
+    return;
+  }
   const rect = img.getBoundingClientRect();
   const x = ((e.clientX - rect.left) / rect.width) * 100;
   const y = ((e.clientY - rect.top) / rect.height) * 100;
